@@ -28,10 +28,7 @@
 	   2nd January 1994
 */
 
-#include <exec/types.h>
-#include <exec/memory.h>
-#include <libraries/dos.h>
-#include <stdio.h>
+#include "app.h"
 
 static char *version = "$VER: APP 1.1 (02.01.1994)";
 
@@ -69,7 +66,6 @@ extern	void	free_alloc();
 /* functions */
 void 	usage();
 void 	_error();
-BOOL 	isalpha();
 void	user_break();
 void	preprocess();
 void	create_incl_list();
@@ -115,11 +111,27 @@ char *filename;
  exit(ERR);
 }
 
+
+char * strupr (char * a)
+{
+  char *ret = a;
+
+  while (*a != '\0')
+    {
+      if (islower (*a))
+		*a = toupper (*a);
+      ++a;
+    }
+
+  return ret;
+}
+
+
 void create_incl_list()
 {
  /* create head of include file list */
  
- incl = (INCL *)alloc(sizeof(INCL),MEMF_PUBLIC);
+ incl = (INCL *)alloc(sizeof(INCL),MEMF_ANY);
  if (incl == NULL) _error(NODE_ALLOC_ERR,"  ");  
  else
      { curr_incl = incl; incl->next = NULL; }
@@ -156,11 +168,11 @@ FILE *src;
  if (incl_file_exists(name)) return;	/* name is already on the list */
 
  /* allocate memory for a new list node */
- if ((new_incl = (INCL *)alloc(sizeof(INCL),MEMF_PUBLIC))==NULL)
+ if ((new_incl = (INCL *)alloc(sizeof(INCL),MEMF_ANY))==NULL)
     _error(NODE_ALLOC_ERR,"  ");
 
  /* allocate memory for a name in the new node */
- if ((new_incl->filename = (char *)alloc(strlen(name)+1,MEMF_PUBLIC))==NULL)
+ if ((new_incl->filename = (char *)alloc(strlen(name)+1,MEMF_ANY))==NULL)
     _error(NAME_ALLOC_ERR,"  ");
 
  /* fill new node */
@@ -192,19 +204,10 @@ BOOL past_head=FALSE;
  while (curr != NULL);  
 }
 
-BOOL isalpha(ch)
-char ch;
-{
- if (((ch >= 'a') && (ch <= 'z')) ||
-     ((ch >= 'A') && (ch <= 'Z'))) return(TRUE);
- else
-     return(FALSE);
-}
-
 void user_break()
 {
  /* if user has hit ctrl-c, cleanup and abort. */
-
+#ifdef AMIGA
  if (SetSignal(0L,SIGBREAKF_CTRL_C) & SIGBREAKF_CTRL_C)
  {
      puts("*** Break: app terminating.");
@@ -213,6 +216,7 @@ void user_break()
      free_alloc();
      exit(ERR);
  }
+#endif
 }
 
 void preprocess(srcfile)
@@ -331,12 +335,9 @@ BOOL inside_string_literal=FALSE;
  }
 }
 
-main(argc,argv)
-int  argc;
-char *argv[];
+int main(int argc,char *argv[])
 {
 FILE *src;
-int  result;
 
  printf("ACE preprocessor version 1.1, copyright ");
  putchar(169);
@@ -353,8 +354,6 @@ int  result;
 
  /* try to open destination file */
  if ((dest=fopen(argv[2],"w")) == NULL) _error(CANT_OPEN_DEST,argv[2]);
-
- open_intui_lib();
 
  create_incl_list();
 

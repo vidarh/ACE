@@ -27,28 +27,52 @@
 **    	   16th,24th,25th December 1993
 */
 
-#include <exec/types.h>
-#include <exec/memory.h>
-#include <intuition/intuition.h>
+#include "app.h"
 
-/* local variables */
+#ifdef AMIGA
+extern struct Library	*IntuitionBase = NULL;
+
+#else
+
+static void * AllocRemember(struct Remember ** rem, long bytes, int flags)
+{
+  struct Remember * new_rem = malloc(sizeof(struct Remember));
+  new_rem->next = *rem;
+  new_rem->mem = malloc(bytes);
+  *rem = new_rem;
+  return new_rem->mem;
+}
+
+static void FreeRemember(struct Remember ** rem, BOOL unused_)
+{
+  struct Remember * node = *rem;
+  while(node) {
+	struct Remember * next = node->next;
+	free(node->mem);
+	free(node);
+	node = next;
+  }
+  *rem = 0;
+}
+
+#endif
+
 struct Remember *RememberList = NULL;
-struct Library	*IntuitionBase = NULL;
 
 /* functions */
-void open_intui_lib()
-{
-/* open Intuition Library */
-
- IntuitionBase = (struct Library *)OpenLibrary("intuition.library",0L);
- if (IntuitionBase == NULL) 
-    { puts("Can't open intuition.library!"); exit(10); } 
-}
 
 void *alloc(bytes,flags)
 ULONG bytes,flags;
 {
 /* allocate memory as requested */
+#ifdef AMIGA
+/* open Intuition Library */
+  if (!IntuitionBase) {
+	IntuitionBase = (struct Library *)OpenLibrary("intuition.library",0L);
+	if (IntuitionBase == NULL) 
+	  { puts("Can't open intuition.library!"); exit(10); } 
+  }
+#endif
 
  return((void *)AllocRemember(&RememberList,bytes,flags));     
 }
@@ -64,5 +88,7 @@ void free_alloc()
 	RememberList = NULL;
  }
 
+#ifdef AMIGA
  if (IntuitionBase) CloseLibrary(IntuitionBase);
+#endif
 }
