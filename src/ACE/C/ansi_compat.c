@@ -32,4 +32,18 @@ char * itoa(int n, char s[], int bufsize)
   reverse(s);
   return s;
 }
+
+char * strupr (char * a)
+{
+  char *ret = a;
+
+  while (*a != '\0')
+    {
+      if (islower (*a))
+		*a = toupper (*a);
+      ++a;
+    }
+
+  return ret;
+}
 #endif
