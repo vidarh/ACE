@@ -49,16 +49,20 @@
 */
 
 #include "lexvar.c"
+#include "float_compat.h"
 
 /* globals */
+#ifdef AMIGA
 ULONG 	MathBase = NULL;
 ULONG 	MathTransBase = NULL;
 ULONG	IntuitionBase = NULL;
+#endif
 BOOL 	inside_string = FALSE;	/* see last line of nextch() */
 
 /* functions */
 void open_shared_libs()
 {
+#ifdef AMIGA
  if ((MathBase = OpenLibrary("mathffp.library",0)) == NULL) 
  {
   printf("Unable to open mathffp.library!\n");
@@ -76,13 +80,16 @@ void open_shared_libs()
   printf("Unable to open intuition.library!\n");
   exit(10);
  }
+#endif
 }
 
 void close_shared_libs()
 {
+#ifdef AMIGA
  if (IntuitionBase != NULL) CloseLibrary(MathTransBase);
  if (MathTransBase != NULL) CloseLibrary(MathTransBase);
  if (MathBase != NULL) CloseLibrary(MathBase);
+#endif
 }
  
 void setup()
@@ -417,6 +424,7 @@ char lineno_buf[15], *tmp;
 int  i,n;
 BOOL continue_line;
 
+#ifdef AMIGA
  /* if user hits ctrl-c clean up and abort. */
  if (SetSignal(0L,SIGBREAKF_CTRL_C) & SIGBREAKF_CTRL_C)
  {
@@ -425,6 +433,9 @@ BOOL continue_line;
   kill_all_lists();
   cleanup();
  }
+#else
+#warning No break handler for non-Amiga port
+#endif
 
  if (column == linelen)
  {

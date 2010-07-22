@@ -50,12 +50,39 @@
 	   4th September 1996
 */
 
+#ifdef ANSI
+#include "ansi_compat.h"
+#endif
+
+#ifdef AMIGA
 #include <exec/types.h>
 #include <exec/memory.h>
 #include <libraries/mathffp.h>
 #include <libraries/mathlibrary.h>
 #include <libraries/dos.h>
+#else
+#include <inttypes.h>
+#include <stdint.h>
+typedef uint8_t BOOL;
+typedef uint8_t UBYTE;
+typedef int8_t BYTE;
+typedef int16_t SHORT;
+typedef int32_t LONG;
+typedef uint32_t ULONG;
+#define TRUE 1
+#define FALSE 0
+
+#warning HACKs to get it to compile on Linux before doing a proper port
+#define MEMF_ANY 0
+#define SIGBREAKF_CTRL_C 0
+#define MODE_OLDFILE 0
+
+#include "float_compat.h"
+#endif
+
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 
 /* AmigaBASIC reserved words */
 enum { 	abssym = 0,
@@ -698,7 +725,6 @@ void	gen_writecode();
 void	print_to_file();
 void	input_from_file();
 void	kill();
-void	rename();
 void	chdir();
 void	files();
 

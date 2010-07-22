@@ -569,7 +569,7 @@ void kill()
  }
 }
 
-void rename()
+void ace_rename()
 {
 /* NAME <filespec1> AS <filespec2> */
 

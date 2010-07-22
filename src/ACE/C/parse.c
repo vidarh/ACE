@@ -632,11 +632,15 @@ BOOL legalopt=TRUE;
 
 void ctrl_c_break_test()
 {
+#ifdef AMIGA
 	if (SetSignal(0L,SIGBREAKF_CTRL_C) & SIGBREAKF_CTRL_C) 
 	{
 		puts("\n*** Break: ACE terminating.");
 		exit(5);
 	}
+#else
+#warning No break handler for non-Amiga port
+#endif
 }
 
 void dump_reserved_words()

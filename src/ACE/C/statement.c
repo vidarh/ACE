@@ -734,7 +734,7 @@ SHORT popcount;
  if (sym == msgboxsym) MsgBox();
  else
  /* name */
- if (sym == namesym) rename();
+ if (sym == namesym) ace_rename();
  else
  /* next */
  if ((sym == nextsym) && (lastsym == colon)) 

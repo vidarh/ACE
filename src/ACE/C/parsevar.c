@@ -70,7 +70,7 @@ char   string_const_start[7] = { 'd','c','.','b',' ','"','\0' };
 char   string_const_end[4] = { '"',',','0','\0' };
 
 /* --parser-- */
-int  table_mem[2]=0;			
+int  table_mem[2]={0,0};			
 int  addr[2]; 
 int  lev;
 

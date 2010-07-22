@@ -34,7 +34,8 @@
 */
 	
 #include <acedef.h>
-#include <intuition/intuition.h>
+#include <string.h>
+#include <stdlib.h>
 
 /* external variables */
 extern	int	lev;
