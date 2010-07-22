@@ -1,0 +1,8 @@
+Short: ACE BASIC compiler distribution plus source code under Gnu Public Lisence.
+Uploader: David Benn, dbenn@camtech.net.au
+Author: David Benn
+Type: dev/basic
+
+This is the ACE 2.4 distribution (with db.lib 2.61 as updated post-ACE 2.4 
+release) and the source code to the ACE compiler and libraries under the Gnu 
+Public Lisence.
