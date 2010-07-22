@@ -394,7 +394,7 @@ char *xtn;
  /* 
  ** Open object file. 
  */
- destfile = (char *)alloc(strlen(srcfile)+1);
+ destfile = (char *)alloc(strlen(srcfile)+3); /* Full size + '.s' + 0 */
  if (destfile == NULL)
  {
   puts("can't allocate memory for object file name.");
@@ -403,8 +403,10 @@ char *xtn;
  }
 
  /* copy source file name and change extension to ".s" */
- cc=0;
- while (srcfile[cc] != '.') { destfile[cc] = srcfile[cc]; cc++; }
+ strcpy(destfile,srcfile);
+ cc=strlen(destfile)-1;
+ while (cc > 0 && destfile[cc] != '.') cc--;
+ if (cc == 0) cc = strlen(destfile);
  destfile[cc] = '\0';
  strcat(destfile,".s");
 
