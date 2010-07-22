@@ -40,12 +40,40 @@
 /* external variables */
 extern	int	lev;
 
+#ifndef AMIGA
+struct Remember {
+  struct Remember * next;
+  void * mem;
+};
+
+/* Very basic compat code. FIXME: Move to separate file */
+
+void * AllocRemember(struct Remember ** rem, long bytes, int flags)
+{
+  struct Remember * new_rem = malloc(sizeof(struct Remember));
+  new_rem->next = *rem;
+  new_rem->mem = malloc(bytes);
+  *rem = new_rem;
+  return rem;
+}
+
+void FreeRemember(struct Remember ** rem, BOOL unused_)
+{
+  struct Remember * node = *rem;
+  while(node) {
+	struct Remember * next = node->next;
+	free(node->mem);
+	free(node);
+	node = next;
+  }
+  *rem = 0;
+}
+#endif
+
 /* local variables */
 struct Remember *GenRememberList = NULL;
 struct Remember *SymRememberList[2] = { NULL, NULL };
 
-/* protos */
-void *malloc();
 
 /* functions */
 void *alloc(bytes,flags)
