@@ -56,7 +56,7 @@ void * AllocRemember(struct Remember ** rem, long bytes, int flags)
   new_rem->next = *rem;
   new_rem->mem = malloc(bytes);
   *rem = new_rem;
-  return rem;
+  return new_rem->mem;
 }
 
 void FreeRemember(struct Remember ** rem, BOOL unused_)
