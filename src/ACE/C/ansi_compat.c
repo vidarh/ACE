@@ -1,6 +1,7 @@
 #ifdef ANSI
 
 #include <string.h>
+#include <sys/stat.h>
  
 /* reverse:  reverse string s in place */
 static void reverse(char s[])
@@ -46,4 +47,16 @@ char * strupr (char * a)
 
   return ret;
 }
+
+
+
+long fsize(const char *filename) {
+  struct stat st; 
+
+  if (stat(filename, &st) == 0)
+	return st.st_size;
+
+  return -1; 
+}
+
 #endif

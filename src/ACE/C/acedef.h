@@ -72,11 +72,6 @@ typedef uint32_t ULONG;
 #define TRUE 1
 #define FALSE 0
 
-#warning HACKs to get it to compile on Linux before doing a proper port
-#define MEMF_ANY 0
-#define SIGBREAKF_CTRL_C 0
-#define MODE_OLDFILE 0
-
 #include "float_compat.h"
 #endif
 

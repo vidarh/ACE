@@ -929,7 +929,7 @@ char *string;
 char *strbuf,buf[MAXSTRLEN];
 
  /* actual string constant */
- strbuf=(char *)alloc(strlen(string)+10,MEMF_ANY); 
+ strbuf=(char *)alloc(strlen(string)+10); 
                              /* +10 is for string_const_start/end (9) & '\0' */ 
  strcpy(strbuf,string_const_start);
  strcat(strbuf,string);

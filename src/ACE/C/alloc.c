@@ -41,6 +41,8 @@
 extern	int	lev;
 
 #ifndef AMIGA
+#define MEMF_ANY 0
+
 struct Remember {
   struct Remember * next;
   void * mem;
@@ -76,20 +78,18 @@ struct Remember *SymRememberList[2] = { NULL, NULL };
 
 
 /* functions */
-void *alloc(bytes,flags)
-ULONG bytes,flags;
+void *alloc(ULONG bytes)
 {
 /* allocate memory as requested */
 
- return((void *)AllocRemember(&GenRememberList,bytes,flags));     
+ return((void *)AllocRemember(&GenRememberList,bytes,MEMF_ANY));     
 }
 
-void *sym_alloc(bytes,flags)
-ULONG bytes,flags;
+void *sym_alloc(ULONG bytes)
 {
 /* allocate memory for current level's symbol table as requested */
 
- return((void *)AllocRemember(&SymRememberList[lev],bytes,flags));     
+ return((void *)AllocRemember(&SymRememberList[lev],bytes,MEMF_ANY));     
 }
 
 void free_alloc()

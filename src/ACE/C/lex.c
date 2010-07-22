@@ -355,7 +355,7 @@ char *xtn;
  /* 
  ** Open source file: allocate memory for extension in case required.
  */
- srcfile = (char *)alloc(strlen(source)+3,MEMF_ANY); /* 3 = 2*Xtn + EOS */
+ srcfile = (char *)alloc(strlen(source)+3); /* 3 = 2*Xtn + EOS */
  if (srcfile == NULL)
  {
   puts("can't allocate memory for source file name.");
@@ -394,7 +394,7 @@ char *xtn;
  /* 
  ** Open object file. 
  */
- destfile = (char *)alloc(strlen(srcfile)+1,MEMF_ANY);
+ destfile = (char *)alloc(strlen(srcfile)+1);
  if (destfile == NULL)
  {
   puts("can't allocate memory for object file name.");

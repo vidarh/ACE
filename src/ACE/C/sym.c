@@ -56,7 +56,7 @@ void new_symtab()
    at current level.
 */
  
- if ((tab_head[lev] = (SYM *)sym_alloc(sizeof(SYM),MEMF_ANY)) == NULL)
+ if ((tab_head[lev] = (SYM *)sym_alloc(sizeof(SYM))) == NULL)
  {
   printf("Can't allocate memory for symbol table!\n");
   early_exit=TRUE;
@@ -122,7 +122,7 @@ int   dims;
 int i;
 
  /* allocate memory for info' */
- if ((new_item = (SYM *)sym_alloc(sizeof(SYM),MEMF_ANY)) == NULL)
+ if ((new_item = (SYM *)sym_alloc(sizeof(SYM))) == NULL)
 {
   printf("Can't allocate memory for symbol table item!\n");
   early_exit=TRUE;
@@ -130,7 +130,7 @@ int i;
   cleanup();
  }
 
- if ((new_item->name = (char *)sym_alloc(strlen(name)+1,MEMF_ANY)) == NULL)
+ if ((new_item->name = (char *)sym_alloc(strlen(name)+1)) == NULL)
  {  
   printf("Can't allocate memory for symbol table item!\n");
   early_exit=TRUE;
@@ -172,7 +172,7 @@ int i;
  /* array? -> store index maxima */
  if (obj == array)
  {
-  if ((new_item->index = (SHORT *)sym_alloc((dims+1)*2,MEMF_ANY)) == NULL)
+  if ((new_item->index = (SHORT *)sym_alloc((dims+1)*2)) == NULL)
   {
    printf("Array index storage allocation error.\n");
    early_exit=TRUE;
@@ -187,7 +187,7 @@ int i;
  if (obj == structdef)
  {
   if ((new_item->structmem = 
-                 (STRUCM *)sym_alloc(sizeof(STRUCM),MEMF_ANY)) == NULL)
+                 (STRUCM *)sym_alloc(sizeof(STRUCM))) == NULL)
   {
    printf("Can't allocate memory for an initial structdef node!\n");
    early_exit=TRUE;
@@ -225,7 +225,7 @@ void create_lists()
 {
 /* create code, DATA, BSS, XREF and BASIC DATA lists */
 
- data = (DATA *)alloc(sizeof(DATA),MEMF_ANY);
+ data = (DATA *)alloc(sizeof(DATA));
  if (data == NULL) 
  { 
   cleanup(); 
@@ -233,7 +233,7 @@ void create_lists()
  else
     { curr_data = data; data->next = NULL; }
 
- bss = (BSS *)alloc(sizeof(BSS),MEMF_ANY);
+ bss = (BSS *)alloc(sizeof(BSS));
  if (bss == NULL) 
  { 
   cleanup(); 
@@ -241,7 +241,7 @@ void create_lists()
  else
     { curr_bss = bss; bss->next = NULL; }
 
- xref = (XREF *)alloc(sizeof(XREF),MEMF_ANY);
+ xref = (XREF *)alloc(sizeof(XREF));
  if (xref == NULL)
  {
   cleanup();
@@ -249,7 +249,7 @@ void create_lists()
  else 
      { curr_xref = xref; xref->next = NULL; }
 
- basdata = (BASDATA *)alloc(sizeof(BASDATA),MEMF_ANY);
+ basdata = (BASDATA *)alloc(sizeof(BASDATA));
  if (basdata == NULL)
  {
   cleanup();
@@ -446,7 +446,7 @@ char *literal;
  if (exist_DATA(name)) return;  /* already exists */
 
  /* allocate memory for a new node & each field */
- if ((new_data = (DATA *)alloc(sizeof(DATA),MEMF_ANY)) == NULL)
+ if ((new_data = (DATA *)alloc(sizeof(DATA))) == NULL)
  {
   printf("Can't allocate memory for DATA node!\n");
   early_exit=TRUE;
@@ -454,7 +454,7 @@ char *literal;
   cleanup();
  }
  
- if ((new_data->name=(char *)alloc(strlen(name)+1,MEMF_ANY))==NULL)
+ if ((new_data->name=(char *)alloc(strlen(name)+1))==NULL)
  {
   printf("Can't allocate memory for DATA node name field!\n");
   early_exit=TRUE;
@@ -462,7 +462,7 @@ char *literal;
   cleanup();
  }
 
- if ((new_data->literal=(char *)alloc(strlen(literal)+1,MEMF_ANY))==NULL)
+ if ((new_data->literal=(char *)alloc(strlen(literal)+1))==NULL)
  {
   printf("Can't allocate memory for DATA node literal field!\n");
   early_exit=TRUE;
@@ -529,7 +529,7 @@ char *store;
  if ((exist_BSS(name)) && (strcmp(name,"  ") != 0)) return; 
 
  /* allocate memory for a new node & each field */
- if ((new_bss = (BSS *)alloc(sizeof(BSS),MEMF_ANY)) == NULL)
+ if ((new_bss = (BSS *)alloc(sizeof(BSS))) == NULL)
  {
   printf("Can't allocate memory for BSS node!\n");
   early_exit=TRUE;
@@ -537,7 +537,7 @@ char *store;
   cleanup();
  }
  
- if ((new_bss->name=(char *)alloc(strlen(name)+1,MEMF_ANY))==NULL)
+ if ((new_bss->name=(char *)alloc(strlen(name)+1))==NULL)
  {
   printf("Can't allocate memory for BSS node name field!\n");
   early_exit=TRUE;
@@ -545,7 +545,7 @@ char *store;
   cleanup();
  }
 
- if ((new_bss->store=(char *)alloc(strlen(store)+1,MEMF_ANY))==NULL)
+ if ((new_bss->store=(char *)alloc(strlen(store)+1))==NULL)
  {
   printf("Can't allocate memory for BSS node literal field!\n");
   early_exit=TRUE;
@@ -617,7 +617,7 @@ char *name;
  if (strcmp(name,"_TransBase") == 0) translateused=TRUE;
  
  /* allocate memory for a new node & name field */
- if ((new_xref = (XREF *)alloc(sizeof(XREF),MEMF_ANY)) == NULL)
+ if ((new_xref = (XREF *)alloc(sizeof(XREF))) == NULL)
  {
   printf("Can't allocate memory for XREF node!\n");
   early_exit=TRUE;
@@ -625,7 +625,7 @@ char *name;
   cleanup();
  }
  
- if ((new_xref->name=(char *)alloc(strlen(name)+1,MEMF_ANY))==NULL)
+ if ((new_xref->name=(char *)alloc(strlen(name)+1))==NULL)
  {
   printf("Can't allocate memory for XREF node name field!\n");
   early_exit=TRUE;
@@ -681,7 +681,7 @@ char *literal;
  basdatapresent=TRUE;
 
  /* allocate memory for a new node & data */
- if ((new_basdata = (BASDATA *)alloc(sizeof(BASDATA),MEMF_ANY)) == NULL)
+ if ((new_basdata = (BASDATA *)alloc(sizeof(BASDATA))) == NULL)
  {
   printf("Can't allocate memory for BASIC DATA node!\n");
   early_exit=TRUE;  
@@ -689,7 +689,7 @@ char *literal;
   cleanup();
  }
 
- if ((new_basdata->literal=(char *)alloc(strlen(literal)+1,MEMF_ANY))==NULL)
+ if ((new_basdata->literal=(char *)alloc(strlen(literal)+1))==NULL)
  {
   printf("Can't allocate memory for BASIC DATA node literal field!\n");
   early_exit=TRUE;
@@ -777,7 +777,7 @@ SYM  *structtype;
  else
  {
   /* add a unique member */
-  if ((new_structmem = (STRUCM *)alloc(sizeof(STRUCM),MEMF_ANY)) == NULL)
+  if ((new_structmem = (STRUCM *)alloc(sizeof(STRUCM))) == NULL)
   {
    printf("Can't allocate memory for structdef node!\n");
    early_exit=TRUE;

@@ -281,7 +281,7 @@ SYM  *declared_func;
 */
 
 unsigned char		*buf;
-struct FileHandle	*f;
+FILE * f;
 unsigned char		ch,name[MAXIDSIZE];
 LONG	 		bmap_size,count,cc,rc;
 SHORT			offset=0;
@@ -295,10 +295,11 @@ unsigned char *tmp;
  else
  {
   /* read whole bmap file into a buffer */
-  buf = (unsigned char *)alloc(bmap_size,MEMF_ANY);
-  f = (struct FileHandle *)Open(bmap,MODE_OLDFILE);
-  Read(f,buf,bmap_size);
-  Close(f);
+  buf = (unsigned char *)alloc(bmap_size);
+  f = fopen(bmap,"r");
+  if(!f) return FALSE;
+  if(fread(buf,1,bmap_size,f) < bmap_size) return FALSE;
+  fclose(f);
 
   count=0;  /* start of buffer */
 
@@ -346,7 +347,7 @@ unsigned char *tmp;
   declared_func->address = (SHORT)offset;  /* record library base offset */
 
   /* get n bytes of register data */
-  declared_func->reg = (UBYTE *)sym_alloc(15,MEMF_ANY);
+  declared_func->reg = (UBYTE *)sym_alloc(15);
   if (declared_func->reg == NULL)
   {
 	puts("Can't allocate memory for function register info!");
@@ -383,7 +384,7 @@ SYM  *declared_func;
      if (search_func(bmapname,ut_funcname,declared_func))
      {
       /* store library name */
-      declared_func->libname = (char *)sym_alloc(MAXIDSIZE+8,MEMF_ANY);
+      declared_func->libname = (char *)sym_alloc(MAXIDSIZE+8);
       if (declared_func->libname == NULL)
       {
 	puts("Can't allocate memory for library name in symbol table!");
