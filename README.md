@@ -2,8 +2,11 @@
 ACE
 ===
 
-Originally written by David Benn.
-This version maintained by Vidar Hokstad
+Originally written by David Benn:
+ * http://www.users.on.net/~dbenn/index.html
+ * http://dbenn.wordpress.com/
+
+This version maintained by Vidar Hokstad.
 
 License: GNU General Public License
 
@@ -11,6 +14,8 @@ ACE is a recursive descent peephole optimizing compiler for a large subset of Am
 plus a number of extensions.
 
 It generates M68k assembler suitable for use with A68k.
+
+Please read README_FIRST for details on the original source release.
 
 ## Changes since the last release ##
 
