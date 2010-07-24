@@ -204,9 +204,8 @@ int  exprtype;
 	typ=oldtyp;
 	if (sym == equal) have_equal=TRUE;
 	if (sym == lparen) { 
-            if (!exist(id,array)) { _error(71); insymbol(); return; } 
-	} else {
- 	    have_lparen=TRUE;
+	  if (!exist(id,array)) { _error(71); insymbol(); return; } 
+	  else have_lparen=TRUE;
 	}
  	assign();	   
 	have_lparen=FALSE;
