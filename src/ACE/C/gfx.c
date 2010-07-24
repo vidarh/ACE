@@ -689,7 +689,7 @@ BOOL relative;
 
 }
 
-areafill()
+void areafill()
 {
  /* AREAFILL [mode] */
 
@@ -713,7 +713,7 @@ areafill()
  enter_XREF("_GfxBase");
 }
 
-pattern()
+void pattern()
 {
 char addrbuf[40];
 char numbuf[20];
@@ -776,7 +776,7 @@ BOOL linepatterncalled;
        	gen("move.l",addrbuf,"a0");	/* start address of array */
 
        	/* size of array? */
-	sprintf(numbuf,"#%ld",curr_item->size/2);
+	sprintf(numbuf,"#%ld",(long)curr_item->size/2);
 	gen("move.l",numbuf,"d0");	/* size of array */
 
         gen("move.l","#0","d1");	/* RESTORE flag */

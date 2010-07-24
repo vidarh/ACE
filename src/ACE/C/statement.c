@@ -55,6 +55,8 @@
 */
 
 #include "acedef.h"
+#include "event.h"
+#include "gfx.h"
 
 /* locals */
 static	char 	*frame_ptr[] = { "(a4)","(a5)" };
@@ -225,10 +227,11 @@ SHORT popcount;
      obj=oldobj;
      typ=oldtyp;
      if (sym == equal)  have_equal=TRUE;
-     if (sym == lparen) 
+     if (sym == lparen) {
          if (!exist(id,array)) { _error(71); insymbol(); return; } 
-     else
-	 have_lparen=TRUE;
+	 } else {
+	   have_lparen=TRUE;
+	 }
      assign(); 
      have_equal=FALSE;
      have_lparen=FALSE;

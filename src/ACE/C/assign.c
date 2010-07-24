@@ -206,7 +206,7 @@ char addrbuf[20],buf[80];
      in stack frame for other purposes (eg: passing
      to SUBs, use in factor() etc). 
    */
-   sprintf(buf,"#_stringvar%ld",string_item->numconst.longnum);
+   sprintf(buf,"#_stringvar%ld",(long)string_item->numconst.longnum);
    gen("move.l",buf,addrbuf);
  }
 
@@ -323,7 +323,7 @@ int    exprtype,storetype;
       else
       if (member->type == stringtype)  /* string */
       {
-       sprintf(numbuf,"#%ld",member->offset);
+       sprintf(numbuf,"#%ld",(long)member->offset);
        gen("move.l","(sp)+","a1");  /* source */
        gen("adda.l",numbuf,"a0");   /* destination = struct address + offset */
        gen("jsr","_strcpy","  ");   /* copy source to destination */
@@ -369,7 +369,7 @@ int    exprtype,storetype;
 
 void assign()
 {
-char addrbuf[80],numbuf[80],sub_name[80];
+char addrbuf[80],sub_name[80];
 char ext_name[MAXIDSIZE],buf[MAXIDSIZE];
 SYM  *storage_item;
 int  oldlevel;
@@ -926,7 +926,7 @@ char *addrbuf;
 void make_data_const(string)
 char *string;
 {
-char *strbuf,buf[MAXSTRLEN];
+char *strbuf;
 
  /* actual string constant */
  strbuf=(char *)alloc(strlen(string)+10); 
@@ -964,21 +964,21 @@ float fnum,sign;
    else
     if (sym == singleconst)
     {
-     sprintf(fnumbuf,"%lx",SPMul(singleval,sign));
+     sprintf(fnumbuf,"%lx",(unsigned long)SPMul(singleval,sign));
      make_data_const(fnumbuf);
     }
     else
      if (sym == longconst)
      {
       fnum=SPMul(SPFlt(longval),sign);
-      sprintf(fnumbuf,"%lx",fnum);
+      sprintf(fnumbuf,"%lx",(unsigned long)fnum);
       make_data_const(fnumbuf);
      }        
      else
      if (sym == shortconst)
      {
       fnum=SPMul(SPFlt((long)shortval),sign);
-      sprintf(fnumbuf,"%lx",fnum);
+      sprintf(fnumbuf,"%lx",(unsigned long)fnum);
       make_data_const(fnumbuf);
      }       
      else _error(26);  /* constant expected */

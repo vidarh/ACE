@@ -203,10 +203,11 @@ int  exprtype;
 	obj=oldobj;
 	typ=oldtyp;
 	if (sym == equal) have_equal=TRUE;
-	if (sym == lparen) 
+	if (sym == lparen) { 
             if (!exist(id,array)) { _error(71); insymbol(); return; } 
-	else
+	} else {
  	    have_lparen=TRUE;
+	}
  	assign();	   
 	have_lparen=FALSE;
 	have_equal=FALSE;
@@ -416,7 +417,6 @@ SHORT i;
 int for_assign(addr)
 char *addr;
 {
-char numbuf[80];
 SYM  *storage_item;
 int  exprtype;
  

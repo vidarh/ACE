@@ -424,7 +424,6 @@ void nextch()
 {
 char lineno_buf[15], *tmp;
 int  i,n;
-BOOL continue_line;
 
 #ifdef AMIGA
  /* if user hits ctrl-c clean up and abort. */
@@ -435,8 +434,6 @@ BOOL continue_line;
   kill_all_lists();
   cleanup();
  }
-#else
-#warning No break handler for non-Amiga port
 #endif
 
  if (column == linelen)
@@ -743,13 +740,11 @@ int  periods;
 BOOL period;
 LONG places;
 int  placecount;
-char ffpbuf[20];
 int  ex;
 LONG val;
 BYTE num;
 int  sign;
 char lastch=' ';
-BOOL ans;
 
  lastsym=sym;   
  sym = undefined;

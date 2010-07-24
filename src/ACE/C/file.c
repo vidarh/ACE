@@ -401,7 +401,6 @@ int exprtype,arguments=0;
 
 void input_from_file()
 {
-int  inptype;
 char addrbuf[80];
 SYM  *storage;
 

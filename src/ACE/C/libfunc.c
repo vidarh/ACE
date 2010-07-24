@@ -287,8 +287,6 @@ LONG	 		bmap_size,count,cc,rc;
 SHORT			offset=0;
 BOOL     		found=FALSE;
 
-unsigned char *tmp;
-
  if ((bmap_size=fsize(bmap)) == -1L)  /* if not -1 -> file exists and
 					 we get size of file in bytes. */
     { _error(50); return(FALSE); }
@@ -379,29 +377,25 @@ SYM  *declared_func;
      ** and library base offset in symbol table entry for function.
      */
 
-     make_bmap_name(libname);
+  make_bmap_name(libname);
 
-     if (search_func(bmapname,ut_funcname,declared_func))
-     {
-      /* store library name */
-      declared_func->libname = (char *)sym_alloc(MAXIDSIZE+8);
-      if (declared_func->libname == NULL)
-      {
-	puts("Can't allocate memory for library name in symbol table!");
-	early_exit=TRUE;
-	kill_all_lists();
-       	cleanup();
-      }
-      else
-      {
-	/* found the function */  
-        strcpy(declared_func->libname,libname);
-	return(TRUE);
-      }
-     }  
-     else
-	 /* didn't find the function */
-    	 return(FALSE); 
+  if (search_func(bmapname,ut_funcname,declared_func)) {
+	/* store library name */
+	declared_func->libname = (char *)sym_alloc(MAXIDSIZE+8);
+	if (declared_func->libname == NULL) {
+	  puts("Can't allocate memory for library name in symbol table!");
+	  early_exit=TRUE;
+	  kill_all_lists();
+	  cleanup();
+	} else {
+	  /* found the function */  
+	  strcpy(declared_func->libname,libname);
+	  return(TRUE);
+	}
+  }
+
+  /* didn't find the function */
+  return(FALSE); 
 }
 
 void declare()

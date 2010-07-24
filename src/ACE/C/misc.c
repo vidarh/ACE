@@ -175,7 +175,7 @@ char *buf;
  switch(intconst)
  {
   case shortconst : sprintf(buf,"_LINE%d",shortval); break;
-  case longconst  : sprintf(buf,"_LINE%ld",longval); break;
+  case longconst  : sprintf(buf,"_LINE%ld",(long)longval); break;
  }
 }
 

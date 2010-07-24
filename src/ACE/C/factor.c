@@ -102,10 +102,9 @@ BOOL factorfunc()
 
 int factor()
 {
-char buf[80],srcbuf[80],strname[80],strlabel[80],sub_name[80];
+char buf[80],srcbuf[80],sub_name[80];
 char func_name[MAXIDSIZE],func_address[MAXIDSIZE+9];
 char ext_name[MAXIDSIZE+1];
-char *strbuf;
 int  ftype=undefined;
 int  arraytype=undefined;
 SYM  *fact_item;
@@ -128,14 +127,14 @@ BOOL need_symbol;
                      return(ftype);
                      break;
 
-  case longconst   : sprintf(numbuf,"#%ld",longval);
+  case longconst   : sprintf(numbuf,"#%ld",(long)longval);
        		     gen("move.l",numbuf,"-(sp)");
                      ftype=typ;
                      insymbol();
                      return(ftype);
                      break;
 
-  case singleconst : sprintf(numbuf,"#$%lx",singleval);
+  case singleconst : sprintf(numbuf,"#$%lx",(unsigned long)singleval);
        		     gen("move.l",numbuf,"-(sp)");
                      ftype=typ;
        		     insymbol();

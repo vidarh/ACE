@@ -126,7 +126,7 @@ char  theLabel[80];
       case longconst   : timer_event_seconds=SPFlt((ULONG)longval);  break;
       case singleconst : timer_event_seconds=singleval; break;
      }
-     sprintf(ontimer_seconds,"#$%lx",timer_event_seconds);
+     sprintf(ontimer_seconds,"#$%lx",(unsigned long)timer_event_seconds);
      insymbol();
      if (sym != rparen) _error(9);       
     }
@@ -352,8 +352,7 @@ int action;
  } 
 }
 
-void turn_event_off(eventHandler)
-char *eventHandler;
+void turn_event_off(char * eventHandler)
 {
 /* 
 ** Turn event trapping off if this 

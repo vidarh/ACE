@@ -614,8 +614,7 @@ int op;
      return(FALSE);
 }
 
-char *cond_branch_op(op)
-int op;
+char *cond_branch_op(int op)
 {
  switch(op)
  {
@@ -626,6 +625,7 @@ int op;
   case ltorequal : return("ble.s");
   case gtorequal : return("bge.s");
  }
+ return 0;
 }
 
 void make_label(name,lab)

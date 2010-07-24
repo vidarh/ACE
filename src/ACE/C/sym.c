@@ -68,12 +68,7 @@ void new_symtab()
 
 void kill_symtab()
 {
-/* free memory held by 
-   symbol table. 
-*/
-BOOL past_head=FALSE;
-SYM  *curr,*temp;
-
+/* free memory held by symbol table. */
  free_sym_alloc();
 }
 

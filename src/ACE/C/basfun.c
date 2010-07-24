@@ -781,9 +781,7 @@ int numericfunction()
 {
 int  func;
 int  nftype=undefined;
-int  targettype;
 char labname[80],lablabel[80];
-char buf[40],numbuf[40];
 char varptr_obj_name[MAXIDSIZE];
 
  if (numfunc()) 

@@ -1,5 +1,6 @@
 #ifdef ANSI
 
+#include <ctype.h>
 #include <string.h>
 #include <sys/stat.h>
  

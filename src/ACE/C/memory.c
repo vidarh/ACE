@@ -178,9 +178,9 @@ void swap()
 {
 /* SWAP <object>,<object> */
 
-char first[MAXIDSIZE],second[MAXIDSIZE],bssbuf[80];
-int  typ1,typ2,dataobj1,dataobj2;
-
+  char first[MAXIDSIZE],second[MAXIDSIZE];
+  int  typ1,typ2,dataobj1,dataobj2;
+ 
  insymbol();
 
  if (sym != ident) _error(7);
