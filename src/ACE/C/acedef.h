@@ -50,9 +50,11 @@
 	   4th September 1996
 */
 
-#ifdef ANSI
+#ifdef ANSI_COMPAT
 #include "ansi_compat.h"
 #endif
+
+#include <math.h>
 
 #ifdef AMIGA
 #include <exec/types.h>
@@ -72,7 +74,6 @@ typedef uint32_t ULONG;
 #define TRUE 1
 #define FALSE 0
 
-#include "float_compat.h"
 #endif
 
 #include <stdio.h>
@@ -806,4 +807,3 @@ void	show_title();
 void	usage();
 BOOL	check_options();
 void	dump_reserved_words();
-void	main();

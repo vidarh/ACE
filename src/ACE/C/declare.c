@@ -402,9 +402,9 @@ int   oldlevel;
 		         break;
 
       case singletype  : enter(const_id,singletype,constant,0);
-			 if (negate) singlec = SPMul(singlec,-1.0);
-		         curr_item->numconst.singlenum=singlec;
-		         break;
+		if (negate) singlec = singlec * -1.0;
+		curr_item->numconst.singlenum=singlec;
+		break;
      }
      insymbol();
     }

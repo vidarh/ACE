@@ -122,8 +122,8 @@ char  theLabel[80];
     {
      switch(sym)
      {
-      case shortconst  : timer_event_seconds=SPFlt((ULONG)shortval); break;
-      case longconst   : timer_event_seconds=SPFlt((ULONG)longval);  break;
+      case shortconst  : timer_event_seconds=(float)shortval; break;
+      case longconst   : timer_event_seconds=(float)longval;  break;
       case singleconst : timer_event_seconds=singleval; break;
      }
      sprintf(ontimer_seconds,"#$%lx",(unsigned long)timer_event_seconds);

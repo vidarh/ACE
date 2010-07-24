@@ -49,7 +49,6 @@
 */
 
 #include "lexvar.c"
-#include "float_compat.h"
 
 /* globals */
 #ifdef AMIGA
@@ -667,11 +666,7 @@ void reclassify_number()
    switch(typ)
    {
     case longtype   : shortval=(SHORT)longval; break;
-    case singletype : if (SPCmp(0.5,SPSub(SPFloor(singleval),singleval)) == 1) 
-     			 shortval=(SHORT)SPFix(SPFloor(singleval));
-		      else
-     			 shortval=(SHORT)SPFix(SPCeil(singleval));
-		      break; /*if fnum-fix(fnum)<0.5 round_down else round_up*/
+    case singletype : shortval=round(singleval); break;
    }
    sym=shortconst;
    typ=shorttype;
@@ -684,11 +679,7 @@ void reclassify_number()
    switch(typ)
    {
     case shorttype  : longval=(LONG)shortval; break;
-    case singletype : if (SPCmp(0.5,SPSub(SPFloor(singleval),singleval)) == 1) 
-     			 longval=(LONG)SPFix(SPFloor(singleval));
-		      else
-     			 longval=(LONG)SPFix(SPCeil(singleval));
-		      break; /*if fnum-fix(fnum)<0.5 round_down else round_up*/
+    case singletype : longval=(LONG)round(singleval);
    }
    sym=longconst;
    typ=longtype; 
@@ -700,8 +691,8 @@ void reclassify_number()
    nextch();
    switch(typ)
    {
-    case shorttype : singleval=SPFlt((LONG)shortval); break;
-    case longtype  : singleval=SPFlt(longval); break;    
+    case shorttype : singleval=(float)shortval; break;
+    case longtype  : singleval=(float)longval; break;    
    }
    sym=singleconst;
    typ=singletype;
@@ -923,11 +914,7 @@ char lastch=' ';
     for (i=1;i<=placecount;i++) places *= 10;
     n0=n[0];
     n1=n[1];
-    singleval=SPAdd(SPFlt(n0),SPDiv(SPFlt(places),SPFlt(n1)));
-    /*ex = fpa(singleval,ffpbuf);
-    ffpbuf[14]='\0'; 
-    printf("FFP: %s\t%lx\t",ffpbuf,singleval);
-    ffprint(ex,ffpbuf);*/
+    singleval= (float)n0 + (float)places / n1;
    }  
   else 
       classify_integer(n[0]);
@@ -954,13 +941,13 @@ char lastch=' ';
     /* mantissa */
     if (sym != singleconst) 
     { 
-     singleval = SPFlt(n[0]); 
+     singleval = (float)n[0]; 
      sym=singleconst; typ=singletype;
     }
 
     /* if exponent is zero: 10^ex = 1 -> num*1 = num 
        so just return singleval as it is. */
-    if (ex != 0) singleval = SPMul(SPPow(SPFlt(ex),10.0),singleval);
+    if (ex != 0) singleval = pow((float)ex,10.0) * singleval;
 
     reclassify_number();
    }

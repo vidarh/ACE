@@ -1,4 +1,4 @@
-#ifdef ANSI
+#ifdef ANSI_COMPAT
 
 #include <ctype.h>
 #include <string.h>

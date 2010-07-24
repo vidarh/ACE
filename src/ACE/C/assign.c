@@ -964,20 +964,20 @@ float fnum,sign;
    else
     if (sym == singleconst)
     {
-     sprintf(fnumbuf,"%lx",(unsigned long)SPMul(singleval,sign));
+     sprintf(fnumbuf,"%lx",(unsigned long)(singleval * sign));
      make_data_const(fnumbuf);
     }
     else
      if (sym == longconst)
      {
-      fnum=SPMul(SPFlt(longval),sign);
+      fnum=(float)longval * sign;
       sprintf(fnumbuf,"%lx",(unsigned long)fnum);
       make_data_const(fnumbuf);
      }        
      else
      if (sym == shortconst)
      {
-      fnum=SPMul(SPFlt((long)shortval),sign);
+      fnum= singleval * sign;
       sprintf(fnumbuf,"%lx",(unsigned long)fnum);
       make_data_const(fnumbuf);
      }       
