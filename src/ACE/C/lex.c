@@ -62,18 +62,6 @@ BOOL 	inside_string = FALSE;	/* see last line of nextch() */
 void open_shared_libs()
 {
 #ifdef AMIGA
- if ((MathBase = OpenLibrary("mathffp.library",0)) == NULL) 
- {
-  printf("Unable to open mathffp.library!\n");
-  exit(10);
- }
-
- if ((MathTransBase = OpenLibrary("mathtrans.library",0)) == NULL)
- {
-  printf("Unable to open mathtrans.library!\n");
-  exit(10);
- }
-
  if ((IntuitionBase = OpenLibrary("intuition.library",0)) == NULL)
  {
   printf("Unable to open intuition.library!\n");
@@ -86,8 +74,6 @@ void close_shared_libs()
 {
 #ifdef AMIGA
  if (IntuitionBase != NULL) CloseLibrary(MathTransBase);
- if (MathTransBase != NULL) CloseLibrary(MathTransBase);
- if (MathBase != NULL) CloseLibrary(MathBase);
 #endif
 }
  
