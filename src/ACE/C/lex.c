@@ -487,7 +487,7 @@ int  i,n;
    if (asm_comments) gen("; *** ",line,"  ");
 
    /* show each source code line before compilation? */
-   if (list_source) printf("%ld: %s\n",lineno,line);
+   if (list_source) printf("%ld: %s\n",(long)lineno,line);
   }
  }
 

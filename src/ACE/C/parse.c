@@ -638,8 +638,6 @@ void ctrl_c_break_test()
 		puts("\n*** Break: ACE terminating.");
 		exit(5);
 	}
-#else
-#warning No break handler for non-Amiga port
 #endif
 }
 
@@ -647,7 +645,7 @@ void dump_reserved_words()
 {
 int i;
 
- printf("\nAmigaBASIC RESERVED WORDS: %ld\n\n",(xorsym-abssym)+1);
+ printf("\nAmigaBASIC RESERVED WORDS: %d\n\n",(xorsym-abssym)+1);
 
  for (i=abssym;i<=xorsym;i++) 
  {
@@ -655,7 +653,7 @@ int i;
 	ctrl_c_break_test();	
  }
  
- printf("\nACE-SPECIFIC RESERVED WORDS: %ld\n\n",(ycorsym-addresssym)+1);
+ printf("\nACE-SPECIFIC RESERVED WORDS: %d\n\n",(ycorsym-addresssym)+1);
 
  for (i=addresssym;i<=ycorsym;i++) 
  {
@@ -721,4 +719,5 @@ char *tmparg;
  }
 
  cleanup();
+ return 0;
 }

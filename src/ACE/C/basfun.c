@@ -1126,7 +1126,7 @@ char varptr_obj_name[MAXIDSIZE];
 			     {
 			      insymbol(); 
 			      if (expr() != stringtype) /* response #2 */
-			         { _error(4); nftype=undefined; return; }
+			         { _error(4); nftype=undefined; return 0; }
 			     }
 			     else
 			     	 gen("move.l","#0","-(sp)"); /* #2 = NULL*/
@@ -1681,7 +1681,7 @@ int  nftype;
    else
    if (curr_item->type == stringtype)
    {
-    sprintf(numbuf,"#%ld",curr_item->size);
+    sprintf(numbuf,"#%ld",(long)curr_item->size);
     gen_push32_var(numbuf); 
     nftype=longtype;
    }

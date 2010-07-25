@@ -410,7 +410,6 @@ void declare()
 char funcname[MAXIDSIZE],ut_funcname[MAXIDSIZE];
 char libname[MAXIDSIZE],ut_libname[MAXIDSIZE];
 char extfuncname[MAXIDSIZE+1];
-BYTE libnum;
 int  oldlevel,cc;
 int  functype=undefined;
 SYM  *declared_func;
