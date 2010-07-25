@@ -1031,7 +1031,7 @@ SHORT popcount;
   {
      /* SYSTEM returncode */
      if (stype == shorttype) make_long()  ; /* get short integer exit value */
-     gen("move.l","(sp)+","_returncode");
+     gen_pop32_var("_returncode");
      gen("jmp","_EXIT_PROG","  ");
      enter_XREF("_returncode");
   }

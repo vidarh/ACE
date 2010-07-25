@@ -65,6 +65,17 @@ void gen_pop32d(unsigned char reg)
   gen("move.l","(sp)+",dreg[reg]);
 }
 
+/* Pop 4 bytes off the stack and copy into a variable. */
+void gen_pop32_var(const char * label)
+{
+  gen("move.l","(sp)+",label);
+}
+
+void gen_pop16_var(const char * label)
+{
+  gen("move.w","(sp)+",label);
+}
+
 void gen_push16d(unsigned char reg)
 {
   gen("move.w",dreg[reg],"-(sp)");

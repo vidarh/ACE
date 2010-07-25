@@ -318,8 +318,8 @@ BOOL aspect=FALSE;
   
      /* pop radius & (x,y) coordinates */
      gen_pop32d(2);      /* radius */
-     gen("move.w","(sp)+","_shorty"); /* y */
-     gen("move.w","(sp)+","_shortx"); /* x */
+     gen_pop16_var("_shorty"); /* y */
+     gen_pop16_var("_shortx"); /* x */
 
      if (relative)
      {
@@ -482,9 +482,9 @@ CODE *cx,*cx1,*cx2,*cx3,*cx4,*cx5,*cx6;
          gen("move.l","_GfxBase","a6");
          gen_pop16d(0);
          gen_jsr("_LVOSetAPen(a6)");
-	 gen("move.w","(sp)+","_ymin");
+	 gen_pop16_var("_ymin");
 	 cx5=curr_code;
-	 gen("move.w","(sp)+","_xmin");	/* restore d0 & d1 */
+	 gen_pop16_var("_xmin");	/* restore d0 & d1 */
 	 cx6=curr_code;
          enter_XREF("_LVOSetAPen");
 	}

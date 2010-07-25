@@ -211,7 +211,7 @@ int wtype;
   if (make_integer(expr()) == shorttype) 
      make_long();  /* filenumber = 1..255 */
 
-  gen("move.l","(sp)+","_seq_filenumber");
+  gen_pop32_var("_seq_filenumber");
   
   if (sym != comma) _error(16);
   else
@@ -319,7 +319,7 @@ int exprtype,arguments=0;
  if (make_integer(expr()) == shorttype)
     make_long();	/* filenumber 1..255 */
 
- gen("move.l","(sp)+","_seq_filenumber");
+ gen_pop32_var("_seq_filenumber");
  enter_BSS("_seq_filenumber:","ds.l 1");
 
  if (sym != comma) _error(16);
@@ -414,7 +414,7 @@ SYM  *storage;
  if (make_integer(expr()) == shorttype)
     make_long();	/* filenumber 1..255 */
 
- gen("move.l","(sp)+","_seq_filenumber");
+ gen_pop32_var("_seq_filenumber");
  enter_BSS("_seq_filenumber:","ds.l 1");
 
  if (sym != comma) _error(16);
