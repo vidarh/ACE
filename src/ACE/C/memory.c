@@ -216,8 +216,8 @@ void swap()
     if (typ1 != typ2) _error(4);
     else
     {
-     gen("movea.l","(sp)+","a2"); /* second address */
-     gen("movea.l","(sp)+","a1"); /* first address */
+     gen_pop_addr(2); /* second address */
+     gen_pop_addr(1); /* first address */
 
      if (typ1 == stringtype)
      {

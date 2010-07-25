@@ -239,7 +239,7 @@ do
 		     enter_XREF("_MathBase");
 		     break;
 
-   case stringtype : gen("movea.l","(sp)+","a0");
+   case stringtype : gen_pop_addr(0);
 		     gen_jsr("_stringprints");
 		     enter_XREF("_stringprints");
 		     break;

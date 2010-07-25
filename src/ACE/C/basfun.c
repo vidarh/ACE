@@ -389,8 +389,8 @@ BOOL offset_on_stack;
 			  insymbol();			 
 			  if (expr() == stringtype)
 			  {
-			   gen("movea.l","(sp)+","a1");		/* Y$ */
-			   gen("movea.l","(sp)+","a0");		/* X$ */
+			   gen_pop_addr(1);		/* Y$ */
+			   gen_pop_addr(0);		/* X$ */
 			   if (offset_on_stack) 
 			      gen_pop32d(0);	/* I */
 			   else
@@ -648,7 +648,7 @@ BOOL offset_on_stack;
     /* TRANSLATE$ */
     case translatestrsym :if (sftype == stringtype)
 			  {
-			   gen("movea.l","(sp)+","a0"); /* instr */
+			   gen_pop_addr(0); /* instr */
 			   make_temp_string();
 			   gen("lea",tempstrname,"a1"); /* outstr */
 			   gen("movea.l","a0","a2");

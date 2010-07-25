@@ -378,7 +378,7 @@ int exprtype,arguments=0;
 		     		enter_XREF("_MathBase");
 		     		break;
 
-   	case stringtype : 	gen("movea.l","(sp)+","a0");
+   	case stringtype : 	gen_pop_addr(0);
 		     		gen_jsr("_writestring");
 		     		enter_XREF("_writestring");
 		     		break;
