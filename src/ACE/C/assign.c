@@ -167,7 +167,7 @@ char numbuf[10],addrbuf[20];
  strcat(addrbuf,frame_ptr[lev]);
 
  gen("pea",stringvarname,"  ");
- gen_pop32_var(addrbuf); 
+ gen("move.l","(sp)+",addrbuf); 
 }
 
 void assign_to_string_variable(string_item,string_size)
@@ -332,9 +332,9 @@ int    exprtype,storetype;
       }
       else
       if (member->type == shorttype)
-         gen_pop16_var(absbuf);  /* short */
+         gen("move.w","(sp)+",absbuf);  /* short */
       else
-         gen_pop32_var(absbuf);  /* long, single */
+         gen("move.l","(sp)+",absbuf);  /* long, single */
      }
     } 
    } 
@@ -362,7 +362,7 @@ int    exprtype,storetype;
        gen("move.l","(sp)+","(a0)");    /* store new address in variable */
     }
     else
-        gen_pop32_var(addrbuf);  /* store new address in variable */
+        gen("move.l","(sp)+",addrbuf);  /* store new address in variable */
    }
   }
  }
@@ -455,10 +455,10 @@ int  exprtype;
   	   assign_to_string_variable(storage_item,MAXSTRLEN);
         else
         if (storage_item->type == shorttype)
-           gen_pop16_var(addrbuf);
+           gen("move.w","(sp)+",addrbuf);
         else
           /* longtype or singletype */
-          gen_pop32_var(addrbuf);
+          gen("move.l","(sp)+",addrbuf);
         break;
 
        case subprogram :   
@@ -473,10 +473,10 @@ int  exprtype;
           	}
           	else
           	if (storage_item->type == shorttype)
-             		gen_pop16_var(addrbuf);
+             		gen("move.w","(sp)+",addrbuf);
           	else
              		/* longtype or singletype */
-             		gen_pop32_var(addrbuf);
+             		gen("move.l","(sp)+",addrbuf);
 	}
 	else
 	{
@@ -491,7 +491,7 @@ int  exprtype;
 
 	case extvar : if (storage_item->type == shorttype)
 			/* short integer */
-		      	gen_pop16_var(ext_name);
+		      	gen("move.w","(sp)+",ext_name);
 		      else
 		      if (storage_item->type == stringtype)
 		      {
@@ -503,7 +503,7 @@ int  exprtype;
 		      }	
 		      else
 			 /* long integer, single-precision */
-			 gen_pop32_var(ext_name);
+			 gen("move.l","(sp)+",ext_name);
 		      break;
 	
 	case array : 	get_abs_ndx(storage_item);
@@ -727,7 +727,7 @@ do
 
      /* store address of array in stack frame */
      gen("pea",arrayname,"  ");
-     gen_pop32_var(addrbuf);	    
+     gen("move.l","(sp)+",addrbuf);	    
     }
     else
     {
@@ -737,7 +737,7 @@ do
         _error(4);
      else
          /* store address of array in stack frame */
-         gen_pop32_var(addrbuf);	    
+         gen("move.l","(sp)+",addrbuf);	    
     }
    }
   }
@@ -1031,7 +1031,7 @@ SYM  *storage;
 
    switch(storage->type)
    {
-    case stringtype :	gen_push16_var("_dataptr"); /* addr of source */
+    case stringtype :	gen("move.l","_dataptr","-(sp)"); /* addr of source */
 
 			if (storage->object == variable)
   	   		   assign_to_string_variable(storage,MAXSTRLEN);
@@ -1068,7 +1068,7 @@ SYM  *storage;
             		  gen("move.l","(sp)+","(a0)");
 			 }
 			 else
- 			     gen_pop32_var(addrbuf);
+ 			     gen("move.l","(sp)+",addrbuf);
 			}
 	 		else 
 			    if (storage->object == array)
@@ -1087,7 +1087,7 @@ SYM  *storage;
             		  gen("move.w","(sp)+","(a0)");
 			 }
 			 else
- 			     gen_pop16_var(addrbuf);
+ 			     gen("move.w","(sp)+",addrbuf);
 			}
 	 		else 
 			    if (storage->object == array)

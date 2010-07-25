@@ -473,9 +473,9 @@ CODE *cx,*cx1,*cx2,*cx3,*cx4,*cx5,*cx6;
 	if (sym != comma)	/* ",," -> no color-id */
         {
 	 colorset=TRUE;
-	 gen_push16_var("_xmin");	/* save d0 & d1 */
+	 gen("move.w","_xmin","-(sp)");	/* save d0 & d1 */
 	 cx3=curr_code;
-	 gen_push16_var("_ymin");
+	 gen("move.w","_ymin","-(sp)");
 	 cx4=curr_code;
          make_sure_short(expr());
          gen("move.l","_RPort","a1");

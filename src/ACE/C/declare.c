@@ -293,7 +293,7 @@ char   strsize[20],bss_spec[40];
           in stack frame.
        */
        gen("pea",structname,"  ");
-       gen_pop32_var(addrbuf); 
+       gen("move.l","(sp)+",addrbuf); 
       }
      }     
     }
@@ -465,7 +465,7 @@ SYM  *str_item;
         		    _error(4);
      			 else
          		     /* store address of string in stack frame */
-         		     gen_pop32_var(addrbuf);	    
+         		     gen("move.l","(sp)+",addrbuf);	    
 			}
 			else
 			if (sym == sizesym)

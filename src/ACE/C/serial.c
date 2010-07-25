@@ -209,7 +209,7 @@ char addrbuf[40];
      gen_push32d(0);
     }
      else
-      	 gen_push16_var(addrbuf);
+      	 gen("move.l",addrbuf,"-(sp)");
 
     insymbol();
     if (sym != comma) _error(16);

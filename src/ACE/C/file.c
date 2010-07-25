@@ -667,13 +667,13 @@ char addrbuf[40], sizebuf[10];
 		** Local structure variable,
 		** ie. in main program or SUB.
 		*/
-		gen_push16_var(addrbuf);	/* variable holds start address */
+		gen("move.l",addrbuf,"-(sp)");	/* variable holds start address */
 
 	/*
 	** Push size of structure in bytes.
 	*/
 	sprintf(sizebuf,"#%d",structVar->other->size);
-	gen_push16_var(sizebuf);
+	gen("move.l",sizebuf,"-(sp)");
 }
 
 void random_file_get()

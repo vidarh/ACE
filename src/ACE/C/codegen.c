@@ -76,16 +76,6 @@ void gen_pop16_var(const char * label)
   gen("move.w","(sp)+",label);
 }
 
-void gen_push16_var(const char * label)
-{
-  gen("move.w",label,"-(sp)");
-}
-
-void gen_push32_var(const char * label)
-{
-  gen("move.l",label,"-(sp)");
-}
-
 void gen_push16d(unsigned char reg)
 {
   gen("move.w",dreg[reg],"-(sp)");

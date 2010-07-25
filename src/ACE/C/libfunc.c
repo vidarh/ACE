@@ -593,7 +593,7 @@ char  ptemp[14][80];
    strcpy(ptemp[i],templongname);  /* later -> move.l srctemp,addrbuf */
 
    /* store it */
-   gen_pop32_var(templongname);
+   gen("move.l","(sp)+",templongname);
    
    i++;
   }
@@ -667,7 +667,7 @@ int   p_type[MAXPARAMS];
     strcpy(p_temp[i],tempshortname);  /* later -> move.w srctemp,-(sp) */
 
     /* store it */
-    gen_pop16_var(tempshortname);
+    gen("move.w","(sp)+",tempshortname);
    }
    else
    /* long,single,string or array */   
@@ -680,7 +680,7 @@ int   p_type[MAXPARAMS];
     strcpy(p_temp[i],templongname);
 
     /* store it */
-    gen_pop32_var(templongname);
+    gen("move.l","(sp)+",templongname);
    }
    
    i++;

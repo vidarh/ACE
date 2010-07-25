@@ -920,7 +920,7 @@ SHORT popcount;
 	    /* get address of array from stack frame */
             itoa(-1*curr_item->address,addrbuf,10);
             strcat(addrbuf,frame_ptr[lev]);
-	    gen_push16_var(addrbuf); /* push address of mode-array */
+	    gen("move.l",addrbuf,"-(sp)"); /* push address of mode-array */
 	    /* SIZE of array not checked here! (must be >= 9 elements) */
            } 
    insymbol();
