@@ -557,7 +557,7 @@ char lab[80],lablabel[80];
 
    gen("move.l","#1","-(sp)");
    gen_jsr("_wdw_close_test");
-   gen("addq","#4","sp");
+   gen_pop_ignore(4);
    gen("tst.l","d0","  ");
    gen("beq.s",lab,"  ");
    gen("jmp","_EXIT_PROG","  ");
@@ -583,7 +583,7 @@ char lab[80],lablabel[80];
 
    gen("move.l","#0","-(sp)");
    gen_jsr("_wdw_close_test");
-   gen("addq","#4","sp");
+   gen_pop_ignore(4);
    gen("tst.l","d0","  ");
    gen("beq.s",lab,"  ");
  
@@ -612,7 +612,7 @@ char lab[80],lablabel[80];
 
    gen("move.l","#0","-(sp)");
    gen_jsr("_gadget_event_test");
-   gen("addq","#4","sp");
+   gen_pop_ignore(4);
    gen("tst.l","d0","  ");
    gen("beq.s",lab,"  ");
 

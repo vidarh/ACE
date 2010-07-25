@@ -72,7 +72,7 @@ int code;
 
  /* call function */
  gen_jsr("_Ucodeprint");
- gen("addq","#4","sp");
+ gen_pop_ignore(4);
  enter_XREF("_Ucodeprint");
 }
 
@@ -123,22 +123,22 @@ do
   {
    case shorttype :  make_long();
 		     gen_jsr("_Ushortprint");
-		     gen("addq","#4","sp");	
+		     gen_pop_ignore(4);	
 		     enter_XREF("_Ushortprint");
 		     break;
 
    case longtype :   gen_jsr("_Ulongprint");
-		     gen("addq","#4","sp");	
+		     gen_pop_ignore(4);	
 		     enter_XREF("_Ulongprint");
 		     break;
 
    case singletype : gen_jsr("_Usingleprint");
-		     gen("addq","#4","sp");	
+		     gen_pop_ignore(4);	
 		     enter_XREF("_Usingleprint");
 		     break;
 
    case stringtype : gen_jsr("_Ustringprint");
-		     gen("addq","#4","sp");	
+		     gen_pop_ignore(4);	
 		     enter_XREF("_Ustringprint");
 		     break;
   }

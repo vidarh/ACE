@@ -154,7 +154,7 @@ void close_serial()
  if (make_integer(expr()) == shorttype) make_long();	/* channel */ 
 	 	 
  gen_jsr("_CloseSerial");
- gen("addq","#4","sp");
+ gen_pop_ignore(4);
  enter_XREF("_CloseSerial"); 
 }
 

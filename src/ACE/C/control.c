@@ -634,9 +634,9 @@ int  countertype,limittype,steptype;
 
     /* POP the step & limit from stack */ 
     if (countertype == shorttype)
-       gen("addq","#4","sp");
+       gen_pop_ignore(4);
     else
-       gen("addq","#8","sp");
+       gen_pop_ignore(8);
 
     change(cx1,"bgt",labname3,"  ");
     change(cx2,"blt",labname3,"  ");
@@ -689,7 +689,7 @@ long i,opt=0;
      make_label(lab,lablabel);
      gen("bne.s",lab,"  ");  /* is opt equal to value on stack? */
 
-     gen("addq","#4","sp");  /* remove value from stack before branch */
+     gen_pop_ignore(4);  /* remove value from stack before branch */
 
      switch(branch)
      {

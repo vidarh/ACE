@@ -158,7 +158,7 @@ BOOL offset_on_stack;
 			 make_temp_string();  	
 			 gen("pea",tempstrname,"  ");
 			 gen_jsr("_arg");
-			 gen("addq","#8","sp");
+			 gen_pop_ignore(8);
 			 gen_push32d(0);
 			 enter_XREF("_arg");
 			 cli_args=TRUE;
@@ -215,7 +215,7 @@ BOOL offset_on_stack;
 					gen("move.l","#0","-(sp)");
 	
 				gen_jsr("_filerequest");
-				gen("addq","#8","sp");
+				gen_pop_ignore(8);
 				gen_push32d(0);
 				enter_XREF("_filerequest");
 				enter_XREF("_GfxBase");
@@ -531,7 +531,7 @@ BOOL offset_on_stack;
 			   if (sftype == singletype)
 			   {
 			    gen_jsr("_strsingle");
-			    gen("addq","#4","sp");
+			    gen_pop_ignore(4);
 			    gen_push32d(0); /* push string result */
 			    enter_XREF("_strsingle");
 			    enter_XREF("_MathBase");
@@ -684,7 +684,7 @@ BOOL offset_on_stack;
     case valsym :	if (sftype == stringtype)
 			{
 			 gen_jsr("_val"); /* string is on the stack */
-			 gen("addq","#4","sp");
+			 gen_pop_ignore(4);
 			 gen_push32d(0);
 			 enter_XREF("_val");
 			 enter_XREF("_MathBase");  /* _val needs math libs */
@@ -851,7 +851,7 @@ char varptr_obj_name[MAXIDSIZE];
 
 			 /* call ACEalloc() function */
 			 gen_jsr("_ACEalloc");
-			 gen("addq","#8","sp");
+			 gen_pop_ignore(8);
 			 gen_push32d(0);  /* push result */
 			 enter_XREF("_ACEalloc"); 
 			 enter_XREF("_IntuitionBase");
@@ -965,7 +965,7 @@ char varptr_obj_name[MAXIDSIZE];
 	 case gadgetsym : nftype = make_integer(nftype);
 			  if (nftype == shorttype) make_long();
 			  gen_jsr("_GadFunc");
-			  gen("addq","#4","sp");
+			  gen_pop_ignore(4);
 			  gen_push32d(0);
 			  enter_XREF("_GadFunc");
 			  nftype=longtype;
@@ -1004,7 +1004,7 @@ char varptr_obj_name[MAXIDSIZE];
 			       make_long();
 
 			    gen_jsr("_iff_func");
-			    gen("addq","#8","sp");
+			    gen_pop_ignore(8);
 			    gen_push32d(0);	/* push return value */
 			    enter_XREF("_iff_func");
 			
@@ -1044,7 +1044,7 @@ char varptr_obj_name[MAXIDSIZE];
 			 if (make_integer(nftype) == shorttype)
 			    make_long();
 			 gen_jsr("_FilePosition");
-			 gen("addq","#4","sp");
+			 gen_pop_ignore(4);
 			 gen_push32d(0);
 			 enter_XREF("_FilePosition");
 			 nftype=longtype;
@@ -1076,7 +1076,7 @@ char varptr_obj_name[MAXIDSIZE];
 	 case longintsym: if (nftype == stringtype)
 			  {	
 				gen_jsr("_long_from_string");
-				gen("addq","#4","sp");
+				gen_pop_ignore(4);
 				gen_push32d(0);
 				enter_XREF("_long_from_string");
 				nftype=longtype;
@@ -1090,7 +1090,7 @@ char varptr_obj_name[MAXIDSIZE];
 				nftype = make_integer(nftype);
 				if (nftype == shorttype) make_long();
 				gen_jsr("_MenuFunc");
-				gen("addq","#4","sp");
+				gen_pop_ignore(4);
 				gen_push32d(0);
 				enter_XREF("_MenuFunc");
 				nftype=longtype;
@@ -1284,7 +1284,7 @@ char varptr_obj_name[MAXIDSIZE];
 			       make_long();
 
 			    gen_jsr("_serial_func");
-			    gen("addq","#8","sp");
+			    gen_pop_ignore(8);
 			    gen_push32d(0);	/* push return value */
 			    enter_XREF("_serial_func");
 			
@@ -1449,7 +1449,7 @@ char varptr_obj_name[MAXIDSIZE];
 			   nftype=make_integer(nftype);
 			   if (nftype == shorttype) make_long();
 			   gen_jsr("_sayfunc");
-			   gen("addq","#4","sp");
+			   gen_pop_ignore(4);
 			   gen_push32d(0);
 			   enter_XREF("_sayfunc");
 			   nftype=longtype;
@@ -1463,7 +1463,7 @@ char varptr_obj_name[MAXIDSIZE];
 			   nftype = make_integer(nftype);
 			   if (nftype == shorttype) make_long();
 			   gen_jsr("_screenfunc");
-			   gen("addq","#4","sp");
+			   gen_pop_ignore(4);
 			   gen_push32d(0);
 			   enter_XREF("_screenfunc");
 			   enter_XREF("_IntuitionBase");

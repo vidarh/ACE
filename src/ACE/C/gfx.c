@@ -886,7 +886,7 @@ int stype;
   {
   	if (make_integer(stype) == shorttype) make_long(); 
 	gen_jsr("_change_text_style");
-	gen("addq","#4","sp");
+	gen_pop_ignore(4);
 	enter_XREF("_change_text_style");
 	enter_XREF("_GfxBase");
   }
@@ -917,7 +917,7 @@ int ftype;
   			if (make_integer(ftype) == shorttype) make_long();
 
 			gen_jsr("_change_text_font");
-			gen("addq","#8","sp");
+			gen_pop_ignore(8);
 			enter_XREF("_change_text_font");
 			enter_XREF("_GfxBase");
   		}

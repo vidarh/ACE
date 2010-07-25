@@ -764,7 +764,7 @@ SYM  *storage;
   if ((inptype == stringtype) && (lastsym == stringconst))
   {
    gen_jsr("_Ustringprint");
-   gen("addq","#4","sp");
+   gen_pop_ignore(4);
    enter_XREF("_Ustringprint");
   }
   else _error(18); 

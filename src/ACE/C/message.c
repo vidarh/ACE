@@ -170,7 +170,7 @@ char	addrbuf[40];
 
 					/* call function */
 					gen_jsr("_MessageRead");
-					gen("addq","#8","sp");
+					gen_pop_ignore(8);
 					enter_XREF("_MessageRead");
 				}
 			}
@@ -213,7 +213,7 @@ int	mtype;
 			{
 				/* call function */
 				gen_jsr("_MessageWrite");
-				gen("addq","#8","sp");
+				gen_pop_ignore(8);
 				enter_XREF("_MessageWrite");
 			}
 		} 
@@ -243,7 +243,7 @@ int	mtype;
 
 		/* call function */
 		gen_jsr("_MessageWait");
-		gen("addq","#4","sp");
+		gen_pop_ignore(4);
 		enter_XREF("_MessageWait");
 	}
 }
@@ -270,7 +270,7 @@ int	mtype;
 
 		/* call function */
 		gen_jsr("_MessageClear");
-		gen("addq","#4","sp");
+		gen_pop_ignore(4);
 		enter_XREF("_MessageClear");
 	}
 }
@@ -297,7 +297,7 @@ int	mtype;
 
 		/* call function */
 		gen_jsr("_MessageClose");
-		gen("addq","#4","sp");
+		gen_pop_ignore(4);
 		enter_XREF("_MessageClose");
 	}
 }

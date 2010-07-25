@@ -641,7 +641,7 @@ void files()
 
  /* call _files routine */
  gen_jsr("_files");
- gen("addq","#4","sp");
+ gen_pop_ignore(4);
  enter_XREF("_files");
 }
 

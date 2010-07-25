@@ -930,7 +930,7 @@ SHORT popcount;
   else gen("move.l","#0","-(sp)");  /* no mode-array -> push NULL */
 
   gen_jsr("_say");
-  gen("addq","#8","sp");  /* pop two parameters */
+  gen_pop_ignore(8);  /* pop two parameters */
   enter_XREF("_say");
   enter_XREF("_cleanup_async_speech");
   narratorused=TRUE;
@@ -1001,7 +1001,7 @@ SHORT popcount;
 	  else
 	  {
 		gen_Flt(stype); 
-	  	gen_jsr("_sleep_for_secs"); gen("addq","#4","sp");
+	  	gen_jsr("_sleep_for_secs"); gen_pop_ignore(4);
 	  	enter_XREF("_sleep_for_secs"); enter_XREF("_MathBase");
 	  }
     }
@@ -1039,7 +1039,7 @@ SHORT popcount;
   {
      /* SYSTEM command-string */
      gen_jsr("_system_call");
-     gen("addq","#4","sp");
+     gen_pop_ignore(4);
      enter_XREF("_system_call");
   }
  }

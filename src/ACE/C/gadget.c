@@ -89,7 +89,7 @@ void close_gadget()
      	make_sure_long(expr());	/* gadget-id */
 
 	gen_jsr("_CloseGadget");
-	gen("addq","#4","sp");
+	gen_pop_ignore(4);
 	enter_XREF("_CloseGadget");
 }
 
@@ -109,7 +109,7 @@ void gadget_output()
      	make_sure_long(expr());	/* gadget-id */
 
 	gen_jsr("_SetCurrentGadget");
-	gen("addq","#4","sp");
+	gen_pop_ignore(4);
 	enter_XREF("_SetCurrentGadget");
 }
 
@@ -121,7 +121,7 @@ void wait_gadget()
      	make_sure_long(expr());	/* gadget-id */
 	
 	gen_jsr("_WaitGadget");
-	gen("addq","#4","sp");
+	gen_pop_ignore(4);
 	enter_XREF("_WaitGadget");
 }
 
@@ -214,7 +214,7 @@ int  gtype;
 			if (sym != comma)
 			{
 				gen_jsr("_ChangeGadgetStatus");
-				gen("addq","#8","sp");
+				gen_pop_ignore(8);
 
 				enter_XREF("_ChangeGadgetStatus");
 				enter_XREF("_GfxBase");	

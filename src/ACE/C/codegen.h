@@ -10,4 +10,6 @@ void gen_push16d(unsigned char reg);
 void gen_pop16d(unsigned char reg);
 void gen_push_addr(unsigned char reg);
 void gen_pop_addr(unsigned char reg);
+void gen_pop_ignore(unsigned int bytes);
+
 #endif

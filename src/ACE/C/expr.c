@@ -208,7 +208,7 @@ CODE *cx[5];
    }
 
    gen_jsr("_power");	/* - Call exponentiation function. */
-   gen("addq","#8","sp");	/* - Remove parameters from stack. */
+   gen_pop_ignore(8);	/* - Remove parameters from stack. */
    gen_push32d(0);  /* - Push the result. */
 				
    enter_XREF("_power");

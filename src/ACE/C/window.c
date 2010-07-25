@@ -165,7 +165,7 @@ void wdwclose()
  insymbol();
  if (make_integer(expr()) == shorttype) make_long();	/* Wdw-id */
  gen_jsr("_CloseWdw");
- gen("addq","#4","sp");
+ gen_pop_ignore(4);
  enter_XREF("_CloseWdw");
  enter_XREF("_IntuitionBase");
 }
@@ -175,7 +175,7 @@ void wdwoutput()
  insymbol();
  if (make_integer(expr()) == shorttype) make_long();	/* Wdw-id */
  gen_jsr("_ChangeOutputWdw");
- gen("addq","#4","sp");
+ gen_pop_ignore(4);
  enter_XREF("_ChangeOutputWdw");
  enter_XREF("_IntuitionBase");
 }

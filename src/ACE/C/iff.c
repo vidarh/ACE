@@ -61,7 +61,7 @@ int	itype;
 			{
 				/* call function */
 				gen_jsr("_IFFPicOpen");
-				gen("addq","#8","sp");
+				gen_pop_ignore(8);
 				enter_XREF("_IFFPicOpen");
 			}				
 		} 
@@ -112,7 +112,7 @@ int	itype;
 
 		/* call function */
 		gen_jsr("_IFFPicRead");
-		gen("addq","#8","sp");
+		gen_pop_ignore(8);
 		enter_XREF("_IFFPicRead");
 	}
 }
@@ -139,7 +139,7 @@ int	itype;
 
 		/* call function */
 		gen_jsr("_IFFPicClose");
-		gen("addq","#4","sp");
+		gen_pop_ignore(4);
 		enter_XREF("_IFFPicClose");
 	}
 }
