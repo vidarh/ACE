@@ -325,7 +325,7 @@ CODE *cx[5];
 			
 		     case longtype   :	/* args on stack */
 					gen_jsr("lmul"); 
-					gen("add.l","#8","sp");
+					gen_pop_ignore(8);
 					enter_XREF("lmul");
 					localtype=longtype;
 					break;
@@ -400,7 +400,7 @@ CODE *cx[5];
 
    /* integer division - args on stack */
    gen_jsr("ace_ldiv");
-   gen("add.l","#8","sp");
+   gen_pop_ignore(8);
    gen_push32d(0);
    enter_XREF("ace_ldiv");
   }
@@ -469,7 +469,7 @@ CODE *cx[5];
    {
     /* integer MOD - args on stack */
     gen_jsr("ace_lrem");
-    gen("add.l","#8","sp");
+    gen_pop_ignore(8);
     gen_push32d(0);
     enter_XREF("ace_lrem");
    }

@@ -153,7 +153,7 @@ void modify_gadget()
 
 		/* call function */
 		gen_jsr("_modify_gad");
-		gen("add.l","#12","sp");
+		gen_pop_ignore(12);
 		
 		enter_XREF("_modify_gad");
 		enter_XREF("_GfxBase");
@@ -337,7 +337,7 @@ int  gtype;
 
 	 /* call function */
 	 gen_jsr("_CreateGadget");
-	 gen("add.l","#48","sp");
+	 gen_pop_ignore(48);
 
 	 enter_XREF("_CreateGadget");
 	 enter_XREF("_GfxBase");
@@ -360,7 +360,7 @@ void	bevel_box()
 
 	 	/* call function */
 		gen_jsr("_BevelBox");
-		gen("add.l","#20","sp");
+		gen_pop_ignore(20);
 
 		enter_XREF("_BevelBox");
 		enter_XREF("_GfxBase");

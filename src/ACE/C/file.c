@@ -734,7 +734,7 @@ SYM *structVar;
 			** Call function.
 			*/
 			gen_jsr("_GetRecord");
- 			gen("add.l","#16","sp");
+ 			gen_pop_ignore(16);
 			enter_XREF("_GetRecord");
 		}
 	}	
@@ -798,7 +798,7 @@ SYM *structVar;
 			** Call function.
 			*/
 			gen_jsr("_PutRecord");
- 			gen("add.l","#16","sp");
+ 			gen_pop_ignore(16);
 			enter_XREF("_PutRecord");
 		}
 	}	

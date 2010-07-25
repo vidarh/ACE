@@ -244,7 +244,7 @@ char mulbuf[40],srcbuf[40];
   gen_push32d(1);   /* push next index after coercing to long */
   gen_push32_var(mulbuf); /* push cumulative index */
   gen_jsr("lmulu");
-  gen("add.l","#8","sp");
+  gen_pop_ignore(8);
   
   gen("add.l","d0","d7");  
   ndx_mult *= curr->index[i];
@@ -262,7 +262,7 @@ char mulbuf[40],srcbuf[40];
   gen_push32d(7);
   gen_push32_var(srcbuf);
   gen_jsr("lmulu");	/* d7*MAXSTRLEN */
-  gen("add.l","#8","sp");
+  gen_pop_ignore(8);
   gen("move.l","d0","d7");
  }
  else
@@ -583,7 +583,7 @@ void MsgBox()
 		     
 	    			/* call the function */
 	    			gen_jsr("_sysrequest");
-	    			gen("add.l","#12","sp");
+	    			gen_pop_ignore(12);
 	    			enter_XREF("_sysrequest");
 	    			enter_XREF("_IntuitionBase");
 	   		}

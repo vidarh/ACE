@@ -94,7 +94,7 @@ int  mtype;
 				if (sym != comma)
 				{ 
 					gen_jsr("_ChangeMenuState");
-					gen("add.l","#12","sp");
+					gen_pop_ignore(12);
 
 					enter_XREF("_ChangeMenuState");	
 					return;	
@@ -123,7 +123,7 @@ int  mtype;
 
 	 /* call function */
 	 gen_jsr("_ModifyMenu");
-	 gen("add.l","#20","sp");
+	 gen_pop_ignore(20);
 
 	 enter_XREF("_ModifyMenu");
  	 enter_XREF("_IntuitionBase");

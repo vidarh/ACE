@@ -315,7 +315,7 @@ BOOL offset_on_stack;
 			   {
 				/* INPUTBOX */
 				gen_jsr("_longint_input_box");
-				gen("add.l","#20","sp");
+				gen_pop_ignore(20);
 				gen_push32d(0);
 				enter_XREF("_longint_input_box");
 				sftype = longtype;
@@ -324,7 +324,7 @@ BOOL offset_on_stack;
 			   {
 				/* INPUTBOX$ */
 				gen_jsr("_string_input_box");
-				gen("add.l","#20","sp");
+				gen_pop_ignore(20);
 				gen_push32d(0);
 				enter_XREF("_string_input_box");
 				sftype = stringtype;
@@ -1133,7 +1133,7 @@ char varptr_obj_name[MAXIDSIZE];
 			     
 			     /* call the function */
 			     gen_jsr("_sysrequest");
-			     gen("add.l","#12","sp");
+			     gen_pop_ignore(12);
 			     gen_push16d(0);
 			     enter_XREF("_sysrequest");
 			     enter_XREF("_IntuitionBase");

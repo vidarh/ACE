@@ -57,7 +57,11 @@ void gen_pop_ignore(unsigned int bytes)
 {
   char buf[16];
   sprintf(buf,"#%ld",bytes);
-  gen("addq",buf,"sp");
+  if (bytes > 7) {
+	gen("add.l",buf,"sp");
+  } else {
+	gen("addq",buf,"sp");
+  }
 }
 
 void gen_pop32d(unsigned char reg)

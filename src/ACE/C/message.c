@@ -79,7 +79,7 @@ int	mtype;
 					{
 					  /* call function */
 					  gen_jsr("_MessageOpen");
-					  gen("add.l","#12","sp");
+					  gen_pop_ignore(12);
 					  enter_XREF("_MessageOpen");
 					}				
 				}

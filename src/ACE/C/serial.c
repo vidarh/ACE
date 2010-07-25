@@ -132,7 +132,7 @@ void open_serial()
 
      /* call open_serial function */
      gen_jsr("_OpenSerial");
-     gen("add.l","#24","sp");
+     gen_pop_ignore(24);
      enter_XREF("_OpenSerial");      
     }
    }
@@ -220,7 +220,7 @@ char addrbuf[40];
 
      /* call serial_read function */
      gen_jsr("_ReadSerial");
-     gen("add.l","#12","sp");
+     gen_pop_ignore(12);
      enter_XREF("_ReadSerial");
     }
    }
@@ -258,7 +258,7 @@ void write_serial()
 
     /* call serial_write function */
     gen_jsr("_WriteSerial");
-    gen("add.l","#12","sp");
+    gen_pop_ignore(12);
     enter_XREF("_WriteSerial");
    }	 	 
   }

@@ -146,7 +146,7 @@ int wtype;
 	 
 	 /* call open-window routine */
 	 gen_jsr("_OpenWdw");
-	 gen("add.l","#32","sp");
+	 gen_pop_ignore(32);
 	 enter_XREF("_OpenWdw");
 	 enter_XREF("_IntuitionBase");
 	 enter_XREF("_GfxBase");
