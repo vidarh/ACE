@@ -228,12 +228,12 @@ do
 		     enter_XREF("_shortprints");
 		     break;
 
-   case longtype :   gen("move.l","(sp)+","d0");  
+   case longtype :   gen_pop32d(0);  
 		     gen_jsr("_longprints");
 		     enter_XREF("_longprints");
 		     break;
 
-   case singletype : gen("move.l","(sp)+","d0");
+   case singletype : gen_pop32d(0);
 		     gen_jsr("_singleprints");
 		     enter_XREF("_singleprints");
 		     enter_XREF("_MathBase");

@@ -102,7 +102,7 @@ CODE *cx[];
 
 void make_short()
 {
- gen("move.l","(sp)+","d0");
+ gen_pop32d(0);
  gen("move.w","d0","-(sp)");
 }
 
@@ -244,7 +244,7 @@ BOOL negate=FALSE;
 
    case longtype   : gen("neg.l","(sp)","  "); break;
 
-   case singletype : gen("move.l","(sp)+","d0"); 
+   case singletype : gen_pop32d(0); 
        gen("move.l","_MathBase","a6");
        gen_jsr("_LVOSPNeg(a6)");
        gen_push32d(0);
@@ -339,8 +339,8 @@ CODE *cx[5];
 		    }
 		    break;
 
-    case fdiv     : gen("move.l","(sp)+","d1");  /* 2nd operand */
-		    gen("move.l","(sp)+","d0");  /* 1st operand */
+    case fdiv     : gen_pop32d(1);  /* 2nd operand */
+		    gen_pop32d(0);  /* 1st operand */
 		    gen("movea.l","_MathBase","a6");
 		    gen_jsr("_LVOSPDiv(a6)");  
 		    enter_XREF("_MathBase");
@@ -476,8 +476,8 @@ CODE *cx[5];
    else
    {
     /* single MOD */
-    gen("move.l","(sp)+","d1");   /* divisor */
-    gen("move.l","(sp)+","d0");   /* dividend */
+    gen_pop32d(1);   /* divisor */
+    gen_pop32d(0);   /* dividend */
     gen_jsr("_modffp");
     gen_push32d(0);
     enter_XREF("_modffp");
@@ -524,8 +524,8 @@ CODE *cx[5];
    {
     case plus :  if ((modtype != stringtype) && (modtype != shorttype))
    {
-      gen("move.l","(sp)+","d1");
-    gen("move.l","(sp)+","d0");
+      gen_pop32d(1);
+    gen_pop32d(0);
    }
 
    switch(modtype)
@@ -569,8 +569,8 @@ CODE *cx[5];
 
     case minus : if ((modtype != stringtype) && (modtype != shorttype))
    {
-    gen("move.l","(sp)+","d1");
-    gen("move.l","(sp)+","d0");
+    gen_pop32d(1);
+    gen_pop32d(0);
    }
 
    switch(modtype)
@@ -683,14 +683,14 @@ CODE *cx[5];
         		gen("cmp.w","d1","d0");
         		break;
 
-    case longtype   : 	gen("move.l","(sp)+","d1");  /* 2nd */
-        		gen("move.l","(sp)+","d0");  /* 1st */
+    case longtype   : 	gen_pop32d(1);  /* 2nd */
+        		gen_pop32d(0);  /* 1st */
         		gen("moveq","#-1","d5");     /* assume true */
         		gen("cmp.l","d1","d0");
         		break;
 
-    case singletype : 	gen("move.l","(sp)+","d1");  /* 2nd */
-        		gen("move.l","(sp)+","d0");  /* 1st */
+    case singletype : 	gen_pop32d(1);  /* 2nd */
+        		gen_pop32d(0);  /* 1st */
         		gen("moveq","#-1","d5");     /* assume true */
         		gen("move.l","_MathBase","a6");
         		gen_jsr("_LVOSPCmp(a6)");
@@ -990,8 +990,8 @@ int typ;
      }
      else
      {  
-      gen("move.l","(sp)+","d0");  /* 2nd operand */
-      gen("move.l","(sp)+","d1");  /* 1st operand -> d0 = d1 op d0 */
+      gen_pop32d(0);  /* 2nd operand */
+      gen_pop32d(1);  /* 1st operand -> d0 = d1 op d0 */
      } 
 }
 
@@ -1011,7 +1011,7 @@ int type;
 ** Convert float to integer
 ** with rounding.
 */
-  gen("move.l","(sp)+","d0");
+  gen_pop32d(0);
   gen_jsr("_round");
   gen_push32d(0);
   enter_XREF("_round");
@@ -1023,7 +1023,7 @@ int type;
   */
   if (type == shorttype)
   {
-   gen("move.l","(sp)+","d0");
+   gen_pop32d(0);
    gen("move.w","d0","-(sp)");
   }
 }  
@@ -1039,7 +1039,7 @@ int typ;
   if (typ == shorttype)
      gen("move.w","(sp)+","d0");
   else
-     gen("move.l","(sp)+","d0");
+     gen_pop32d(0);
 
   if (typ == shorttype) gen("ext.l","d0","  "); /* extend sign */
 

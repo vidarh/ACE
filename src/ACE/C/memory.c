@@ -129,7 +129,7 @@ int addrtype,datatype;
      gen("ext.l","d0","  ");
     }
     else
-        gen("move.l","(sp)+","d0");   /* data to be poked */
+        gen_pop32d(0);   /* data to be poked */
     gen("move.l","(sp)+","a0");       /* address */
     gen("move.l","d0","(a0)");	       /* pokel (a0),d0 */
    }

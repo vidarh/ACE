@@ -153,7 +153,7 @@ int  exprtype;
  {
   if ((sym == thensym) || (sym == gotosym))
   {
-   gen("move.l","(sp)+","d0");
+   gen_pop32d(0);
    gen("cmpi.l","#0","d0");
    make_label(labname1,lablabel1);
    gen("bne.s",labname1,"  ");
@@ -282,7 +282,7 @@ int  exprtype;
 
  if (exprtype == longtype)
  {
-  gen("move.l","(sp)+","d0");
+  gen_pop32d(0);
   gen("cmpi.l","#0","d0");
   make_label(labname2,lablabel2);
   gen("bne.s",labname2,"  "); 
@@ -330,7 +330,7 @@ int  exprtype;
 
   if (exprtype == longtype)
   {
-   gen("move.l","(sp)+","d0");
+   gen_pop32d(0);
    gen("cmpi.l","#0","d0");
    make_label(labname2,lablabel2);
    gen("bne.s",labname2,"  ");
@@ -368,7 +368,7 @@ SHORT i;
    
    if (exprtype == longtype)
    {
-    gen("move.l","(sp)+","d0");
+    gen_pop32d(0);
     gen("cmpi.l","#0","d0");
     make_label(labname1,lablabel1);
     gen("bne.s",labname1,"  "); 

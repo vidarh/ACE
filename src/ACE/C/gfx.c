@@ -289,7 +289,7 @@ BOOL aspect=FALSE;
       if (sym != comma)  /* else skip to end angle */
       {
        gen_Flt(expr());
-       gen("move.l","(sp)+","d3"); /* start angle */
+       gen_pop32d(3); /* start angle */
        start_angle=TRUE;
       }
 
@@ -300,7 +300,7 @@ BOOL aspect=FALSE;
       {
        if (!start_angle) _error(30); /* no start angle! */
        gen_Flt(expr());
-       gen("move.l","(sp)+","d4"); /* end angle */
+       gen_pop32d(4); /* end angle */
        end_angle=TRUE;
       }
      }
@@ -311,13 +311,13 @@ BOOL aspect=FALSE;
       /* aspect */
       insymbol();
       gen_Flt(expr());
-      gen("move.l","(sp)+","d5"); /* aspect */
+      gen_pop32d(5); /* aspect */
       aspect=TRUE;
      }    
     }
   
      /* pop radius & (x,y) coordinates */
-     gen("move.l","(sp)+","d2");      /* radius */
+     gen_pop32d(2);      /* radius */
      gen("move.w","(sp)+","_shorty"); /* y */
      gen("move.w","(sp)+","_shortx"); /* x */
 

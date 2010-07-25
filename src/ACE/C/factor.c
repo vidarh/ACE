@@ -479,7 +479,7 @@ BOOL need_symbol;
 			case shorttype 	: gen("move.w","(sp)+","d0");
 					  break;
 
-			case longtype  	: gen("move.l","(sp)+","d0");
+			case longtype  	: gen_pop32d(0);
 					  break;
 
 			default		: _error(4);

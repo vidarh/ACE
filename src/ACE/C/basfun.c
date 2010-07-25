@@ -186,7 +186,7 @@ BOOL offset_on_stack;
 			     make_long(); /* only handle long val */
 			 make_temp_string();
 			 gen("lea",tempstrname,"a0");
-			 gen("move.l","(sp)+","d0"); /* long argument */
+			 gen_pop32d(0); /* long argument */
 			 gen_jsr("_binstr");
 			 enter_XREF("_binstr");
 		         gen("move.l","a0","-(sp)"); /* push string result */
@@ -233,7 +233,7 @@ BOOL offset_on_stack;
 			 gen("lea",tempstrname,"a0");
 			 if (sftype == longtype)
 			 {
-			  gen("move.l","(sp)+","d0");
+			  gen_pop32d(0);
 			  gen_jsr("_hexstrlong");
 			  enter_XREF("_hexstrlong");
 			 }
@@ -353,8 +353,8 @@ BOOL offset_on_stack;
 			}
 			else { _error(16); sftype=undefined; }
 
-		       	gen("move.l","(sp)+","d0");  /* pop filenumber */
-		        gen("move.l","(sp)+","d1");  /* pop no. of characters */
+		       	gen_pop32d(0);  /* pop filenumber */
+		        gen_pop32d(1);  /* pop no. of characters */
 		       	gen_jsr("_inputstrfromfile");
 		       	gen_push32d(0);  /* push string result */
 
@@ -392,7 +392,7 @@ BOOL offset_on_stack;
 			   gen("movea.l","(sp)+","a1");		/* Y$ */
 			   gen("movea.l","(sp)+","a0");		/* X$ */
 			   if (offset_on_stack) 
-			      gen("move.l","(sp)+","d0");	/* I */
+			      gen_pop32d(0);	/* I */
 			   else
 			      gen("moveq","#1","d0");		/* I=1 */
 			   
@@ -449,7 +449,7 @@ BOOL offset_on_stack;
 			     make_long(); /* only handle long val */
 			 make_temp_string();
 			 gen("lea",tempstrname,"a0");
-			 gen("move.l","(sp)+","d0"); /* long argument */
+			 gen_pop32d(0); /* long argument */
 			 gen_jsr("_octstr");
 			 enter_XREF("_octstr");
 		         gen("move.l","a0","-(sp)"); /* push string result */
@@ -514,7 +514,7 @@ BOOL offset_on_stack;
 			 gen("lea",tempstrname,"a0");
 			 if (sftype == longtype)
 			 {
-			  gen("move.l","(sp)+","d0");
+			  gen_pop32d(0);
 			  gen_jsr("_strlong");
 			  enter_XREF("_strlong");
 			  gen("move.l","a0","-(sp)");  /* push string result */
@@ -563,7 +563,7 @@ BOOL offset_on_stack;
 			  {
 			   if (make_integer(ntype) == shorttype) 
 			      make_long();
-			   gen("move.l","(sp)+","d1");	/* J */			
+			   gen_pop32d(1);	/* J */			
 			  }
 
 			  gen("move.w","(sp)+","d0");  /* I */
@@ -712,7 +712,7 @@ char func[80];
   if (nftype != stringtype)
   {
    if (nftype != singletype) gen_Flt(nftype);  
-   gen("move.l","(sp)+","d0");
+   gen_pop32d(0);
    gen("movea.l","_MathTransBase","a6");
    strcpy(func,funcname);
    strcat(func,"(a6)");
@@ -807,7 +807,7 @@ char varptr_obj_name[MAXIDSIZE];
          	     else
          	     if (nftype == longtype)
          	     {
-           		gen("move.l","(sp)+","d0");
+           		gen_pop32d(0);
    	   		gen_jsr("_absl");
    	   		gen_push32d(0);
    	   		enter_XREF("_absl");
@@ -815,7 +815,7 @@ char varptr_obj_name[MAXIDSIZE];
          	     else
          	     if (nftype == singletype)
          	     {
-           		gen("move.l","(sp)+","d0");
+           		gen_pop32d(0);
    	   		gen_jsr("_absf");
    	   		gen_push32d(0);
    	   		enter_XREF("_absf");
@@ -915,7 +915,7 @@ char varptr_obj_name[MAXIDSIZE];
 
 		   	 if (make_integer(nftype) == shorttype)
 		      	    make_long();	
-		   	 gen("move.l","(sp)+","d0"); /* pop filenumber */
+		   	 gen_pop32d(0); /* pop filenumber */
 		   	 gen_jsr("_eoftest");
 		   	 gen_push32d(0);
 		   	 enter_XREF("_eoftest");
@@ -932,7 +932,7 @@ char varptr_obj_name[MAXIDSIZE];
 	 /* FIX */
 	 case fixsym  : if (nftype == singletype)
 			{
-			 gen("move.l","(sp)+","d0");
+			 gen_pop32d(0);
 			 gen("movea.l","_MathBase","a6");
 			 gen_jsr("_LVOSPFix(a6)");
 			 gen_push32d(0);
@@ -978,7 +978,7 @@ char varptr_obj_name[MAXIDSIZE];
 
 			   if (make_integer(nftype) == shorttype)
 			      make_long();
-			   gen("move.l","(sp)+","d0");
+			   gen_pop32d(0);
 			   gen_jsr("_handle");
 			   gen_push32d(0);
 			   enter_XREF("_handle");
@@ -1018,7 +1018,7 @@ char varptr_obj_name[MAXIDSIZE];
 	 /* INT */
 	 case intsym  : if (nftype == singletype)
 			{
-			 gen("move.l","(sp)+","d0");
+			 gen_pop32d(0);
 			 gen("move.l","_MathBase","a6");
 			 gen_jsr("_LVOSPFloor(a6)");
 			 gen_jsr("_LVOSPFix(a6)");
@@ -1059,7 +1059,7 @@ char varptr_obj_name[MAXIDSIZE];
 
 			 if (make_integer(nftype) == shorttype)
 			    make_long();
-			 gen("move.l","(sp)+","d0");
+			 gen_pop32d(0);
 			 gen_jsr("_lof");
 			 gen_push32d(0);
 			 enter_XREF("_lof");
@@ -1307,7 +1307,7 @@ char varptr_obj_name[MAXIDSIZE];
 			else
 			if (nftype == longtype)
 			{
-			 gen("move.l","(sp)+","d0");
+			 gen_pop32d(0);
 			 gen_jsr("_sgnl");
 			 gen_push32d(0);
 			 enter_XREF("_sgnl");
@@ -1316,7 +1316,7 @@ char varptr_obj_name[MAXIDSIZE];
 			else
 			if (nftype == singletype)
 			{
-			 gen("move.l","(sp)+","d1");
+			 gen_pop32d(1);
 			 gen_jsr("_sgnf");
 			 gen_push32d(0);
 			 enter_XREF("_sgnf");
@@ -1344,8 +1344,8 @@ char varptr_obj_name[MAXIDSIZE];
 			   if (make_integer(nftype) == shorttype)
 			      make_long();
 			   
-			   gen("move.l","(sp)+","d0"); /* pop shift factor */
-			   gen("move.l","(sp)+","d1"); /* pop value */
+			   gen_pop32d(0); /* pop shift factor */
+			   gen_pop32d(1); /* pop value */
 			   gen("asl.l","d0","d1");     /* shift d1 by d0 */
 			   gen_push32d(1); /* push result */
 			   nftype=longtype;
@@ -1373,8 +1373,8 @@ char varptr_obj_name[MAXIDSIZE];
 			   if (make_integer(nftype) == shorttype)
 			      make_long();
 			   
-			   gen("move.l","(sp)+","d0"); /* pop shift factor */
-			   gen("move.l","(sp)+","d1"); /* pop value */
+			   gen_pop32d(0); /* pop shift factor */
+			   gen_pop32d(1); /* pop value */
 			   gen("asr.l","d0","d1");     /* shift d1 by d0 */
 			   gen_push32d(1); /* push result */
 			   nftype=longtype;
@@ -1636,7 +1636,7 @@ BOOL   found;
 				 have_lparen=TRUE;
 				 push_indices(varptr_item);
 				 get_abs_ndx(varptr_item); /* offset -> d7 */
-				 gen("move.l","(sp)+","d0"); /* array start */
+				 gen_pop32d(0); /* array start */
 				 gen("add.l","d7","d0"); /* start+offset=addr */
 			 	 gen_push32d(0); /* push address */
 				 insymbol(); /* symbol after rparen */

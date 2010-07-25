@@ -236,7 +236,7 @@ int  sub_type,def_expr_type;
 	  if (sub_type == shorttype)
 	  	gen("move.w","(sp)+","d0");
 	  else
-		gen("move.l","(sp)+","d0");
+		gen_pop32d(0);
 
   	  /* change object from SUB to DEF FN */
 	  sub_ptr->object = definedfunc;

@@ -131,7 +131,7 @@ BOOL volume=FALSE;
  if (voice)  gen("move.w","(sp)+","d3");  /* pop voice */
  if (volume) gen("move.w","(sp)+","d2");  /* pop volume */
 
- gen("move.l","(sp)+","d1");  /* pop duration */
+ gen_pop32d(1);  /* pop duration */
  gen("move.w","(sp)+","d0");  /* pop period */
 
  gen_jsr("_sound");
@@ -350,7 +350,7 @@ SHORT popcount;
  {
   insymbol();
   gen_Flt(expr());
-  gen("move.l","(sp)+","d0");
+  gen_pop32d(0);
   gen_jsr("_back");
   enter_XREF("_back");
   enter_XREF("_MathBase");
@@ -594,7 +594,7 @@ SHORT popcount;
  {
   insymbol();
   if (make_integer(expr()) != longtype) make_long();
-  gen("move.l","(sp)+","d0");
+  gen_pop32d(0);
   gen_jsr("_fix");
   enter_XREF("_fix");
  }
@@ -610,7 +610,7 @@ SHORT popcount;
  {
   insymbol();
   gen_Flt(expr());
-  gen("move.l","(sp)+","d0");
+  gen_pop32d(0);
   gen_jsr("_forward");
   enter_XREF("_forward");
   enter_XREF("_MathBase");
@@ -790,9 +790,9 @@ SHORT popcount;
        gen_Flt(expr()); /* blue */
        
        /* pop parameters */
-       gen("move.l","(sp)+","d3"); /* blue */
-       gen("move.l","(sp)+","d2"); /* green */
-       gen("move.l","(sp)+","d1"); /* red */
+       gen_pop32d(3); /* blue */
+       gen_pop32d(2); /* green */
+       gen_pop32d(1); /* red */
        gen("move.w","(sp)+","d0"); /* color-id  (0-31) */
 
        /* open the screen */
@@ -881,7 +881,7 @@ SHORT popcount;
   statetype = expr();
   if ((statetype = make_integer(statetype)) == notype) _error(4);
   if (statetype == shorttype) make_long();
-  gen("move.l","(sp)+","d0");
+  gen_pop32d(0);
   gen_jsr("_randomise");
   enter_XREF("_randomise");
   enter_XREF("_MathBase");
@@ -1113,7 +1113,7 @@ SHORT popcount;
      if (statetype == notype) _error(4); /* string -> type mismatch */
     }   
 
-    gen("move.l","(sp)+","d1");  /* pop # of bytes of waveform data */
+    gen_pop32d(1);  /* pop # of bytes of waveform data */
     gen("move.l","(sp)+","a0");  /* pop address of waveform data */
    }
   }
@@ -1288,7 +1288,7 @@ SHORT popcount;
     {
      /* statetype is either short or long now */
      if (statetype == shorttype) make_long();
-     gen("move.l","(sp)+","d0");  /* pop expression */ 
+     gen_pop32d(0);  /* pop expression */ 
      gen("move.l","(sp)+","a0");  /* pop address */
      gen("move.l","d0","(a0)");   /* store expression */
     }
@@ -1310,7 +1310,7 @@ SHORT popcount;
    {
     insymbol();
     gen_Flt(expr());
-    gen("move.l","(sp)+","d0");  /* pop expression */ 
+    gen_pop32d(0);  /* pop expression */ 
     gen("move.l","(sp)+","a0");  /* pop address */
     gen("move.l","d0","(a0)");   /* store expression */
    }

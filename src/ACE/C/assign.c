@@ -109,7 +109,7 @@ int storetype,exptype;
  else
  if ((storetype == shorttype) && (exptype == longtype))
  {
-  gen("move.l","(sp)+","d0");
+  gen_pop32d(0);
   /*gen("andi.l","#$ffff","d0");*/
   gen("move.w","d0","-(sp)");
  }
@@ -485,7 +485,7 @@ int  exprtype;
 			gen("move.w","(sp)+","d0");
 		else
 			/* longint, single, string */
-			gen("move.l","(sp)+","d0");
+			gen_pop32d(0);
 	}
         break;
 

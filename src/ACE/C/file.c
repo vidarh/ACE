@@ -83,7 +83,7 @@ void open_a_file()
     {
      /* pop arguments */
      gen("move.l","(sp)+","a1");  /* address of filespec */
-     gen("move.l","(sp)+","d0");  /* filenumber */
+     gen_pop32d(0);  /* filenumber */
      gen("move.l","(sp)+","a0");  /* address of mode string */
 
      gen_jsr("_openfile");
@@ -108,7 +108,7 @@ void close_a_file()
   if (make_integer(expr()) == shorttype) 
      make_long(); /* filenumber = 1..255 */
  
-  gen("move.l","(sp)+","d0");
+  gen_pop32d(0);
   gen_jsr("_closefile");
  }
  while (sym == comma);
@@ -177,7 +177,7 @@ SYM  *storage;
      else
       	 gen("move.l",addrbuf,"a0");	/* string address */
       
-     gen("move.l","(sp)+","d0");	/* filenumber */
+     gen_pop32d(0);	/* filenumber */
 
      /* call _line_input */
      gen_jsr("_line_input");
@@ -233,13 +233,13 @@ int wtype;
 		      	enter_XREF("_writeshort");
 		      	break;
 
-     case longtype : 	gen("move.l","(sp)+","d1");
+     case longtype : 	gen_pop32d(1);
 		     	gen("move.l","_seq_filenumber","d0");
 		     	gen_jsr("_writelong");
 		     	enter_XREF("_writelong");
 		     	break;
 
-     case singletype : 	gen("move.l","(sp)+","d1");
+     case singletype : 	gen_pop32d(1);
 		       	gen("move.l","_seq_filenumber","d0");
 		       	gen_jsr("_writesingle");
 		       	enter_XREF("_writesingle");
@@ -367,12 +367,12 @@ int exprtype,arguments=0;
 		      		enter_XREF("_fprintshort");
 		     		break;
 
-    	case longtype :		gen("move.l","(sp)+","d0");  
+    	case longtype :		gen_pop32d(0);  
 		     		gen_jsr("_fprintlong");
 		     		enter_XREF("_fprintlong");
 		     		break;
 
-  	case singletype : 	gen("move.l","(sp)+","d0");
+  	case singletype : 	gen_pop32d(0);
 		     		gen_jsr("_fprintsingle");
 		     		enter_XREF("_fprintsingle");
 		     		enter_XREF("_MathBase");
@@ -563,7 +563,7 @@ void kill()
  if (expr() != stringtype) _error(4);
  else
  {
-  gen("move.l","(sp)+","d1");
+  gen_pop32d(1);
   gen_jsr("_kill");
   enter_XREF("_kill");
  }
@@ -586,8 +586,8 @@ void ace_rename()
    if (expr() != stringtype) _error(4);
    else
    {
-    gen("move.l","(sp)+","d2");  /* <filespec2> */
-    gen("move.l","(sp)+","d1");  /* <filespec1> */
+    gen_pop32d(2);  /* <filespec2> */
+    gen_pop32d(1);  /* <filespec1> */
     gen_jsr("_rename");
     enter_XREF("_rename");
    }
@@ -607,7 +607,7 @@ void chdir()
  else
  {
   /* call code to change directory */
-  gen("move.l","(sp)+","d1");  /* dirname */
+  gen_pop32d(1);  /* dirname */
   gen_jsr("_chdir");
   enter_XREF("_chdir");
  }
