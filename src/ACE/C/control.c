@@ -451,10 +451,10 @@ int  exprtype;
       strcat(addr,frame_ptr[lev]);
 
       if (storage_item->type == shorttype)
-      gen("move.w","(sp)+",addr);
+      gen_pop16_var(addr);
       else
       /* longtype or singletype */
-      gen("move.l","(sp)+",addr);
+      gen_pop32_var(addr);
      }
  } 
  else _error(5); /* '=' expected */

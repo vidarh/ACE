@@ -242,7 +242,7 @@ char mulbuf[40],srcbuf[40];
   gen_pop16d(1);  	 
   gen("ext.l","d1","  "); 
   gen_push32d(1);   /* push next index after coercing to long */
-  gen("move.l",mulbuf,"-(sp)"); /* push cumulative index */
+  gen_push16_var(mulbuf); /* push cumulative index */
   gen_jsr("lmulu");
   gen("add.l","#8","sp");
   
@@ -260,7 +260,7 @@ char mulbuf[40],srcbuf[40];
 
   /* calculate absolute offset */  
   gen_push32d(7);
-  gen("move.l",srcbuf,"-(sp)");
+  gen_push16_var(srcbuf);
   gen_jsr("lmulu");	/* d7*MAXSTRLEN */
   gen("add.l","#8","sp");
   gen("move.l","d0","d7");
@@ -299,9 +299,9 @@ char buf[40],numbuf[40];
  strcat(numbuf,buf);
 
  if (typ == shorttype)
-    gen("move.w",numbuf,"-(sp)");
+    gen_push16_var(numbuf);
  else
-    gen("move.l",numbuf,"-(sp)");
+    gen_push16_var(numbuf);
 }
 
 int push_struct(item)
@@ -377,7 +377,7 @@ int    mbr_type=undefined;
     }
     else
     if (mbr_type == shorttype)
-       gen("move.w",absbuf,"-(sp)");  /* short */
+       gen_push16_var(absbuf);  /* short */
     else
     if (mbr_type == stringtype)
     {
@@ -386,7 +386,7 @@ int    mbr_type=undefined;
      gen_push_addr(0);  /* push string address */
     }
     else
-       gen("move.l",absbuf,"-(sp)");  /* long, single */ 
+       gen_push16_var(absbuf);  /* long, single */ 
    }
   }
   insymbol();
@@ -404,7 +404,7 @@ int    mbr_type=undefined;
      gen("move.l","(a0)","-(sp)");  /* start address of structure */
   }
   else
-      gen("move.l",addrbuf,"-(sp)");
+      gen_push16_var(addrbuf);
 
   return(longtype);
  }

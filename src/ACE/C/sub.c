@@ -345,7 +345,7 @@ char  addrbuf[40];
        {
           itoa(-1*curr_item->address,addrbuf,10);
 	  strcat(addrbuf,frame_ptr[ONE]);
-	  gen("move.l",addrbuf,"-(sp)");  /* push value parameter */
+	  gen_push16_var(addrbuf);  /* push value parameter */
           assign_to_string_variable(curr_item,MAXSTRLEN);
        }
     }
