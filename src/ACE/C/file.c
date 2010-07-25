@@ -82,9 +82,9 @@ void open_a_file()
     else
     {
      /* pop arguments */
-     gen("move.l","(sp)+","a1");  /* address of filespec */
+     gen_pop_addr(1);  /* address of filespec */
      gen_pop32d(0);  /* filenumber */
-     gen("move.l","(sp)+","a0");  /* address of mode string */
+     gen_pop_addr(0);  /* address of mode string */
 
      gen_jsr("_openfile");
      enter_XREF("_openfile");
@@ -248,7 +248,7 @@ int wtype;
 
      case stringtype : 	gen("move.l","_seq_filenumber","d0");
 			gen_jsr("_writequote");	
-		       	gen("move.l","(sp)+","a0");
+		       	gen_pop_addr(0);
 		       	gen("move.l","_seq_filenumber","d0");
 		       	gen_jsr("_writestring");
 		       	gen("move.l","_seq_filenumber","d0");
@@ -529,7 +529,7 @@ SYM  *storage;
 
     case stringtype : gen_jsr("_finputstring");
 
-		      gen("move.l","a0","-(sp)"); 
+		      gen_push_addr(0); 
 
 		      if (storage->object == variable)
   	   		 assign_to_string_variable(storage,MAXSTRLEN);

@@ -362,7 +362,7 @@ BOOL need_symbol;
 		 {
 		  /* push start address of string within BSS object */
 		  gen("adda.l","d7","a0");
-		  gen("move.l","a0","-(sp)");
+		  gen_push_addr(0);
 		 }   
  		 else
 		 if (arraytype == shorttype)

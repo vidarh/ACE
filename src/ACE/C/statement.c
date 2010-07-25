@@ -1114,7 +1114,7 @@ SHORT popcount;
     }   
 
     gen_pop32d(1);  /* pop # of bytes of waveform data */
-    gen("move.l","(sp)+","a0");  /* pop address of waveform data */
+    gen_pop_addr(0);  /* pop address of waveform data */
    }
   }
   gen("move.w","(sp)+","d0");  /* pop voice */
@@ -1167,7 +1167,7 @@ SHORT popcount;
 		   {
 		    /* get address of variable */
 		    address_of_object();
-		    gen("move.l","(sp)+","a0");
+		    gen_pop_addr(0);
 
 		    /* increment it by 1 */
 		    switch(inc_item->type)
@@ -1222,7 +1222,7 @@ SHORT popcount;
 		   {
 		    /* get address of variable */
 		    address_of_object();
-		    gen("move.l","(sp)+","a0");
+		    gen_pop_addr(0);
 
 		    /* increment it by 1 */
 		    switch(dec_item->type)
@@ -1263,7 +1263,7 @@ SHORT popcount;
     insymbol();
     make_sure_short(expr());  
     gen("move.w","(sp)+","d0");  /* pop expression */ 
-    gen("move.l","(sp)+","a0");  /* pop address */
+    gen_pop_addr(0);  /* pop address */
     gen("move.w","d0","(a0)");   /* store expression */
    }
   }
@@ -1289,7 +1289,7 @@ SHORT popcount;
      /* statetype is either short or long now */
      if (statetype == shorttype) make_long();
      gen_pop32d(0);  /* pop expression */ 
-     gen("move.l","(sp)+","a0");  /* pop address */
+     gen_pop_addr(0);  /* pop address */
      gen("move.l","d0","(a0)");   /* store expression */
     }
    }
@@ -1311,7 +1311,7 @@ SHORT popcount;
     insymbol();
     gen_Flt(expr());
     gen_pop32d(0);  /* pop expression */ 
-    gen("move.l","(sp)+","a0");  /* pop address */
+    gen_pop_addr(0);  /* pop address */
     gen("move.l","d0","(a0)");   /* store expression */
    }
   }

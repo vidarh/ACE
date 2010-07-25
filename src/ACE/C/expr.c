@@ -140,7 +140,7 @@ BOOL dereference=FALSE;
    else
    {
     /* store address into a0 */
-    gen("move.l","(sp)+","a0");
+    gen_pop_addr(0);
 
     /* get value at address in a0 */    
     switch(op)
@@ -545,8 +545,8 @@ CODE *cx[5];
         		break;
 
     case stringtype : 	/* copy source to temp string */
-        		gen("move.l","(sp)+","a2"); /* 2nd */
-        		gen("move.l","(sp)+","a1"); /* 1st */
+        		gen_pop_addr(2); /* 2nd */
+        		gen_pop_addr(1); /* 1st */
 			make_temp_string();
         		gen("lea",tempstrname,"a0");
         		gen_jsr("_strcpy");
@@ -698,8 +698,8 @@ CODE *cx[5];
         		enter_XREF("_MathBase");
         		break;
 
-    case stringtype : 	gen("move.l","(sp)+","a1");  /* addr of 2nd string */
-			gen("move.l","(sp)+","a0");  /* addr of 1st string */
+    case stringtype : 	gen_pop_addr(1);  /* addr of 2nd string */
+			gen_pop_addr(0);  /* addr of 1st string */
 			switch(op)
 			{
 			 case equal     : gen_jsr("_streq");

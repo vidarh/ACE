@@ -212,7 +212,7 @@ char addrbuf[20],buf[80];
  }
 
  /* copy string on stack to variable */
- gen("move.l","(sp)+","a1");  /* source */
+ gen_pop_addr(1);  /* source */
  gen("move.l",addrbuf,"a0");  /* destination */
  gen_jsr("_strcpy");   /* copy source to destination */
  enter_XREF("_strcpy");  
@@ -226,7 +226,7 @@ char *addrbuf;
    - assumes absolute index is in d7.
 */
 
- gen("move.l","(sp)+","a1"); /* source */
+ gen_pop_addr(1); /* source */
  gen("move.l",addrbuf,"a0");  
  gen("adda.l","d7","a0");    /* destination */
 
@@ -325,7 +325,7 @@ int    exprtype,storetype;
       if (member->type == stringtype)  /* string */
       {
        sprintf(numbuf,"#%ld",(long)member->offset);
-       gen("move.l","(sp)+","a1");  /* source */
+       gen_pop_addr(1);  /* source */
        gen("adda.l",numbuf,"a0");   /* destination = struct address + offset */
        gen_jsr("_strcpy");   /* copy source to destination */
        enter_XREF("_strcpy");  
@@ -496,7 +496,7 @@ int  exprtype;
 		      if (storage_item->type == stringtype)
 		      {
 			/* string */
-			gen("move.l","(sp)+","a1");
+			gen_pop_addr(1);
 			gen("lea",ext_name,"a0");	
 			gen_jsr("_strcpy");
 			enter_XREF("_strcpy");

@@ -197,7 +197,7 @@ char lab[80],lablabel[80];
    {
      make_library_name(ut_libname); /* exec names are case sensitive */
      make_string_const(libraryname);
-     gen("move.l","(sp)+","a1");   /* address of library name in a1 */
+     gen_pop_addr(1);   /* address of library name in a1 */
      gen_jsr("_open_library");
      make_library_base(libname);
      gen("move.l","d0",librarybase);

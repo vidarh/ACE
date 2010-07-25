@@ -383,7 +383,7 @@ int    mbr_type=undefined;
     {
      sprintf(numbuf,"#%ld",member->offset);
      gen("adda.l",numbuf,"a0");
-     gen("move.l","a0","-(sp)");  /* push string address */
+     gen_push_addr(0);  /* push string address */
     }
     else
        gen("move.l",absbuf,"-(sp)");  /* long, single */ 

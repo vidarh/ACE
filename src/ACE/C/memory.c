@@ -63,7 +63,7 @@ int addrtype;
    insymbol();
    make_sure_short(expr());
    gen("move.w","(sp)+","d0");   /* data to be poked */
-   gen("move.l","(sp)+","a0");   /* address */
+   gen_pop_addr(0);   /* address */
    gen("move.b","d0","(a0)");    /* poke (a0),d0 */
   }
  }
@@ -92,7 +92,7 @@ int addrtype;
    insymbol();
    make_sure_short(expr());
    gen("move.w","(sp)+","d0");   /* data to be poked */
-   gen("move.l","(sp)+","a0");   /* address */
+   gen_pop_addr(0);   /* address */
    gen("move.w","d0","(a0)");    /* pokew (a0),d0 */
   }
  }
@@ -130,7 +130,7 @@ int addrtype,datatype;
     }
     else
         gen_pop32d(0);   /* data to be poked */
-    gen("move.l","(sp)+","a0");       /* address */
+    gen_pop_addr(0);       /* address */
     gen("move.l","d0","(a0)");	       /* pokel (a0),d0 */
    }
    else _error(4);

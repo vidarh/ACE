@@ -170,7 +170,7 @@ BOOL offset_on_stack;
     /* ASC */
     case ascsym  :	if (sftype == stringtype) 
 			{
-			 gen("move.l","(sp)+","a2");
+			 gen_pop_addr(2);
 			 gen_jsr("_asc");
 			 gen("move.w","d0","-(sp)");
 			 enter_XREF("_asc");	
@@ -189,7 +189,7 @@ BOOL offset_on_stack;
 			 gen_pop32d(0); /* long argument */
 			 gen_jsr("_binstr");
 			 enter_XREF("_binstr");
-		         gen("move.l","a0","-(sp)"); /* push string result */
+		         gen_push_addr(0); /* push string result */
 			 sftype=stringtype;
 			 }
 			 else { _error(4); sftype=undefined; }
@@ -244,7 +244,7 @@ BOOL offset_on_stack;
 			   gen_jsr("_hexstrshort");
 			   enter_XREF("_hexstrshort");
 			  }
-			  gen("move.l","a0","-(sp)");  /* push string result */
+			  gen_push_addr(0);  /* push string result */
 			  sftype=stringtype;
 			 }
 			 else { _error(4); sftype=undefined; }
@@ -417,11 +417,11 @@ BOOL offset_on_stack;
 			  insymbol();
 			  make_sure_short(expr());
 			  gen("move.w","(sp)+","d0");  /* index */
-			  gen("move.l","(sp)+","a0");  /* string */
+			  gen_pop_addr(0);  /* string */
 			  make_temp_string();
 			  gen("lea",tempstrname,"a1");
 			  gen_jsr("_leftstr");
-			  gen("move.l","a0","-(sp)");  /* addr of left$ */
+			  gen_push_addr(0);  /* addr of left$ */
 			  enter_XREF("_leftstr");
 			  sftype=stringtype;
 			 }
@@ -433,7 +433,7 @@ BOOL offset_on_stack;
     /* LEN */
     case lensym  :	if (sftype == stringtype) 
 			{
-			 gen("move.l","(sp)+","a2");
+			 gen_pop_addr(2);
 			 gen_jsr("_strlen");
 			 gen_push32d(0);
 			 enter_XREF("_strlen");	
@@ -452,7 +452,7 @@ BOOL offset_on_stack;
 			 gen_pop32d(0); /* long argument */
 			 gen_jsr("_octstr");
 			 enter_XREF("_octstr");
-		         gen("move.l","a0","-(sp)"); /* push string result */
+		         gen_push_addr(0); /* push string result */
 			 sftype=stringtype;
 			 }
 			 else { _error(4); sftype=undefined; }
@@ -466,11 +466,11 @@ BOOL offset_on_stack;
 			  insymbol();
 			  make_sure_short(expr());
 			  gen("move.w","(sp)+","d0");  /* index */
-			  gen("move.l","(sp)+","a0");  /* string */
+			  gen_pop_addr(0);  /* string */
 			  make_temp_string();
 			  gen("lea",tempstrname,"a1");
 		   	  gen_jsr("_rightstr");
-			  gen("move.l","a0","-(sp)");  /* addr of right$ */
+			  gen_push_addr(0);  /* addr of right$ */
 			  enter_XREF("_rightstr");
 			  sftype=stringtype;
 			 }
@@ -517,7 +517,7 @@ BOOL offset_on_stack;
 			  gen_pop32d(0);
 			  gen_jsr("_strlong");
 			  enter_XREF("_strlong");
-			  gen("move.l","a0","-(sp)");  /* push string result */
+			  gen_push_addr(0);  /* push string result */
 			 }
 			 else
 			  if (sftype == shorttype)
@@ -525,7 +525,7 @@ BOOL offset_on_stack;
 			   gen("move.w","(sp)+","d0");
 			   gen_jsr("_strshort");
 			   enter_XREF("_strshort");
- 			   gen("move.l","a0","-(sp)");  /* push string result */
+ 			   gen_push_addr(0);  /* push string result */
 			  }
 			  else
 			   if (sftype == singletype)
@@ -554,7 +554,7 @@ BOOL offset_on_stack;
 
 			  if (ntype == stringtype)
 			  {
-			   gen("move.l","(sp)+","a0");
+			   gen_pop_addr(0);
 			   gen("move.b","(a0)","d1");
 			   gen("ext.w","d1","  ");
 			   gen("ext.l","d1","  ");	/* MID$(X$,1,1) */
@@ -603,11 +603,11 @@ BOOL offset_on_stack;
 			   gen("move.w","#-1","d1");  
 	   	
 			   gen("move.w","(sp)+","d0");  /* start posn */
-			   gen("move.l","(sp)+","a0");  /* string */
+			   gen_pop_addr(0);  /* string */
 			   make_temp_string();
 			   gen("lea",tempstrname,"a1");
 		           gen_jsr("_midstr");
-			   gen("move.l","a0","-(sp)");  /* addr of mid$ */
+			   gen_push_addr(0);  /* addr of mid$ */
 			   enter_XREF("_midstr");
 			   sftype=stringtype;
 			 }
@@ -622,7 +622,7 @@ BOOL offset_on_stack;
 			 make_sure_short(sftype);
 			 gen("move.w","(sp)+","d0");  /* x coordinate */
 			 gen_jsr("_ptab");
-			 gen("move.l","a0","-(sp)");  /* NULL ptab string */
+			 gen_push_addr(0);  /* NULL ptab string */
 			 enter_XREF("_ptab");
 			 enter_XREF("_GfxBase");
 			 sftype=stringtype;
@@ -636,7 +636,7 @@ BOOL offset_on_stack;
 			 make_sure_short(sftype);
 			 gen("move.w","(sp)+","d0");  /* # of columns */
 			 gen_jsr("_horiz_tab");
-			 gen("move.l","a0","-(sp)");  /* addr of tab string */
+			 gen_push_addr(0);  /* addr of tab string */
 			 enter_XREF("_horiz_tab");
 			 enter_XREF("_DOSBase");
 			 enter_XREF("_GfxBase");
@@ -669,11 +669,11 @@ BOOL offset_on_stack;
     /* UCASE$ */
     case ucasestrsym  :	if (sftype == stringtype) 
 			{
-			 gen("move.l","(sp)+","a1");
+			 gen_pop_addr(1);
 		   	 make_temp_string();
 			 gen("lea",tempstrname,"a0"); /* result buffer */
 			 gen_jsr("_ucase");
-			 gen("move.l","a0","-(sp)");
+			 gen_push_addr(0);
 			 enter_XREF("_ucase");	
 			 sftype=stringtype;
 			}
@@ -1157,7 +1157,7 @@ char varptr_obj_name[MAXIDSIZE];
 			    gen("move.l","d0","a0");    
 			 }
 			 else
-			    gen("move.l","(sp)+","a0"); 
+			    gen_pop_addr(0); 
 			 /* get value */
 			 gen("move.b","(a0)","d0");
 			 gen("ext.w","d0","  ");
@@ -1188,7 +1188,7 @@ char varptr_obj_name[MAXIDSIZE];
 			     gen("move.l","d0","a0");    
 			  }
 			  else
-			     gen("move.l","(sp)+","a0"); 
+			     gen_pop_addr(0); 
 			  /* get value */
 			  gen("move.w","(a0)","-(sp)");
 			  nftype=shorttype;
@@ -1207,7 +1207,7 @@ char varptr_obj_name[MAXIDSIZE];
 			     gen("move.l","d0","a0");    
 			  }
 			  else
-			     gen("move.l","(sp)+","a0"); 
+			     gen_pop_addr(0); 
 			  /* get value */
 			  gen("move.l","(a0)","-(sp)");
 			  nftype=longtype;
@@ -1607,7 +1607,7 @@ BOOL   found;
 				  sprintf(numbuf,"#%ld",member->offset);
 				  gen("movea.l","(a0)","a0");
 				  gen("adda.l",numbuf,"a0");
-				  gen("move.l","a0","-(sp)");
+				  gen_push_addr(0);
 				  /* store type for SWAP command */
 				  struct_member_type = member->type;	  	
 				 }
@@ -1617,7 +1617,7 @@ BOOL   found;
 			     else
 			     {
 			      /* address of struct variable in stack frame */
-			      gen("move.l","a0","-(sp)"); 
+			      gen_push_addr(0); 
 			      /* store type for SWAP command */
 			      struct_member_type = longtype;
 			     }	  	

@@ -30,13 +30,16 @@ void gen(const char * opcode,const char * srcopr,const char *destopr)
 }
 
 static char * dreg[] = {"d0","d1","d2","d3","d4","d5","d6","d7"};
+static char * areg[] = {"a0","a1","a2","a3","a4","a5","a6","a7"};
 
 /******* Public interface ***************/
 
 /** Low level
  *
  *  These should ideally mostly be "packaged up" into higher level
- *  code generation functions.
+ *  code generation functions. Just translating the lower level 
+ *  functions to a new architecture would likely result in inefficient
+ *  code.
  *
  **/
 
@@ -53,4 +56,14 @@ void gen_push32d(unsigned char reg)
 void gen_pop32d(unsigned char reg)
 {
   gen("move.l","(sp)+",dreg[reg]);
+}
+
+void gen_push_addr(unsigned char reg)
+{
+  gen("move.l",areg[reg],"-(sp)");
+}
+
+void gen_pop_addr(unsigned char reg)
+{
+  gen("move.l","(sp)+",areg[reg]);
 }
