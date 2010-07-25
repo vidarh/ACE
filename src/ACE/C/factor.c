@@ -42,6 +42,7 @@
 */
 
 #include "acedef.h"
+#include "codegen.h"
 
 /* locals */
 static	char 	*frame_ptr[] = { "(a4)","(a5)" };
@@ -399,7 +400,7 @@ BOOL need_symbol;
 
   /* parameterless functions */
 
-  case argcountsym : gen("jsr","_argcount","  ");
+  case argcountsym : gen_jsr("_argcount");
 		     gen("move.l","d0","-(sp)");
 		     enter_XREF("_argcount");
 		     ftype=longtype;
@@ -408,7 +409,7 @@ BOOL need_symbol;
 		     return(ftype);
 		     break;
 
-  case csrlinsym  : gen("jsr","_csrlin","  ");
+  case csrlinsym  : gen_jsr("_csrlin");
 		    gen("move.w","d0","-(sp)");
 		    enter_XREF("_csrlin");
 		    ftype=shorttype;
@@ -416,7 +417,7 @@ BOOL need_symbol;
 		    return(ftype);
 		    break;
  
-  case datestrsym : gen("jsr","_date","  ");
+  case datestrsym : gen_jsr("_date");
 		    gen("move.l","d0","-(sp)");
 		    enter_XREF("_date");
 		    enter_XREF("_DOSBase"); /* DateStamp() needs dos.library */
@@ -425,7 +426,7 @@ BOOL need_symbol;
 		    return(ftype);
 		    break;			
 
-  case daysym   : gen("jsr","_getday","  ");
+  case daysym   : gen_jsr("_getday");
 		  gen("move.l","d0","-(sp)");
 		  enter_XREF("_getday");
 		  ftype=longtype;
@@ -433,7 +434,7 @@ BOOL need_symbol;
 		  return(ftype);
 		  break;
 
-  case errsym : gen("jsr","_err","  ");
+  case errsym : gen_jsr("_err");
 		gen("move.l","d0","-(sp)");
 		enter_XREF("_err");
 		ftype=longtype;
@@ -441,7 +442,7 @@ BOOL need_symbol;
 		return(ftype);
 		break;
 
-  case headingsym : gen("jsr","_heading","  ");
+  case headingsym : gen_jsr("_heading");
 		    gen("move.w","d0","-(sp)");
 		    enter_XREF("_heading");
 		    enter_XREF("_IntuitionBase");
@@ -450,7 +451,7 @@ BOOL need_symbol;
 		    return(ftype);
 		    break;
 
-  case inkeysym : gen("jsr","_inkey","  ");
+  case inkeysym : gen_jsr("_inkey");
 		  gen("move.l","d0","-(sp)");
 		  enter_XREF("_inkey");
 		  enter_XREF("_DOSBase");
@@ -459,7 +460,7 @@ BOOL need_symbol;
 		  return(ftype);
 		  break;
 
-  case possym  : gen("jsr","_pos","  ");
+  case possym  : gen_jsr("_pos");
 		 gen("move.w","d0","-(sp)");
 		 enter_XREF("_pos");
 		 ftype=shorttype;
@@ -487,7 +488,7 @@ BOOL need_symbol;
 		  else
 		      insymbol();
 		}
-		gen("jsr","_rnd","  ");
+		gen_jsr("_rnd");
 		gen("move.l","d0","-(sp)");
 		enter_XREF("_rnd");
 		enter_XREF("_MathBase"); /* make sure mathffp lib is open */
@@ -495,7 +496,7 @@ BOOL need_symbol;
 		return(ftype);
 		break;
 
-  case systemsym : gen("jsr","_system_version","  ");
+  case systemsym : gen_jsr("_system_version");
 		   gen("move.w","d0","-(sp)");
 		   enter_XREF("_system_version");
 		   ftype=shorttype;
@@ -503,7 +504,7 @@ BOOL need_symbol;
 		   return(ftype);
 		   break;
 
-  case timersym : gen("jsr","_timer","  ");
+  case timersym : gen_jsr("_timer");
 		  gen("move.l","d0","-(sp)");
 		  enter_XREF("_timer");
 		  enter_XREF("_DOSBase"); /* DateStamp() needs dos.library */
@@ -513,7 +514,7 @@ BOOL need_symbol;
 		  return(ftype);
 		  break;
 
-  case timestrsym : gen("jsr","_timeofday","  ");
+  case timestrsym : gen_jsr("_timeofday");
 		    gen("move.l","d0","-(sp)");
 		    enter_XREF("_timeofday");
 		    enter_XREF("_DOSBase"); /* DateStamp() needs dos.library */
@@ -522,7 +523,7 @@ BOOL need_symbol;
 		    return(ftype);
 		    break;
 
-  case xcorsym	: gen("jsr","_xcor","  ");
+  case xcorsym	: gen_jsr("_xcor");
 		  gen("move.w","d0","-(sp)");
 		  enter_XREF("_xcor");
 		  enter_XREF("_GfxBase");
@@ -531,7 +532,7 @@ BOOL need_symbol;
 		  return(ftype);
 		  break;
 
-  case ycorsym	: gen("jsr","_ycor","  ");
+  case ycorsym	: gen_jsr("_ycor");
 		  gen("move.w","d0","-(sp)");
 		  enter_XREF("_ycor");
 		  enter_XREF("_GfxBase");

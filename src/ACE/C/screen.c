@@ -25,6 +25,7 @@
 */
 
 #include "acedef.h"
+#include "codegen.h"
 
 /* external */
 extern	int	sym;
@@ -45,7 +46,7 @@ int	rword,stype;
    insymbol();
    make_sure_short(expr()); /* screen-id */
    gen("move.w","(sp)+","d0");
-   gen("jsr","_closescreen","  ");
+   gen_jsr("_closescreen");
    enter_XREF("_closescreen");
    enter_XREF("_IntuitionBase");
   }
@@ -72,7 +73,7 @@ int	rword,stype;
 			case backsym 	: gen("move.w","#2","d1"); break;
 		}
 
-		gen("jsr","_change_screen_depth","  ");
+		gen_jsr("_change_screen_depth");
 
 		enter_XREF("_change_screen_depth");
 		enter_XREF("_IntuitionBase");
@@ -112,7 +113,7 @@ int	rword,stype;
        gen("move.w","(sp)+","d0"); /* screen-id (1-9) */
 
        /* open the screen */
-       gen("jsr","_openscreen","  ");
+       gen_jsr("_openscreen");
        enter_XREF("_openscreen");
        enter_XREF("_GfxBase");
       }

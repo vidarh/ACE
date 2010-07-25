@@ -50,7 +50,7 @@
 */
 
 #include "acedef.h"
-
+#include "codegen.h" 
 /* locals */
 static	char	*addreg[] = { "a4","a5" };
 
@@ -140,7 +140,7 @@ BOOL offset_on_stack;
       			  make_string_store();
       			  strcpy(buf,strstorename);
       			  gen("lea",buf,"a0");
-      			  gen("jsr","_chrstring","  ");
+      			  gen_jsr("_chrstring");
       			  gen("pea",strstorename,"  ");
       			  enter_XREF("_chrstring");
       			  enter_BSS(strstorelabel,"ds.b 2");
@@ -157,7 +157,7 @@ BOOL offset_on_stack;
 			 /* destination buffer */
 			 make_temp_string();  	
 			 gen("pea",tempstrname,"  ");
-			 gen("jsr","_arg","  ");
+			 gen_jsr("_arg");
 			 gen("addq","#8","sp");
 			 gen("move.l","d0","-(sp)");
 			 enter_XREF("_arg");
@@ -171,7 +171,7 @@ BOOL offset_on_stack;
     case ascsym  :	if (sftype == stringtype) 
 			{
 			 gen("move.l","(sp)+","a2");
-			 gen("jsr","_asc","  ");
+			 gen_jsr("_asc");
 			 gen("move.w","d0","-(sp)");
 			 enter_XREF("_asc");	
 			 sftype=shorttype;
@@ -187,7 +187,7 @@ BOOL offset_on_stack;
 			 make_temp_string();
 			 gen("lea",tempstrname,"a0");
 			 gen("move.l","(sp)+","d0"); /* long argument */
-			 gen("jsr","_binstr","  ");
+			 gen_jsr("_binstr");
 			 enter_XREF("_binstr");
 		         gen("move.l","a0","-(sp)"); /* push string result */
 			 sftype=stringtype;
@@ -214,7 +214,7 @@ BOOL offset_on_stack;
 				else
 					gen("move.l","#0","-(sp)");
 	
-				gen("jsr","_filerequest","  ");
+				gen_jsr("_filerequest");
 				gen("addq","#8","sp");
 				gen("move.l","d0","-(sp)");
 				enter_XREF("_filerequest");
@@ -234,14 +234,14 @@ BOOL offset_on_stack;
 			 if (sftype == longtype)
 			 {
 			  gen("move.l","(sp)+","d0");
-			  gen("jsr","_hexstrlong","  ");
+			  gen_jsr("_hexstrlong");
 			  enter_XREF("_hexstrlong");
 			 }
 			 else
 			  /* shorttype */
 			  {
 			   gen("move.w","(sp)+","d0");
-			   gen("jsr","_hexstrshort","  ");
+			   gen_jsr("_hexstrshort");
 			   enter_XREF("_hexstrshort");
 			  }
 			  gen("move.l","a0","-(sp)");  /* push string result */
@@ -314,7 +314,7 @@ BOOL offset_on_stack;
 			   if (func == inputboxsym)
 			   {
 				/* INPUTBOX */
-				gen("jsr","_longint_input_box","  ");
+				gen_jsr("_longint_input_box");
 				gen("add.l","#20","sp");
 				gen("move.l","d0","-(sp)");
 				enter_XREF("_longint_input_box");
@@ -323,7 +323,7 @@ BOOL offset_on_stack;
 			   else
 			   {
 				/* INPUTBOX$ */
-				gen("jsr","_string_input_box","  ");
+				gen_jsr("_string_input_box");
 				gen("add.l","#20","sp");
 				gen("move.l","d0","-(sp)");
 				enter_XREF("_string_input_box");
@@ -355,7 +355,7 @@ BOOL offset_on_stack;
 
 		       	gen("move.l","(sp)+","d0");  /* pop filenumber */
 		        gen("move.l","(sp)+","d1");  /* pop no. of characters */
-		       	gen("jsr","_inputstrfromfile","  ");
+		       	gen_jsr("_inputstrfromfile");
 		       	gen("move.l","d0","-(sp)");  /* push string result */
 
 		       	enter_XREF("_inputstrfromfile");
@@ -397,7 +397,7 @@ BOOL offset_on_stack;
 			      gen("moveq","#1","d0");		/* I=1 */
 			   
 			   /* call INSTR */
-			   gen("jsr","_instr","  ");
+			   gen_jsr("_instr");
 			   gen("move.l","d0","-(sp)");	/* posn of Y$ in X$ */
 			   enter_XREF("_instr");
 			   sftype=longtype;
@@ -420,7 +420,7 @@ BOOL offset_on_stack;
 			  gen("move.l","(sp)+","a0");  /* string */
 			  make_temp_string();
 			  gen("lea",tempstrname,"a1");
-			  gen("jsr","_leftstr","  ");
+			  gen_jsr("_leftstr");
 			  gen("move.l","a0","-(sp)");  /* addr of left$ */
 			  enter_XREF("_leftstr");
 			  sftype=stringtype;
@@ -434,7 +434,7 @@ BOOL offset_on_stack;
     case lensym  :	if (sftype == stringtype) 
 			{
 			 gen("move.l","(sp)+","a2");
-			 gen("jsr","_strlen","  ");
+			 gen_jsr("_strlen");
 			 gen("move.l","d0","-(sp)");
 			 enter_XREF("_strlen");	
 			 sftype=longtype;
@@ -450,7 +450,7 @@ BOOL offset_on_stack;
 			 make_temp_string();
 			 gen("lea",tempstrname,"a0");
 			 gen("move.l","(sp)+","d0"); /* long argument */
-			 gen("jsr","_octstr","  ");
+			 gen_jsr("_octstr");
 			 enter_XREF("_octstr");
 		         gen("move.l","a0","-(sp)"); /* push string result */
 			 sftype=stringtype;
@@ -469,7 +469,7 @@ BOOL offset_on_stack;
 			  gen("move.l","(sp)+","a0");  /* string */
 			  make_temp_string();
 			  gen("lea",tempstrname,"a1");
-		   	  gen("jsr","_rightstr","  ");
+		   	  gen_jsr("_rightstr");
 			  gen("move.l","a0","-(sp)");  /* addr of right$ */
 			  enter_XREF("_rightstr");
 			  sftype=stringtype;
@@ -494,9 +494,9 @@ BOOL offset_on_stack;
 			 make_temp_string();
 			 gen("lea",tempstrname,"a0");
 			 if (func == spacestrsym)
-			   	gen("jsr","_spacestring","  ");
+			   	gen_jsr("_spacestring");
 			 else
-				gen("jsr","_spc","  ");
+				gen_jsr("_spc");
 			 gen("move.l","d0","-(sp)");
 			 if (func == spacestrsym)
 				enter_XREF("_spacestring");
@@ -515,7 +515,7 @@ BOOL offset_on_stack;
 			 if (sftype == longtype)
 			 {
 			  gen("move.l","(sp)+","d0");
-			  gen("jsr","_strlong","  ");
+			  gen_jsr("_strlong");
 			  enter_XREF("_strlong");
 			  gen("move.l","a0","-(sp)");  /* push string result */
 			 }
@@ -523,14 +523,14 @@ BOOL offset_on_stack;
 			  if (sftype == shorttype)
 			  {
 			   gen("move.w","(sp)+","d0");
-			   gen("jsr","_strshort","  ");
+			   gen_jsr("_strshort");
 			   enter_XREF("_strshort");
  			   gen("move.l","a0","-(sp)");  /* push string result */
 			  }
 			  else
 			   if (sftype == singletype)
 			   {
-			    gen("jsr","_strsingle","  ");
+			    gen_jsr("_strsingle");
 			    gen("addq","#4","sp");
 			    gen("move.l","d0","-(sp)"); /* push string result */
 			    enter_XREF("_strsingle");
@@ -571,7 +571,7 @@ BOOL offset_on_stack;
 			  /* call STRING$ */
 			  make_temp_string();
 			  gen("lea",tempstrname,"a0");
-			  gen("jsr","_stringstr","  ");
+			  gen_jsr("_stringstr");
 			  gen("move.l","d0","-(sp)");	/* push string result */
 			  enter_XREF("_stringstr");
 			  sftype=stringtype;
@@ -606,7 +606,7 @@ BOOL offset_on_stack;
 			   gen("move.l","(sp)+","a0");  /* string */
 			   make_temp_string();
 			   gen("lea",tempstrname,"a1");
-		           gen("jsr","_midstr","  ");
+		           gen_jsr("_midstr");
 			   gen("move.l","a0","-(sp)");  /* addr of mid$ */
 			   enter_XREF("_midstr");
 			   sftype=stringtype;
@@ -621,7 +621,7 @@ BOOL offset_on_stack;
 			{
 			 make_sure_short(sftype);
 			 gen("move.w","(sp)+","d0");  /* x coordinate */
-			 gen("jsr","_ptab","  ");
+			 gen_jsr("_ptab");
 			 gen("move.l","a0","-(sp)");  /* NULL ptab string */
 			 enter_XREF("_ptab");
 			 enter_XREF("_GfxBase");
@@ -635,7 +635,7 @@ BOOL offset_on_stack;
 			{
 			 make_sure_short(sftype);
 			 gen("move.w","(sp)+","d0");  /* # of columns */
-			 gen("jsr","_horiz_tab","  ");
+			 gen_jsr("_horiz_tab");
 			 gen("move.l","a0","-(sp)");  /* addr of tab string */
 			 enter_XREF("_horiz_tab");
 			 enter_XREF("_DOSBase");
@@ -652,11 +652,11 @@ BOOL offset_on_stack;
 			   make_temp_string();
 			   gen("lea",tempstrname,"a1"); /* outstr */
 			   gen("movea.l","a0","a2");
-			   gen("jsr","_strlen","  "); /* inlen in d0 */
+			   gen_jsr("_strlen"); /* inlen in d0 */
 			   sprintf(srcbuf,"#%ld",MAXSTRLEN); /* #MAXSTRLEN */
 			   gen("move.l",srcbuf,"d1"); /* outlen = MAXSTRLEN */
 			   gen("movea.l","_TransBase","a6");
-			   gen("jsr","_LVOTranslate(a6)","  ");
+			   gen_jsr("_LVOTranslate(a6)");
 			   gen("pea",tempstrname,"  "); /* outstr on stack */
 			   enter_XREF("_TransBase");
 			   enter_XREF("_LVOTranslate");
@@ -672,7 +672,7 @@ BOOL offset_on_stack;
 			 gen("move.l","(sp)+","a1");
 		   	 make_temp_string();
 			 gen("lea",tempstrname,"a0"); /* result buffer */
-			 gen("jsr","_ucase","  ");
+			 gen_jsr("_ucase");
 			 gen("move.l","a0","-(sp)");
 			 enter_XREF("_ucase");	
 			 sftype=stringtype;
@@ -683,7 +683,7 @@ BOOL offset_on_stack;
     /* VAL */
     case valsym :	if (sftype == stringtype)
 			{
-			 gen("jsr","_val","  "); /* string is on the stack */
+			 gen_jsr("_val"); /* string is on the stack */
 			 gen("addq","#4","sp");
 			 gen("move.l","d0","-(sp)");
 			 enter_XREF("_val");
@@ -800,7 +800,7 @@ char varptr_obj_name[MAXIDSIZE];
        case abssym : if (nftype == shorttype)
        		     {
            		gen("move.w","(sp)+","d0");
-   	   		gen("jsr","_absw","  ");
+   	   		gen_jsr("_absw");
    	   		gen("move.w","d0","-(sp)");
    	   		enter_XREF("_absw");
          	     }
@@ -808,7 +808,7 @@ char varptr_obj_name[MAXIDSIZE];
          	     if (nftype == longtype)
          	     {
            		gen("move.l","(sp)+","d0");
-   	   		gen("jsr","_absl","  ");
+   	   		gen_jsr("_absl");
    	   		gen("move.l","d0","-(sp)");
    	   		enter_XREF("_absl");
          	     }
@@ -816,7 +816,7 @@ char varptr_obj_name[MAXIDSIZE];
          	     if (nftype == singletype)
          	     {
            		gen("move.l","(sp)+","d0");
-   	   		gen("jsr","_absf","  ");
+   	   		gen_jsr("_absf");
    	   		gen("move.l","d0","-(sp)");
    	   		enter_XREF("_absf");
 			enter_XREF("_MathBase");
@@ -850,7 +850,7 @@ char varptr_obj_name[MAXIDSIZE];
 			 }
 
 			 /* call ACEalloc() function */
-			 gen("jsr","_ACEalloc","  ");
+			 gen_jsr("_ACEalloc");
 			 gen("addq","#8","sp");
 			 gen("move.l","d0","-(sp)");  /* push result */
 			 enter_XREF("_ACEalloc"); 
@@ -916,7 +916,7 @@ char varptr_obj_name[MAXIDSIZE];
 		   	 if (make_integer(nftype) == shorttype)
 		      	    make_long();	
 		   	 gen("move.l","(sp)+","d0"); /* pop filenumber */
-		   	 gen("jsr","_eoftest","  ");
+		   	 gen_jsr("_eoftest");
 		   	 gen("move.l","d0","-(sp)");
 		   	 enter_XREF("_eoftest");
 		   	 enter_XREF("_DOSBase");
@@ -934,7 +934,7 @@ char varptr_obj_name[MAXIDSIZE];
 			{
 			 gen("move.l","(sp)+","d0");
 			 gen("movea.l","_MathBase","a6");
-			 gen("jsr","_LVOSPFix(a6)","  ");
+			 gen_jsr("_LVOSPFix(a6)");
 			 gen("move.l","d0","-(sp)");
 			 enter_XREF("_MathBase");
 			 enter_XREF("_LVOSPFix");
@@ -953,7 +953,7 @@ char varptr_obj_name[MAXIDSIZE];
 		       {
 		        make_sure_short(nftype);
 		        gen("move.w","(sp)+","d0"); /* pop argument */
-		        gen("jsr","_fre","  ");
+		        gen_jsr("_fre");
 		        gen("move.l","d0","-(sp)");
 		        enter_XREF("_fre");
 		        nftype=longtype;
@@ -964,7 +964,7 @@ char varptr_obj_name[MAXIDSIZE];
 	 /* GADGET */
 	 case gadgetsym : nftype = make_integer(nftype);
 			  if (nftype == shorttype) make_long();
-			  gen("jsr","_GadFunc","  ");
+			  gen_jsr("_GadFunc");
 			  gen("addq","#4","sp");
 			  gen("move.l","d0","-(sp)");
 			  enter_XREF("_GadFunc");
@@ -979,7 +979,7 @@ char varptr_obj_name[MAXIDSIZE];
 			   if (make_integer(nftype) == shorttype)
 			      make_long();
 			   gen("move.l","(sp)+","d0");
-			   gen("jsr","_handle","  ");
+			   gen_jsr("_handle");
 			   gen("move.l","d0","-(sp)");
 			   enter_XREF("_handle");
 			   nftype=longtype;
@@ -1003,7 +1003,7 @@ char varptr_obj_name[MAXIDSIZE];
 			    if (make_integer(expr()) == shorttype)
 			       make_long();
 
-			    gen("jsr","_iff_func","  ");
+			    gen_jsr("_iff_func");
 			    gen("addq","#8","sp");
 			    gen("move.l","d0","-(sp)");	/* push return value */
 			    enter_XREF("_iff_func");
@@ -1020,8 +1020,8 @@ char varptr_obj_name[MAXIDSIZE];
 			{
 			 gen("move.l","(sp)+","d0");
 			 gen("move.l","_MathBase","a6");
-			 gen("jsr","_LVOSPFloor(a6)","  ");
-			 gen("jsr","_LVOSPFix(a6)","  ");
+			 gen_jsr("_LVOSPFloor(a6)");
+			 gen_jsr("_LVOSPFix(a6)");
 			 gen("move.l","d0","-(sp)");
 			 enter_XREF("_MathBase");
 			 enter_XREF("_LVOSPFloor");
@@ -1043,7 +1043,7 @@ char varptr_obj_name[MAXIDSIZE];
 
 			 if (make_integer(nftype) == shorttype)
 			    make_long();
-			 gen("jsr","_FilePosition","  ");
+			 gen_jsr("_FilePosition");
 			 gen("addq","#4","sp");
 			 gen("move.l","d0","-(sp)");
 			 enter_XREF("_FilePosition");
@@ -1060,7 +1060,7 @@ char varptr_obj_name[MAXIDSIZE];
 			 if (make_integer(nftype) == shorttype)
 			    make_long();
 			 gen("move.l","(sp)+","d0");
-			 gen("jsr","_lof","  ");
+			 gen_jsr("_lof");
 			 gen("move.l","d0","-(sp)");
 			 enter_XREF("_lof");
 			 nftype=longtype;
@@ -1075,7 +1075,7 @@ char varptr_obj_name[MAXIDSIZE];
 	 /* LONGINT */
 	 case longintsym: if (nftype == stringtype)
 			  {	
-				gen("jsr","_long_from_string","  ");
+				gen_jsr("_long_from_string");
 				gen("addq","#4","sp");
 				gen("move.l","d0","-(sp)");
 				enter_XREF("_long_from_string");
@@ -1089,7 +1089,7 @@ char varptr_obj_name[MAXIDSIZE];
 			{
 				nftype = make_integer(nftype);
 				if (nftype == shorttype) make_long();
-				gen("jsr","_MenuFunc","  ");
+				gen_jsr("_MenuFunc");
 				gen("addq","#4","sp");
 				gen("move.l","d0","-(sp)");
 				enter_XREF("_MenuFunc");
@@ -1103,7 +1103,7 @@ char varptr_obj_name[MAXIDSIZE];
 			 {
 			  make_sure_short(nftype);
 			  gen("move.w","(sp)+","d0");
-			  gen("jsr","_mouse","  ");
+			  gen_jsr("_mouse");
 			  gen("move.w","d0","-(sp)");
 			  enter_XREF("_mouse");
 			  enter_XREF("_IntuitionBase");
@@ -1132,7 +1132,7 @@ char varptr_obj_name[MAXIDSIZE];
 			     	 gen("move.l","#0","-(sp)"); /* #2 = NULL*/
 			     
 			     /* call the function */
-			     gen("jsr","_sysrequest","  ");
+			     gen_jsr("_sysrequest");
 			     gen("add.l","#12","sp");
 			     gen("move.w","d0","-(sp)");
 			     enter_XREF("_sysrequest");
@@ -1228,7 +1228,7 @@ char varptr_obj_name[MAXIDSIZE];
 			  gen("move.w","(sp)+","d0");  /* x */
 			  gen("move.l","_RPort","a1"); /* rastport */
 			  gen("move.l","_GfxBase","a6");
-			  gen("jsr","_LVOReadPixel(a6)","  ");
+			  gen_jsr("_LVOReadPixel(a6)");
 			  gen("move.l","d0","-(sp)");
 			  enter_XREF("_LVOReadPixel");
 			  enter_XREF("_GfxBase");
@@ -1244,7 +1244,7 @@ char varptr_obj_name[MAXIDSIZE];
 			{
 			 make_sure_short(nftype);
 			 gen("move.w","(sp)+","d0"); /* pop argument */
-			 gen("jsr","_potx","  ");
+			 gen_jsr("_potx");
 			 gen("move.w","d0","-(sp)");
 			 enter_XREF("_potx");
 			 enter_XREF("_DOSBase");
@@ -1258,7 +1258,7 @@ char varptr_obj_name[MAXIDSIZE];
 			{
 			 make_sure_short(nftype);
 			 gen("move.w","(sp)+","d0"); /* pop argument */
-			 gen("jsr","_poty","  ");
+			 gen_jsr("_poty");
 			 gen("move.w","d0","-(sp)");
 			 enter_XREF("_poty");
 			 enter_XREF("_DOSBase");
@@ -1283,7 +1283,7 @@ char varptr_obj_name[MAXIDSIZE];
 			    if (make_integer(expr()) == shorttype)
 			       make_long();
 
-			    gen("jsr","_serial_func","  ");
+			    gen_jsr("_serial_func");
 			    gen("addq","#8","sp");
 			    gen("move.l","d0","-(sp)");	/* push return value */
 			    enter_XREF("_serial_func");
@@ -1299,7 +1299,7 @@ char varptr_obj_name[MAXIDSIZE];
 	 case sgnsym  : if (nftype == shorttype)
 			{
 			 gen("move.w","(sp)+","d0");
-			 gen("jsr","_sgnw","  ");
+			 gen_jsr("_sgnw");
 			 gen("move.l","d0","-(sp)");
 			 enter_XREF("_sgnw");
 			 nftype=longtype;
@@ -1308,7 +1308,7 @@ char varptr_obj_name[MAXIDSIZE];
 			if (nftype == longtype)
 			{
 			 gen("move.l","(sp)+","d0");
-			 gen("jsr","_sgnl","  ");
+			 gen_jsr("_sgnl");
 			 gen("move.l","d0","-(sp)");
 			 enter_XREF("_sgnl");
 			 nftype=longtype;
@@ -1317,7 +1317,7 @@ char varptr_obj_name[MAXIDSIZE];
 			if (nftype == singletype)
 			{
 			 gen("move.l","(sp)+","d1");
-			 gen("jsr","_sgnf","  ");
+			 gen_jsr("_sgnf");
 			 gen("move.l","d0","-(sp)");
 			 enter_XREF("_sgnf");
 			 enter_XREF("_MathBase");
@@ -1401,7 +1401,7 @@ char varptr_obj_name[MAXIDSIZE];
 	 /* STICK */
 	 case sticksym : make_sure_short(nftype);
 			 gen("move.w","(sp)+","d0");
-			 gen("jsr","_stick","  ");
+			 gen_jsr("_stick");
 			 gen("move.w","d0","-(sp)");
 			 enter_XREF("_stick");
 			 nftype=shorttype;
@@ -1409,7 +1409,7 @@ char varptr_obj_name[MAXIDSIZE];
 	 /* STRIG */
 	 case strigsym : make_sure_short(nftype);
 			 gen("move.w","(sp)+","d0");
-			 gen("jsr","_strig","  ");
+			 gen_jsr("_strig");
 			 gen("move.w","d0","-(sp)");
 			 enter_XREF("_strig");
 			 nftype=shorttype;
@@ -1436,7 +1436,7 @@ char varptr_obj_name[MAXIDSIZE];
 	 /* WINDOW */
 	 case windowsym : make_sure_short(nftype);
 		  	  gen("move.w","(sp)+","d0");
-			  gen("jsr","_windowfunc","  ");
+			  gen_jsr("_windowfunc");
 			  gen("move.l","d0","-(sp)");
 			  enter_XREF("_windowfunc");
 			  enter_XREF("_IntuitionBase");
@@ -1448,7 +1448,7 @@ char varptr_obj_name[MAXIDSIZE];
 			  {
 			   nftype=make_integer(nftype);
 			   if (nftype == shorttype) make_long();
-			   gen("jsr","_sayfunc","  ");
+			   gen_jsr("_sayfunc");
 			   gen("addq","#4","sp");
 			   gen("move.l","d0","-(sp)");
 			   enter_XREF("_sayfunc");
@@ -1462,7 +1462,7 @@ char varptr_obj_name[MAXIDSIZE];
 			  {
 			   nftype = make_integer(nftype);
 			   if (nftype == shorttype) make_long();
-			   gen("jsr","_screenfunc","  ");
+			   gen_jsr("_screenfunc");
 			   gen("addq","#4","sp");
 			   gen("move.l","d0","-(sp)");
 			   enter_XREF("_screenfunc");

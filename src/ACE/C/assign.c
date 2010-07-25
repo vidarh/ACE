@@ -45,6 +45,7 @@
 */
 
 #include "acedef.h"
+#include "codegen.h"
 
 #define QUN_CODE 3
 
@@ -213,7 +214,7 @@ char addrbuf[20],buf[80];
  /* copy string on stack to variable */
  gen("move.l","(sp)+","a1");  /* source */
  gen("move.l",addrbuf,"a0");  /* destination */
- gen("jsr","_strcpy","  ");   /* copy source to destination */
+ gen_jsr("_strcpy");   /* copy source to destination */
  enter_XREF("_strcpy");  
 }
 
@@ -229,7 +230,7 @@ char *addrbuf;
  gen("move.l",addrbuf,"a0");  
  gen("adda.l","d7","a0");    /* destination */
 
- gen("jsr","_strcpy","  ");  /* copy source to destination */
+ gen_jsr("_strcpy");  /* copy source to destination */
  enter_XREF("_strcpy");  
 }
 
@@ -326,7 +327,7 @@ int    exprtype,storetype;
        sprintf(numbuf,"#%ld",(long)member->offset);
        gen("move.l","(sp)+","a1");  /* source */
        gen("adda.l",numbuf,"a0");   /* destination = struct address + offset */
-       gen("jsr","_strcpy","  ");   /* copy source to destination */
+       gen_jsr("_strcpy");   /* copy source to destination */
        enter_XREF("_strcpy");  
       }
       else
@@ -497,7 +498,7 @@ int  exprtype;
 			/* string */
 			gen("move.l","(sp)+","a1");
 			gen("lea",ext_name,"a0");	
-			gen("jsr","_strcpy","  ");
+			gen_jsr("_strcpy");
 			enter_XREF("_strcpy");
 		      }	
 		      else
@@ -762,7 +763,7 @@ SYM  *storage;
   inptype=expr();
   if ((inptype == stringtype) && (lastsym == stringconst))
   {
-   gen("jsr","_Ustringprint","  ");
+   gen_jsr("_Ustringprint");
    gen("addq","#4","sp");
    enter_XREF("_Ustringprint");
   }
@@ -805,7 +806,7 @@ SYM  *storage;
 
    switch(storage->type)
    {
-    case shorttype  : gen("jsr","_inputshort","  ");
+    case shorttype  : gen_jsr("_inputshort");
 
 		      if (storage->object == variable)
 		      {
@@ -830,7 +831,7 @@ SYM  *storage;
  		      enter_XREF("_inputshort");
 		      break;
 
-    case longtype   : gen("jsr","_inputlong","  ");
+    case longtype   : gen_jsr("_inputlong");
 
 		      if (storage->object == variable)
 		      {
@@ -855,7 +856,7 @@ SYM  *storage;
 		      enter_XREF("_inputlong");
 		      break;
 
-    case singletype : gen("jsr","_inputsingle","  ");
+    case singletype : gen_jsr("_inputsingle");
 
 		      if (storage->object == variable)
 		      {
@@ -882,7 +883,7 @@ SYM  *storage;
 		      enter_XREF("_MathTransBase");
 		      break;
 
-    case stringtype : gen("jsr","_Ustringinput","  ");
+    case stringtype : gen_jsr("_Ustringinput");
 
 		      if (storage->object == variable)
   	   		 assign_to_string_variable(storage,MAXSTRLEN);
@@ -1039,7 +1040,7 @@ SYM  *storage;
 			      assign_to_string_array(addrbuf);
 			break;
 
-    case singletype :   gen("jsr","_htol","  "); /* return LONG from (a1) */
+    case singletype :   gen_jsr("_htol"); /* return LONG from (a1) */
 			if (storage->object == variable)
 			{
 		         if ((storage->shared) && (lev == ONE))
@@ -1056,7 +1057,7 @@ SYM  *storage;
 			enter_XREF("_htol");
 			break;
 
-    case longtype   :	gen("jsr","_htol","  ");
+    case longtype   :	gen_jsr("_htol");
 			gen("move.l","d0","-(sp)");
 			make_integer(singletype);
 			if (storage->object == variable)
@@ -1075,7 +1076,7 @@ SYM  *storage;
 			enter_XREF("_htol");		 
 			break;
 
-    case shorttype   :	gen("jsr","_htol","  ");
+    case shorttype   :	gen_jsr("_htol");
 			gen("move.l","d0","-(sp)");
 			make_sure_short(singletype);
 			if (storage->object == variable)
@@ -1099,7 +1100,7 @@ SYM  *storage;
 			
   /* advance to next DATA item */
   gen("move.l","_dataptr","a2");
-  gen("jsr","_strlen","  ");
+  gen_jsr("_strlen");
   enter_XREF("_strlen");
   gen("addq","#1","d0");  /* include EOS in length */
   gen("move.l","_dataptr","d1");

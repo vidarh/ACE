@@ -25,6 +25,7 @@
 */
 
 #include "acedef.h"
+#include "codegen.h"
 
 /* locals */
 int	struct_member_type;  /* for SWAP -> filled by address_of_object() */
@@ -229,17 +230,17 @@ void swap()
       /* copy first to temp */
       gen("movea.l","d1","a1");    /* source */ 
       gen("lea",tempstrname,"a0"); /* dest */ 
-      gen("jsr","_strcpy","  ");   /* temp = first */
+      gen_jsr("_strcpy");   /* temp = first */
 
       /* copy second to first */
       gen("movea.l","d2","a1");    /* source */ 
       gen("movea.l","d1","a0");    /* dest */ 
-      gen("jsr","_strcpy","  ");   /* first = second */ 
+      gen_jsr("_strcpy");   /* first = second */ 
 
       /* copy temp to second */
       gen("lea",tempstrname,"a1"); /* source */ 
       gen("movea.l","d2","a0");    /* dest */
-      gen("jsr","_strcpy","  ");   /* second = temp */
+      gen_jsr("_strcpy");   /* second = temp */
 
       enter_XREF("_strcpy");
      }

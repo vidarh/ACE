@@ -37,6 +37,7 @@
 */
 
 #include "acedef.h"
+#include "codegen.h"
 
 /* externals */
 extern	int	sym;
@@ -206,7 +207,7 @@ CODE *cx[5];
     gen_Flt(factype);
    }
 
-   gen("jsr","_power","  ");	/* - Call exponentiation function. */
+   gen_jsr("_power");	/* - Call exponentiation function. */
    gen("addq","#8","sp");	/* - Remove parameters from stack. */
    gen("move.l","d0","-(sp)");  /* - Push the result. */
 				
@@ -245,7 +246,7 @@ BOOL negate=FALSE;
 
    case singletype : gen("move.l","(sp)+","d0"); 
        gen("move.l","_MathBase","a6");
-       gen("jsr","_LVOSPNeg(a6)","  ");
+       gen_jsr("_LVOSPNeg(a6)");
        gen("move.l","d0","-(sp)");
        enter_XREF("_MathBase");
        enter_XREF("_LVOSPNeg");
@@ -323,14 +324,14 @@ CODE *cx[5];
 					break;
 			
 		     case longtype   :	/* args on stack */
-					gen("jsr","lmul","  "); 
+					gen_jsr("lmul"); 
 					gen("add.l","#8","sp");
 					enter_XREF("lmul");
 					localtype=longtype;
 					break;
 
 		     case singletype :  gen("movea.l","_MathBase","a6");
-					gen("jsr","_LVOSPMul(a6)","  ");
+					gen_jsr("_LVOSPMul(a6)");
 					enter_XREF("_MathBase");
       		     			enter_XREF("_LVOSPMul");
 					localtype=singletype;
@@ -341,7 +342,7 @@ CODE *cx[5];
     case fdiv     : gen("move.l","(sp)+","d1");  /* 2nd operand */
 		    gen("move.l","(sp)+","d0");  /* 1st operand */
 		    gen("movea.l","_MathBase","a6");
-		    gen("jsr","_LVOSPDiv(a6)","  ");  
+		    gen_jsr("_LVOSPDiv(a6)");  
 		    enter_XREF("_MathBase");
       		    enter_XREF("_LVOSPDiv");
 		    localtype=singletype;
@@ -398,7 +399,7 @@ CODE *cx[5];
    localtype=prodtype;
 
    /* integer division - args on stack */
-   gen("jsr","ace_ldiv","  ");
+   gen_jsr("ace_ldiv");
    gen("add.l","#8","sp");
    gen("move.l","d0","-(sp)");
    enter_XREF("ace_ldiv");
@@ -467,7 +468,7 @@ CODE *cx[5];
    if (localtype == longtype)
    {
     /* integer MOD - args on stack */
-    gen("jsr","ace_lrem","  ");
+    gen_jsr("ace_lrem");
     gen("add.l","#8","sp");
     gen("move.l","d0","-(sp)");
     enter_XREF("ace_lrem");
@@ -477,7 +478,7 @@ CODE *cx[5];
     /* single MOD */
     gen("move.l","(sp)+","d1");   /* divisor */
     gen("move.l","(sp)+","d0");   /* dividend */
-    gen("jsr","_modffp","  ");
+    gen_jsr("_modffp");
     gen("move.l","d0","-(sp)");
     enter_XREF("_modffp");
     enter_XREF("_MathBase");
@@ -538,7 +539,7 @@ CODE *cx[5];
     		    	break;
 
     case singletype : 	gen("move.l","_MathBase","a6");
-        		gen("jsr","_LVOSPAdd(a6)","  ");
+        		gen_jsr("_LVOSPAdd(a6)");
         		enter_XREF("_LVOSPAdd");
         		enter_XREF("_MathBase");
         		break;
@@ -548,11 +549,11 @@ CODE *cx[5];
         		gen("move.l","(sp)+","a1"); /* 1st */
 			make_temp_string();
         		gen("lea",tempstrname,"a0");
-        		gen("jsr","_strcpy","  ");
+        		gen_jsr("_strcpy");
         		/* prepare for strcat */
         		gen("lea",tempstrname,"a0");
         		gen("move.l","a2","a1");
-        		gen("jsr","_strcat","  ");
+        		gen_jsr("_strcat");
         		gen("pea",tempstrname,"  ");
         		enter_XREF("_strcpy");
         		enter_XREF("_strcat");
@@ -583,7 +584,7 @@ CODE *cx[5];
          		break;
 
     case singletype :	gen("move.l","_MathBase","a6");
-        		gen("jsr","_LVOSPSub(a6)","  ");
+        		gen_jsr("_LVOSPSub(a6)");
        			enter_XREF("_LVOSPSub");
         		enter_XREF("_MathBase");
         		break;
@@ -692,7 +693,7 @@ CODE *cx[5];
         		gen("move.l","(sp)+","d0");  /* 1st */
         		gen("moveq","#-1","d5");     /* assume true */
         		gen("move.l","_MathBase","a6");
-        		gen("jsr","_LVOSPCmp(a6)","  ");
+        		gen_jsr("_LVOSPCmp(a6)");
         		enter_XREF("_LVOSPCmp");
         		enter_XREF("_MathBase");
         		break;
@@ -701,22 +702,22 @@ CODE *cx[5];
 			gen("move.l","(sp)+","a0");  /* addr of 1st string */
 			switch(op)
 			{
-			 case equal     : gen("jsr","_streq","  ");
+			 case equal     : gen_jsr("_streq");
 				 	  enter_XREF("_streq");
 					  break;
-			 case notequal  : gen("jsr","_strne","  ");
+			 case notequal  : gen_jsr("_strne");
 				 	  enter_XREF("_strne");
 					  break;
-			 case lessthan  : gen("jsr","_strlt","  ");
+			 case lessthan  : gen_jsr("_strlt");
 				 	  enter_XREF("_strlt");
 					  break;
-			 case gtrthan   : gen("jsr","_strgt","  ");
+			 case gtrthan   : gen_jsr("_strgt");
 				 	  enter_XREF("_strgt");
 					  break;
-			 case ltorequal : gen("jsr","_strle","  ");
+			 case ltorequal : gen_jsr("_strle");
 				 	  enter_XREF("_strle");
 					  break;
-			 case gtorequal : gen("jsr","_strge","  ");
+			 case gtorequal : gen_jsr("_strge");
 				 	  enter_XREF("_strge");
 					  break;
 			}
@@ -908,12 +909,12 @@ CODE *cx[5];
      pop_operands(ortype);
      if (ortype == shorttype) 
      {
-         gen("jsr","_eqvw","  ");
+         gen_jsr("_eqvw");
          enter_XREF("_eqvw");
      }
      else 
        {
-         gen("jsr","_eqvl","  ");
+         gen_jsr("_eqvl");
          enter_XREF("_eqvl");
        }
       push_result(ortype);
@@ -962,12 +963,12 @@ CODE *cx[5];
      pop_operands(eqvtype);
      if (eqvtype == shorttype) 
      {
-         gen("jsr","_impw","  ");
+         gen_jsr("_impw");
          enter_XREF("_impw");
      }
      else 
        {
-         gen("jsr","_impl","  ");
+         gen_jsr("_impl");
          enter_XREF("_impl");
        }
      push_result(eqvtype);
@@ -1011,7 +1012,7 @@ int type;
 ** with rounding.
 */
   gen("move.l","(sp)+","d0");
-  gen("jsr","_round","  ");
+  gen_jsr("_round");
   gen("move.l","d0","-(sp)");
   enter_XREF("_round");
   enter_XREF("_MathBase");
@@ -1043,7 +1044,7 @@ int typ;
   if (typ == shorttype) gen("ext.l","d0","  "); /* extend sign */
 
   gen("move.l","_MathBase","a6");
-  gen("jsr","_LVOSPFlt(a6)","  ");
+  gen_jsr("_LVOSPFlt(a6)");
   gen("move.l","d0","-(sp)");
   enter_XREF("_LVOSPFlt");
   enter_XREF("_MathBase");

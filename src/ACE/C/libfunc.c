@@ -41,6 +41,7 @@
 */
 
 #include "acedef.h"
+#include "codegen.h"
 
 /* locals */
 static 	char 	*reg[] = { "  ","d0","d1","d2","d3","d4","d5","d6","d7",
@@ -197,7 +198,7 @@ char lab[80],lablabel[80];
      make_library_name(ut_libname); /* exec names are case sensitive */
      make_string_const(libraryname);
      gen("move.l","(sp)+","a1");   /* address of library name in a1 */
-     gen("jsr","_open_library","  ");
+     gen_jsr("_open_library");
      make_library_base(libname);
      gen("move.l","d0",librarybase);
      gen("cmpi.l","#0","d0");
@@ -234,7 +235,7 @@ int  cc;
 	  strcmp(otherlib[cc].name,"SENTINEL") != 0)
    {
     	gen("move.l",otherlib[cc].base,"a1");  /* library base in a1 */
-    	gen("jsr","_close_library","  ");
+    	gen_jsr("_close_library");
 	gen("move.l","#0",otherlib[cc].base);
         enter_XREF("_close_library");
 	cc++;
@@ -249,7 +250,7 @@ int  cc;
   {
     make_library_base(libname);
     gen("move.l",librarybase,"a1");  /* library base in a1 */
-    gen("jsr","_close_library","  ");
+    gen_jsr("_close_library");
     gen("move.l","#0",librarybase);
     enter_XREF("_close_library");
   }

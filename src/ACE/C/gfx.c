@@ -38,6 +38,7 @@
 */
 
 #include "acedef.h"
+#include "codegen.h"
 
 /* locals */
 static	char	*frame_ptr[] = { "(a4)","(a5)" };
@@ -89,7 +90,7 @@ BOOL colorset=FALSE;
 	 gen("move.w","(sp)+","d0");
 	 gen("move.l","_RPort","a1");
 	 gen("move.l","_GfxBase","a6");
-	 gen("jsr","_LVOSetAPen(a6)","  ");
+	 gen_jsr("_LVOSetAPen(a6)");
 	 enter_XREF("_LVOSetAPen");
 	 enter_XREF("_GfxBase");
 	 enter_XREF("_RPort");
@@ -117,7 +118,7 @@ BOOL colorset=FALSE;
      {
        gen("add.w","36(a1)","d0");   /* x + RPort->cp_x */
        gen("add.w","38(a1)","d1");   /* y + RPort->cp_y */
-       gen("jsr","_LVOMove(a6)","  ");
+       gen_jsr("_LVOMove(a6)");
        enter_XREF("_LVOMove");
      }
 
@@ -129,7 +130,7 @@ BOOL colorset=FALSE;
      gen("move.w","d0","d3");
      gen("move.w","d1","d4");
 
-     gen("jsr","_LVOMove(a6)","  ");
+     gen_jsr("_LVOMove(a6)");
 
      /* 
      ** Restore appropriate registers for call to WritePixel().
@@ -138,7 +139,7 @@ BOOL colorset=FALSE;
      gen("move.w","d3","d0");	
      gen("move.l","a3","a1");
      	
-     gen("jsr","_LVOWritePixel(a6)","  ");
+     gen_jsr("_LVOWritePixel(a6)");
 
      enter_XREF("_LVOMove");  /* Must call Move() to change pen pos'n */
      enter_XREF("_LVOWritePixel");  
@@ -149,7 +150,7 @@ BOOL colorset=FALSE;
       gen("move.w","_fgdpen","d0");
       gen("move.l","_RPort","a1");
       gen("move.l","_GfxBase","a6");
-      gen("jsr","_LVOSetAPen(a6)","  ");
+      gen_jsr("_LVOSetAPen(a6)");
       enter_XREF("_fgdpen");
      }
 }
@@ -210,7 +211,7 @@ BOOL bordercolor=FALSE;
    gen("move.w","(sp)+","d0");  /* X */
    
    /* call paint routine */
-   gen("jsr","_paint","  ");
+   gen_jsr("_paint");
    enter_XREF("_paint");
    enter_XREF("_GfxBase");
   }
@@ -271,7 +272,7 @@ BOOL aspect=FALSE;
        gen("move.w","(sp)+","d0");
        gen("move.l","_RPort","a1");
        gen("move.l","_GfxBase","a6");
-       gen("jsr","_LVOSetAPen(a6)","  ");
+       gen_jsr("_LVOSetAPen(a6)");
        enter_XREF("_LVOSetAPen");
        enter_XREF("_GfxBase");
        enter_XREF("_RPort");
@@ -337,13 +338,13 @@ BOOL aspect=FALSE;
      gen("move.w","_shortx","d0");
      gen("ext.l","d0","  ");
      gen("move.l","_MathBase","a6");
-     gen("jsr","_LVOSPFlt(a6)","  ");
+     gen_jsr("_LVOSPFlt(a6)");
      gen("move.l","d0","_floatx");
 
      gen("move.w","_shorty","d0");
      gen("ext.l","d0","  ");
      gen("move.l","_MathBase","a6");
-     gen("jsr","_LVOSPFlt(a6)","  ");
+     gen_jsr("_LVOSPFlt(a6)");
      gen("move.l","d0","_floaty");
 
      gen("move.l","_floatx","d0");
@@ -353,7 +354,7 @@ BOOL aspect=FALSE;
      if (!end_angle)  gen("move.l","#$b3800049","d4");  /* default is 359 */
      if (!aspect) gen("move.l","#$e147af3f","d5");  /* default is .44 */
 
-     gen("jsr","_ellipse","  ");
+     gen_jsr("_ellipse");
      enter_XREF("_ellipse");
      enter_XREF("_GfxBase");
      enter_XREF("_MathBase");
@@ -370,7 +371,7 @@ BOOL aspect=FALSE;
       gen("move.w","_fgdpen","d0");
       gen("move.l","_RPort","a1");
       gen("move.l","_GfxBase","a6");
-      gen("jsr","_LVOSetAPen(a6)","  ");
+      gen_jsr("_LVOSetAPen(a6)");
       enter_XREF("_fgdpen");
      }          
 }
@@ -423,7 +424,7 @@ CODE *cx,*cx1,*cx2,*cx3,*cx4,*cx5,*cx6;
      if (!relative)
      {
       /* move to x,y */
-      gen("jsr","_LVOMove(a6)","  "); 
+      gen_jsr("_LVOMove(a6)"); 
       cx=curr_code;  /* don't need this Move for boxfill */
       /* XREF declared by box or line (see below) */
      }
@@ -440,7 +441,7 @@ CODE *cx,*cx1,*cx2,*cx3,*cx4,*cx5,*cx6;
      /* draw line from last pen position to x,y */
      gen("move.l","_RPort","a1");
      gen("move.l","_GfxBase","a6");
-     gen("jsr","_LVODraw(a6)","  ");
+     gen_jsr("_LVODraw(a6)");
      enter_XREF("_LVODraw");
     }
     else _error(21);
@@ -480,7 +481,7 @@ CODE *cx,*cx1,*cx2,*cx3,*cx4,*cx5,*cx6;
          gen("move.l","_RPort","a1");
          gen("move.l","_GfxBase","a6");
          gen("move.w","(sp)+","d0");
-         gen("jsr","_LVOSetAPen(a6)","  ");
+         gen_jsr("_LVOSetAPen(a6)");
 	 gen("move.w","(sp)+","_ymin");
 	 cx5=curr_code;
 	 gen("move.w","(sp)+","_xmin");	/* restore d0 & d1 */
@@ -519,16 +520,16 @@ CODE *cx,*cx1,*cx2,*cx3,*cx4,*cx5,*cx6;
         gen("move.l","_GfxBase","a6");
         gen("move.w","d4","d0");	
 	gen("move.w","d3","d1");	
-	gen("jsr","_LVODraw(a6)","  "); /* x1,y1 - x2,y1 */
+	gen_jsr("_LVODraw(a6)"); /* x1,y1 - x2,y1 */
         gen("move.w","d4","d0");	
 	gen("move.w","d5","d1");	
-	gen("jsr","_LVODraw(a6)","  "); /* x2,y1 - x2,y2 */
+	gen_jsr("_LVODraw(a6)"); /* x2,y1 - x2,y2 */
         gen("move.w","d2","d0");	
 	gen("move.w","d5","d1");	
-	gen("jsr","_LVODraw(a6)","  "); /* x2,y2 - x1,y2 */
+	gen_jsr("_LVODraw(a6)"); /* x2,y2 - x1,y2 */
         gen("move.w","d2","d0");	
 	gen("move.w","d3","d1");	
-	gen("jsr","_LVODraw(a6)","  "); /* x1,y2 - x1,y1 */
+	gen_jsr("_LVODraw(a6)"); /* x1,y2 - x1,y1 */
 	enter_XREF("_LVODraw");
 	enter_XREF("_LVOMove");
         enter_BSS("_xmin","ds.w 1");
@@ -544,7 +545,7 @@ CODE *cx,*cx1,*cx2,*cx3,*cx4,*cx5,*cx6;
 	gen("move.w","(sp)+","d2");  /* xmax */
      	gen("move.w","_ymin","d1");     /* ymin */
 	gen("move.w","_xmin","d0");     /* xmin */
-        gen("jsr","_LVORectFill(a6)","  ");
+        gen_jsr("_LVORectFill(a6)");
         enter_XREF("_LVORectFill"); 
         enter_BSS("_xmin","ds.w 1");
         enter_BSS("_ymin","ds.w 1");
@@ -557,7 +558,7 @@ CODE *cx,*cx1,*cx2,*cx3,*cx4,*cx5,*cx6;
 	gen("move.w","(sp)+","d1");  /* y2 */
 	gen("move.w","(sp)+","d0");  /* x2 */
 	/* already moved to x1,y1 */
-        gen("jsr","_LVODraw(a6)","  ");
+        gen_jsr("_LVODraw(a6)");
         enter_XREF("_LVODraw");
    	enter_XREF("_LVOMove");
 	/* don't need to save x1 & x2 in _xmin & _ymin */
@@ -583,7 +584,7 @@ CODE *cx,*cx1,*cx2,*cx3,*cx4,*cx5,*cx6;
   gen("move.w","_fgdpen","d0");
   gen("move.l","_RPort","a1");
   gen("move.l","_GfxBase","a6");
-  gen("jsr","_LVOSetAPen(a6)","  ");
+  gen_jsr("_LVOSetAPen(a6)");
   enter_XREF("_fgdpen");
  }
 }
@@ -598,7 +599,7 @@ void color()
  gen("move.w","d0","_fgdpen");  /* change global foreground color holder */
  gen("move.l","_RPort","a1");
  gen("move.l","_GfxBase","a6");
- gen("jsr","_LVOSetAPen(a6)","  ");
+ gen_jsr("_LVOSetAPen(a6)");
  enter_XREF("_LVOSetAPen");
  enter_XREF("_GfxBase");
  enter_XREF("_RPort");
@@ -615,7 +616,7 @@ void color()
   gen("move.w","d0","_bgpen"); /* change global background pen color */
   gen("move.l","_RPort","a1");
   gen("move.l","_GfxBase","a6");
-  gen("jsr","_LVOSetBPen(a6)","  ");
+  gen_jsr("_LVOSetBPen(a6)");
   enter_XREF("_LVOSetBPen");
   enter_XREF("_bgpen");
   enter_BSS("_bg","ds.w 1");
@@ -631,7 +632,7 @@ void color()
  /* call text color change routine */
  gen("move.w","_fg","d0");
  gen("move.w","_bg","d1");
- gen("jsr","_changetextcolor","  ");
+ gen_jsr("_changetextcolor");
  enter_XREF("_changetextcolor");
  enter_XREF("_DOSBase");
 }
@@ -682,7 +683,7 @@ BOOL relative;
        enter_XREF("_last_areaY");
      }
 
-     gen("jsr","_area","  ");
+     gen_jsr("_area");
 
      enter_XREF("_area");
      enter_XREF("_GfxBase");
@@ -707,7 +708,7 @@ void areafill()
  else
      gen("move.w","#0","d0");
   
- gen("jsr","_areafill","  ");
+ gen_jsr("_areafill");
 
  enter_XREF("_areafill");
  enter_XREF("_GfxBase");
@@ -727,10 +728,10 @@ BOOL linepatterncalled;
  {
   /* restore default pattern */
   gen("move.l","#1","d1");	/* RESTORE flag */
-  gen("jsr","_linepattern","  ");
+  gen_jsr("_linepattern");
   enter_XREF("_linepattern");
   gen("move.l","#1","d1");	/* RESTORE flag */
-  gen("jsr","_areapattern","  ");
+  gen_jsr("_areapattern");
   enter_XREF("_areapattern");
   insymbol();
  }
@@ -742,7 +743,7 @@ BOOL linepatterncalled;
    make_sure_short(expr());
    gen("move.w","(sp)+","d0");	/* line-pattern */
    gen("move.l","#0","d1");	/* RESTORE flag */
-   gen("jsr","_linepattern","  ");
+   gen_jsr("_linepattern");
    enter_XREF("_linepattern");
    linepatterncalled=TRUE;
   }
@@ -766,7 +767,7 @@ BOOL linepatterncalled;
 	    seem to work! 
 	 */
          gen("move.l","#1","d1");	/* set line-pattern to $FFFF */
-         gen("jsr","_linepattern","  ");
+         gen_jsr("_linepattern");
          enter_XREF("_linepattern");
 	}
 
@@ -780,7 +781,7 @@ BOOL linepatterncalled;
 	gen("move.l",numbuf,"d0");	/* size of array */
 
         gen("move.l","#0","d1");	/* RESTORE flag */
-        gen("jsr","_areapattern","  ");
+        gen_jsr("_areapattern");
         enter_XREF("_areapattern");
 	enter_XREF("_MathBase");
 	enter_XREF("_MathTransBase");	/* need to find Log2(size) */
@@ -859,7 +860,7 @@ void scroll()
 	/* call ScrollRaster function */
 	gen("movea.l","_RPort","a1");		/* RastPort */
 	gen("movea.l","_GfxBase","a6");
-	gen("jsr","_LVOScrollRaster(a6)","  ");
+	gen_jsr("_LVOScrollRaster(a6)");
 	enter_XREF("_LVOScrollRaster");
 	enter_XREF("_GfxBase");
 	enter_XREF("_RPort");
@@ -884,7 +885,7 @@ int stype;
   else
   {
   	if (make_integer(stype) == shorttype) make_long(); 
-	gen("jsr","_change_text_style","  ");
+	gen_jsr("_change_text_style");
 	gen("addq","#4","sp");
 	enter_XREF("_change_text_style");
 	enter_XREF("_GfxBase");
@@ -915,7 +916,7 @@ int ftype;
   		{
   			if (make_integer(ftype) == shorttype) make_long();
 
-			gen("jsr","_change_text_font","  ");
+			gen_jsr("_change_text_font");
 			gen("addq","#8","sp");
 			enter_XREF("_change_text_font");
 			enter_XREF("_GfxBase");

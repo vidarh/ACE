@@ -25,6 +25,7 @@
 */
 
 #include "acedef.h"
+#include "codegen.h"
 
 /* externals */
 extern	int	sym;
@@ -37,7 +38,7 @@ void clear_menu()
 
 	insymbol();
 	
-	gen("jsr","_ClearMenu","  ");
+	gen_jsr("_ClearMenu");
 	enter_XREF("_ClearMenu");
  	enter_XREF("_IntuitionBase");
 }
@@ -48,7 +49,7 @@ void wait_menu()
 	
 	insymbol();
 
-	gen("jsr","_WaitMenu","  ");
+	gen_jsr("_WaitMenu");
 	enter_XREF("_WaitMenu");
 }
 
@@ -92,7 +93,7 @@ int  mtype;
 
 				if (sym != comma)
 				{ 
-					gen("jsr","_ChangeMenuState","  ");
+					gen_jsr("_ChangeMenuState");
 					gen("add.l","#12","sp");
 
 					enter_XREF("_ChangeMenuState");	
@@ -121,7 +122,7 @@ int  mtype;
 			gen("move.l","#0","-(sp)");	/* command-key */
 
 	 /* call function */
-	 gen("jsr","_ModifyMenu","  ");
+	 gen_jsr("_ModifyMenu");
 	 gen("add.l","#20","sp");
 
 	 enter_XREF("_ModifyMenu");

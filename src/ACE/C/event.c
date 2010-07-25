@@ -40,6 +40,7 @@
 */
 
 #include "acedef.h"
+#include "codegen.h"
 
 /* externals */
 extern	int	sym;
@@ -405,7 +406,7 @@ char lab[80],lablabel[80];
 
    make_label(lab,lablabel);
 
-   gen("jsr","_ctrl_c_test","  ");
+   gen_jsr("_ctrl_c_test");
    gen("tst.l","d0","  ");
    gen("beq.s",lab,"  ");
    gen("jmp","_EXIT_PROG","  ");
@@ -424,7 +425,7 @@ char lab[80],lablabel[80];
 
    make_label(lab,lablabel);
 
-   gen("jsr","_ctrl_c_test","  ");
+   gen_jsr("_ctrl_c_test");
    gen("tst.l","d0","  ");
    gen("beq.s",lab,"  ");
 
@@ -449,7 +450,7 @@ char lab[80],lablabel[80];
    and pass control to the
    MENU trapping subroutine. */
 
- gen("jsr","_menu_test","  ");
+ gen_jsr("_menu_test");
  gen("tst.l","d0","  ");
  make_label(lab,lablabel);
  gen("beq.s",lab,"  ");
@@ -474,7 +475,7 @@ char lab[80],lablabel[80];
    MOUSE trapping subroutine. */
 
  gen("moveq","#0","d0");
- gen("jsr","_mouse","  ");
+ gen_jsr("_mouse");
  gen("tst.l","d0","  ");
  make_label(lab,lablabel);
  gen("beq.s",lab,"  ");
@@ -499,7 +500,7 @@ char lab[80],lablabel[80];
    TIMER trapping subroutine. */
 
  gen("move.l",ontimer_seconds,"d0");
- gen("jsr","_ontimer","  ");
+ gen_jsr("_ontimer");
  gen("tst.l","d0","  ");
  make_label(lab,lablabel);
  gen("beq.s",lab,"  ");
@@ -525,7 +526,7 @@ char lab[80],lablabel[80];
    trapping subroutine.
 */
 
- gen("jsr","_testerror","  ");
+ gen_jsr("_testerror");
  gen("tst.l","d0","  ");
  make_label(lab,lablabel);
  gen("beq.s",lab,"  ");
@@ -555,7 +556,7 @@ char lab[80],lablabel[80];
    make_label(lab,lablabel);
 
    gen("move.l","#1","-(sp)");
-   gen("jsr","_wdw_close_test","  ");
+   gen_jsr("_wdw_close_test");
    gen("addq","#4","sp");
    gen("tst.l","d0","  ");
    gen("beq.s",lab,"  ");
@@ -581,7 +582,7 @@ char lab[80],lablabel[80];
    make_label(lab,lablabel);
 
    gen("move.l","#0","-(sp)");
-   gen("jsr","_wdw_close_test","  ");
+   gen_jsr("_wdw_close_test");
    gen("addq","#4","sp");
    gen("tst.l","d0","  ");
    gen("beq.s",lab,"  ");
@@ -610,7 +611,7 @@ char lab[80],lablabel[80];
    make_label(lab,lablabel);
 
    gen("move.l","#0","-(sp)");
-   gen("jsr","_gadget_event_test","  ");
+   gen_jsr("_gadget_event_test");
    gen("addq","#4","sp");
    gen("tst.l","d0","  ");
    gen("beq.s",lab,"  ");

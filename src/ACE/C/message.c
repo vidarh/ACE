@@ -23,6 +23,7 @@
 */
 
 #include "acedef.h"
+#include "codegen.h"
 
 /* locals */
 static 	char	*frame_ptr[] = { "(a4)","(a5)" };
@@ -77,7 +78,7 @@ int	mtype;
 					else
 					{
 					  /* call function */
-					  gen("jsr","_MessageOpen","  ");
+					  gen_jsr("_MessageOpen");
 					  gen("add.l","#12","sp");
 					  enter_XREF("_MessageOpen");
 					}				
@@ -168,7 +169,7 @@ char	addrbuf[40];
     					insymbol();
 
 					/* call function */
-					gen("jsr","_MessageRead","  ");
+					gen_jsr("_MessageRead");
 					gen("addq","#8","sp");
 					enter_XREF("_MessageRead");
 				}
@@ -211,7 +212,7 @@ int	mtype;
 			else
 			{
 				/* call function */
-				gen("jsr","_MessageWrite","  ");
+				gen_jsr("_MessageWrite");
 				gen("addq","#8","sp");
 				enter_XREF("_MessageWrite");
 			}
@@ -241,7 +242,7 @@ int	mtype;
 		if (make_integer(mtype) == shorttype) make_long();
 
 		/* call function */
-		gen("jsr","_MessageWait","  ");
+		gen_jsr("_MessageWait");
 		gen("addq","#4","sp");
 		enter_XREF("_MessageWait");
 	}
@@ -268,7 +269,7 @@ int	mtype;
 		if (make_integer(mtype) == shorttype) make_long();
 
 		/* call function */
-		gen("jsr","_MessageClear","  ");
+		gen_jsr("_MessageClear");
 		gen("addq","#4","sp");
 		enter_XREF("_MessageClear");
 	}
@@ -295,7 +296,7 @@ int	mtype;
 		if (make_integer(mtype) == shorttype) make_long();
 
 		/* call function */
-		gen("jsr","_MessageClose","  ");
+		gen_jsr("_MessageClose");
 		gen("addq","#4","sp");
 		enter_XREF("_MessageClose");
 	}

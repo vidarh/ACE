@@ -37,6 +37,7 @@
 */
 
 #include "acedef.h"
+#include "codegen.h"
 
 /* locals */
 static	char 	*frame_ptr[] = { "(a4)","(a5)" };
@@ -265,7 +266,7 @@ int   formaltype[MAXPARAMS];
    /* disable multi-tasking 
       before passing parameters */
    gen("movea.l","_AbsExecBase","a6");
-   gen("jsr","_LVOForbid(a6)","  ");
+   gen_jsr("_LVOForbid(a6)");
    enter_XREF("_AbsExecBase");
    enter_XREF("_LVOForbid");
 
@@ -302,7 +303,7 @@ char  addrbuf[40];
  {
   /* if actual parameters passed, Forbid() called -> Permit() */
   gen("movea.l","_AbsExecBase","a6");
-  gen("jsr","_LVOPermit(a6)","  ");
+  gen_jsr("_LVOPermit(a6)");
   enter_XREF("_AbsExecBase");
   enter_XREF("_LVOPermit");
 

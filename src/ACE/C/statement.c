@@ -57,6 +57,7 @@
 #include "acedef.h"
 #include "event.h"
 #include "gfx.h"
+#include "codegen.h"
 
 /* locals */
 static	char 	*frame_ptr[] = { "(a4)","(a5)" };
@@ -133,7 +134,7 @@ BOOL volume=FALSE;
  gen("move.l","(sp)+","d1");  /* pop duration */
  gen("move.w","(sp)+","d0");  /* pop period */
 
- gen("jsr","_sound","  ");
+ gen_jsr("_sound");
  enter_XREF("_sound");
  enter_XREF("_DOSBase");
  enter_XREF("_MathBase");
@@ -350,7 +351,7 @@ SHORT popcount;
   insymbol();
   gen_Flt(expr());
   gen("move.l","(sp)+","d0");
-  gen("jsr","_back","  ");
+  gen_jsr("_back");
   enter_XREF("_back");
   enter_XREF("_MathBase");
   enter_XREF("_MathTransBase");
@@ -360,7 +361,7 @@ SHORT popcount;
  /* beep */
  if (sym == beepsym) 
  { 
-  gen("jsr","_beep","  ");
+  gen_jsr("_beep");
   enter_XREF("_beep");
   enter_XREF("_MathBase");  /* _sound needs mathffp.library */
   insymbol();
@@ -452,7 +453,7 @@ SHORT popcount;
        itoa(-1*mc_item->address,addrbuf,10);
        strcat(addrbuf,frame_ptr[lev]);
        gen("move.l",addrbuf,"a0");
-       gen("jsr","(a0)","  ");
+       gen_jsr("(a0)");
        /* pop parameters? */
        if (mc_item->no_of_params != 0)
        {
@@ -500,7 +501,7 @@ SHORT popcount;
  { 
 	insymbol(); 
 	if (sym == allocsym) 
-	   { gen("jsr","_clear_alloc","  "); enter_XREF("_clear_alloc"); }
+	   { gen_jsr("_clear_alloc"); enter_XREF("_clear_alloc"); }
 	insymbol();
  }
  else
@@ -510,7 +511,7 @@ SHORT popcount;
  /* cls */
  if (sym == clssym) 
  { 
-  gen("jsr","_cls","  "); 
+  gen_jsr("_cls"); 
   enter_XREF("_cls");
   enter_XREF("_DOSBase"); /* need dos library */
   insymbol(); 
@@ -594,7 +595,7 @@ SHORT popcount;
   insymbol();
   if (make_integer(expr()) != longtype) make_long();
   gen("move.l","(sp)+","d0");
-  gen("jsr","_fix","  ");
+  gen_jsr("_fix");
   enter_XREF("_fix");
  }
  else
@@ -610,7 +611,7 @@ SHORT popcount;
   insymbol();
   gen_Flt(expr());
   gen("move.l","(sp)+","d0");
-  gen("jsr","_forward","  ");
+  gen_jsr("_forward");
   enter_XREF("_forward");
   enter_XREF("_MathBase");
   enter_XREF("_MathTransBase");
@@ -670,7 +671,7 @@ SHORT popcount;
  /* home */
  if (sym == homesym)
  {
-  gen("jsr","_home","  ");
+  gen_jsr("_home");
   enter_XREF("_home");
   enter_XREF("_GfxBase");
   insymbol();
@@ -719,7 +720,7 @@ SHORT popcount;
   gen("move.w","(sp)+","d1");  /* pop COLUMN */
   gen("move.w","(sp)+","d0");  /* pop ROW */  
 
-  gen("jsr","_locate","  ");
+  gen_jsr("_locate");
   enter_XREF("_locate");
   enter_XREF("_DOSBase");
  }
@@ -795,7 +796,7 @@ SHORT popcount;
        gen("move.w","(sp)+","d0"); /* color-id  (0-31) */
 
        /* open the screen */
-       gen("jsr","_palette","  ");
+       gen_jsr("_palette");
        enter_XREF("_palette");
        enter_XREF("_GfxBase");
        enter_XREF("_MathBase"); /* must convert 0-1 values to bytes: 0-15 */
@@ -810,7 +811,7 @@ SHORT popcount;
  /* pendown */
  if (sym == pendownsym)
  {
-  gen("jsr","_pendown","  ");
+  gen_jsr("_pendown");
   enter_XREF("_pendown");
   insymbol();
  }
@@ -818,7 +819,7 @@ SHORT popcount;
  /* penup */
  if (sym == penupsym)
  {
-  gen("jsr","_penup","  ");
+  gen_jsr("_penup");
   enter_XREF("_penup");
   insymbol();
  }
@@ -881,7 +882,7 @@ SHORT popcount;
   if ((statetype = make_integer(statetype)) == notype) _error(4);
   if (statetype == shorttype) make_long();
   gen("move.l","(sp)+","d0");
-  gen("jsr","_randomise","  ");
+  gen_jsr("_randomise");
   enter_XREF("_randomise");
   enter_XREF("_MathBase");
  }
@@ -928,7 +929,7 @@ SHORT popcount;
   }
   else gen("move.l","#0","-(sp)");  /* no mode-array -> push NULL */
 
-  gen("jsr","_say","  ");
+  gen_jsr("_say");
   gen("addq","#8","sp");  /* pop two parameters */
   enter_XREF("_say");
   enter_XREF("_cleanup_async_speech");
@@ -949,7 +950,7 @@ SHORT popcount;
   insymbol();
   make_sure_short(expr());
   gen("move.w","(sp)+","d0");
-  gen("jsr","_setheading","  ");
+  gen_jsr("_setheading");
   enter_XREF("_setheading");
  }
  else
@@ -966,7 +967,7 @@ SHORT popcount;
    /* pop operands */
    gen("move.w","(sp)+","d1"); /* y */
    gen("move.w","(sp)+","d0"); /* x */
-   gen("jsr","_setxy","  ");
+   gen_jsr("_setxy");
    enter_XREF("_setxy");
    enter_XREF("_GfxBase");
   }
@@ -989,7 +990,7 @@ SHORT popcount;
     if (sym != forsym)
     { 
 	  /* SLEEP */
-	  gen("jsr","_sleep","  "); enter_XREF("_sleep");
+	  gen_jsr("_sleep"); enter_XREF("_sleep");
     }
     else
     { 
@@ -1000,7 +1001,7 @@ SHORT popcount;
 	  else
 	  {
 		gen_Flt(stype); 
-	  	gen("jsr","_sleep_for_secs","  "); gen("addq","#4","sp");
+	  	gen_jsr("_sleep_for_secs"); gen("addq","#4","sp");
 	  	enter_XREF("_sleep_for_secs"); enter_XREF("_MathBase");
 	  }
     }
@@ -1037,7 +1038,7 @@ SHORT popcount;
   else
   {
      /* SYSTEM command-string */
-     gen("jsr","_system_call","  ");
+     gen_jsr("_system_call");
      gen("addq","#4","sp");
      enter_XREF("_system_call");
   }
@@ -1049,7 +1050,7 @@ SHORT popcount;
   insymbol();
   make_sure_short(expr());
   gen("move.w","(sp)+","d0");
-  gen("jsr","_turn","  ");
+  gen_jsr("_turn");
   enter_XREF("_turn");
  }	
  else
@@ -1059,7 +1060,7 @@ SHORT popcount;
   insymbol();
   make_sure_short(expr());
   gen("move.w","(sp)+","d0");
-  gen("jsr","_turnleft","  ");
+  gen_jsr("_turnleft");
   enter_XREF("_turnleft");
  }	
  else
@@ -1069,7 +1070,7 @@ SHORT popcount;
   insymbol();
   make_sure_short(expr());
   gen("move.w","(sp)+","d0");
-  gen("jsr","_turnright","  ");
+  gen_jsr("_turnright");
   enter_XREF("_turnright");
  }	
  else
@@ -1117,7 +1118,7 @@ SHORT popcount;
    }
   }
   gen("move.w","(sp)+","d0");  /* pop voice */
-  gen("jsr","_wave","  "); 
+  gen_jsr("_wave"); 
   enter_XREF("_wave");
  }
  else
@@ -1180,7 +1181,7 @@ SHORT popcount;
 		     case singletype : gen("movea.l","_MathBase","a6");
 				       gen("move.l","(a0)","d0");
 				       gen("move.l","#$80000041","d1");
-				       gen("jsr","_LVOSPAdd(a6)","  ");
+				       gen_jsr("_LVOSPAdd(a6)");
 				       gen("move.l","d0","(a0)");
 				       enter_XREF("_MathBase");
 				       enter_XREF("_LVOSPAdd");
@@ -1235,7 +1236,7 @@ SHORT popcount;
 		     case singletype : gen("movea.l","_MathBase","a6");
 				       gen("move.l","(a0)","d0");
 				       gen("move.l","#$80000041","d1");
-				       gen("jsr","_LVOSPSub(a6)","  ");
+				       gen_jsr("_LVOSPSub(a6)");
 				       gen("move.l","d0","(a0)");
 				       enter_XREF("_MathBase");
 				       enter_XREF("_LVOSPSub");

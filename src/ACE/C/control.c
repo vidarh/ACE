@@ -38,6 +38,7 @@
 */
 
 #include "acedef.h"
+#include "codegen.h"
 
 /* locals */
 static	char 	*frame_ptr[] = { "(a4)","(a5)" };
@@ -565,7 +566,7 @@ int  countertype,limittype,steptype;
      gen("moveq","#0","d1");
      gen("move.l",stpbuf,"d0");   /* d0 < d1? (where d1=0) */
      gen("move.l","_MathBase","a6");
-     gen("jsr","_LVOSPCmp(a6)","  ");
+     gen_jsr("_LVOSPCmp(a6)");
      enter_XREF("_MathBase");
      enter_XREF("_LVOSPCmp");
      make_label(labname2,lablabel2);
@@ -573,7 +574,7 @@ int  countertype,limittype,steptype;
      gen("move.l",cntbuf,"d0");   /* counter */
      gen("move.l",limbuf,"d1");   /* limit */
      gen("move.l","_MathBase","a6");
-     gen("jsr","_LVOSPCmp(a6)","  ");
+     gen_jsr("_LVOSPCmp(a6)");
      gen("bgt","  ","  ");	  /* if STEP +ve -> counter>limit? */
      cx1=curr_code;
      make_label(labname3,lablabel3); /* don't want to do -ve step test too! */
@@ -582,7 +583,7 @@ int  countertype,limittype,steptype;
      gen("move.l",cntbuf,"d0");   /* counter */
      gen("move.l",limbuf,"d1");   /* limit */
      gen("move.l","_MathBase","a6");
-     gen("jsr","_LVOSPCmp(a6)","  ");
+     gen_jsr("_LVOSPCmp(a6)");
      gen("blt","  ","  ");      /* if STEP -ve -> counter<limit? */
      cx2=curr_code;
      gen(lablabel3,"  ","  ");    /* label for bypassing -ve step test */
@@ -617,7 +618,7 @@ int  countertype,limittype,steptype;
      case singletype :  gen("move.l",stpbuf,"d0");
 			gen("move.l",cntbuf,"d1");
 			gen("move.l","_MathBase","a6");
-			gen("jsr","_LVOSPAdd(a6)","  ");
+			gen_jsr("_LVOSPAdd(a6)");
 			gen("move.l","d0",counteraddr);
      			enter_XREF("_MathBase");
      			enter_XREF("_LVOSPAdd");

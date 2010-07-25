@@ -41,6 +41,7 @@
 */
 
 #include "acedef.h"
+#include "codegen.h"
 
 /* locals */
 static 	char	*frame_ptr[] = { "(a4)", "(a5)" };
@@ -85,7 +86,7 @@ void open_a_file()
      gen("move.l","(sp)+","d0");  /* filenumber */
      gen("move.l","(sp)+","a0");  /* address of mode string */
 
-     gen("jsr","_openfile","  ");
+     gen_jsr("_openfile");
      enter_XREF("_openfile");
      enter_XREF("_DOSBase");
     }
@@ -108,7 +109,7 @@ void close_a_file()
      make_long(); /* filenumber = 1..255 */
  
   gen("move.l","(sp)+","d0");
-  gen("jsr","_closefile","  ");
+  gen_jsr("_closefile");
  }
  while (sym == comma);
 
@@ -179,7 +180,7 @@ SYM  *storage;
      gen("move.l","(sp)+","d0");	/* filenumber */
 
      /* call _line_input */
-     gen("jsr","_line_input","  ");
+     gen_jsr("_line_input");
      enter_XREF("_line_input"); 
 
      insymbol();
@@ -228,30 +229,30 @@ int wtype;
 
      case shorttype : 	gen("move.w","(sp)+","d1");
  		      	gen("move.l","_seq_filenumber","d0");
-		      	gen("jsr","_writeshort","  ");
+		      	gen_jsr("_writeshort");
 		      	enter_XREF("_writeshort");
 		      	break;
 
      case longtype : 	gen("move.l","(sp)+","d1");
 		     	gen("move.l","_seq_filenumber","d0");
-		     	gen("jsr","_writelong","  ");
+		     	gen_jsr("_writelong");
 		     	enter_XREF("_writelong");
 		     	break;
 
      case singletype : 	gen("move.l","(sp)+","d1");
 		       	gen("move.l","_seq_filenumber","d0");
-		       	gen("jsr","_writesingle","  ");
+		       	gen_jsr("_writesingle");
 		       	enter_XREF("_writesingle");
 			enter_XREF("_MathBase");
 		       	break;
 
      case stringtype : 	gen("move.l","_seq_filenumber","d0");
-			gen("jsr","_writequote","  ");	
+			gen_jsr("_writequote");	
 		       	gen("move.l","(sp)+","a0");
 		       	gen("move.l","_seq_filenumber","d0");
-		       	gen("jsr","_writestring","  ");
+		       	gen_jsr("_writestring");
 		       	gen("move.l","_seq_filenumber","d0");
-		       	gen("jsr","_writequote","  ");
+		       	gen_jsr("_writequote");
 		       	enter_XREF("_writequote");	
 		       	enter_XREF("_writestring");		
 		       	break;
@@ -261,7 +262,7 @@ int wtype;
     if (sym == comma) 
     { 
      gen("move.l","_seq_filenumber","d0");
-     gen("jsr","_writecomma","  "); 
+     gen_jsr("_writecomma"); 
      enter_XREF("_writecomma"); 
     }
 
@@ -270,7 +271,7 @@ int wtype;
 
    /* write LF to mark EOLN */
    gen("move.l","_seq_filenumber","d0");
-   gen("jsr","_write_eoln","  ");
+   gen_jsr("_write_eoln");
    enter_XREF("_write_eoln");
    
    enter_XREF("_DOSBase");
@@ -291,15 +292,15 @@ int code;
  switch(code)
  {
   /* LF */
-  case LF_CODE : 	gen("jsr","_write_eoln","  ");
+  case LF_CODE : 	gen_jsr("_write_eoln");
  		 	enter_XREF("_write_eoln");
 		 	break;
   /* TAB */
-  case TAB_CODE :  	gen("jsr","_writeTAB","  ");
+  case TAB_CODE :  	gen_jsr("_writeTAB");
  			enter_XREF("_writeTAB");
 			break;
   /* SPACE */
-  case SPACE_CODE :	gen("jsr","_writeSPC","  ");
+  case SPACE_CODE :	gen_jsr("_writeSPC");
  			enter_XREF("_writeSPC");
 			break;
  }
@@ -362,23 +363,23 @@ int exprtype,arguments=0;
       switch(exprtype)
       {
        	case shorttype : 	gen("move.w","(sp)+","d0");
-		     		gen("jsr","_fprintshort","  ");
+		     		gen_jsr("_fprintshort");
 		      		enter_XREF("_fprintshort");
 		     		break;
 
     	case longtype :		gen("move.l","(sp)+","d0");  
-		     		gen("jsr","_fprintlong","  ");
+		     		gen_jsr("_fprintlong");
 		     		enter_XREF("_fprintlong");
 		     		break;
 
   	case singletype : 	gen("move.l","(sp)+","d0");
-		     		gen("jsr","_fprintsingle","  ");
+		     		gen_jsr("_fprintsingle");
 		     		enter_XREF("_fprintsingle");
 		     		enter_XREF("_MathBase");
 		     		break;
 
    	case stringtype : 	gen("movea.l","(sp)+","a0");
-		     		gen("jsr","_writestring","  ");
+		     		gen_jsr("_writestring");
 		     		enter_XREF("_writestring");
 		     		break;
       }
@@ -449,7 +450,7 @@ SYM  *storage;
      
     switch(storage->type)
     {
-    case shorttype  : gen("jsr","_finputshort","  ");
+    case shorttype  : gen_jsr("_finputshort");
 
 		      if (storage->object == variable)
 		      {
@@ -474,7 +475,7 @@ SYM  *storage;
  		      enter_XREF("_finputshort");
 		      break;
 
-    case longtype   : gen("jsr","_finputlong","  ");
+    case longtype   : gen_jsr("_finputlong");
 
 		      if (storage->object == variable)
 		      {
@@ -499,7 +500,7 @@ SYM  *storage;
 		      enter_XREF("_finputlong");
 		      break;
 
-    case singletype : gen("jsr","_finputsingle","  ");
+    case singletype : gen_jsr("_finputsingle");
 
 		      if (storage->object == variable)
 		      {
@@ -526,7 +527,7 @@ SYM  *storage;
 		      enter_XREF("_MathTransBase");
 		      break;
 
-    case stringtype : gen("jsr","_finputstring","  ");
+    case stringtype : gen_jsr("_finputstring");
 
 		      gen("move.l","a0","-(sp)"); 
 
@@ -563,7 +564,7 @@ void kill()
  else
  {
   gen("move.l","(sp)+","d1");
-  gen("jsr","_kill","  ");
+  gen_jsr("_kill");
   enter_XREF("_kill");
  }
 }
@@ -587,7 +588,7 @@ void ace_rename()
    {
     gen("move.l","(sp)+","d2");  /* <filespec2> */
     gen("move.l","(sp)+","d1");  /* <filespec1> */
-    gen("jsr","_rename","  ");
+    gen_jsr("_rename");
     enter_XREF("_rename");
    }
   }
@@ -607,7 +608,7 @@ void chdir()
  {
   /* call code to change directory */
   gen("move.l","(sp)+","d1");  /* dirname */
-  gen("jsr","_chdir","  ");
+  gen_jsr("_chdir");
   enter_XREF("_chdir");
  }
 }
@@ -639,7 +640,7 @@ void files()
      gen("move.l","#0","-(sp)");  /* NULL for target name */
 
  /* call _files routine */
- gen("jsr","_files","  ");
+ gen_jsr("_files");
  gen("addq","#4","sp");
  enter_XREF("_files");
 }
@@ -732,7 +733,7 @@ SYM *structVar;
 			/*
 			** Call function.
 			*/
-			gen("jsr","_GetRecord","  ");
+			gen_jsr("_GetRecord");
  			gen("add.l","#16","sp");
 			enter_XREF("_GetRecord");
 		}
@@ -796,7 +797,7 @@ SYM *structVar;
 			/*
 			** Call function.
 			*/
-			gen("jsr","_PutRecord","  ");
+			gen_jsr("_PutRecord");
  			gen("add.l","#16","sp");
 			enter_XREF("_PutRecord");
 		}

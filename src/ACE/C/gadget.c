@@ -28,6 +28,7 @@
 */
 
 #include "acedef.h"
+#include "codegen.h"
 
 /* externals */
 extern	int	sym;
@@ -87,7 +88,7 @@ void close_gadget()
 	insymbol();
      	make_sure_long(expr());	/* gadget-id */
 
-	gen("jsr","_CloseGadget","  ");
+	gen_jsr("_CloseGadget");
 	gen("addq","#4","sp");
 	enter_XREF("_CloseGadget");
 }
@@ -107,7 +108,7 @@ void gadget_output()
 	insymbol();
      	make_sure_long(expr());	/* gadget-id */
 
-	gen("jsr","_SetCurrentGadget","  ");
+	gen_jsr("_SetCurrentGadget");
 	gen("addq","#4","sp");
 	enter_XREF("_SetCurrentGadget");
 }
@@ -119,7 +120,7 @@ void wait_gadget()
 	insymbol();
      	make_sure_long(expr());	/* gadget-id */
 	
-	gen("jsr","_WaitGadget","  ");
+	gen_jsr("_WaitGadget");
 	gen("addq","#4","sp");
 	enter_XREF("_WaitGadget");
 }
@@ -151,7 +152,7 @@ void modify_gadget()
 		}
 
 		/* call function */
-		gen("jsr","_modify_gad","  ");
+		gen_jsr("_modify_gad");
 		gen("add.l","#12","sp");
 		
 		enter_XREF("_modify_gad");
@@ -212,7 +213,7 @@ int  gtype;
 
 			if (sym != comma)
 			{
-				gen("jsr","_ChangeGadgetStatus","  ");
+				gen_jsr("_ChangeGadgetStatus");
 				gen("addq","#8","sp");
 
 				enter_XREF("_ChangeGadgetStatus");
@@ -335,7 +336,7 @@ int  gtype;
 	 }
 
 	 /* call function */
-	 gen("jsr","_CreateGadget","  ");
+	 gen_jsr("_CreateGadget");
 	 gen("add.l","#48","sp");
 
 	 enter_XREF("_CreateGadget");
@@ -358,7 +359,7 @@ void	bevel_box()
 		make_sure_long(expr());	/* type */
 
 	 	/* call function */
-		gen("jsr","_BevelBox","  ");
+		gen_jsr("_BevelBox");
 		gen("add.l","#20","sp");
 
 		enter_XREF("_BevelBox");

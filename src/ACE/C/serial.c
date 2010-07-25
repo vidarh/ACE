@@ -24,6 +24,7 @@
 */
 
 #include "acedef.h"
+#include "codegen.h"
 
 /* locals */
 static	char 	*frame_ptr[] = { "(a4)","(a5)" };
@@ -130,7 +131,7 @@ void open_serial()
 	 gen("move.l","#0","-(sp)");		/* defaults to NULL */
 
      /* call open_serial function */
-     gen("jsr","_OpenSerial","  ");
+     gen_jsr("_OpenSerial");
      gen("add.l","#24","sp");
      enter_XREF("_OpenSerial");      
     }
@@ -152,7 +153,7 @@ void close_serial()
 
  if (make_integer(expr()) == shorttype) make_long();	/* channel */ 
 	 	 
- gen("jsr","_CloseSerial","  ");
+ gen_jsr("_CloseSerial");
  gen("addq","#4","sp");
  enter_XREF("_CloseSerial"); 
 }
@@ -218,7 +219,7 @@ char addrbuf[40];
      if (make_integer(expr()) == shorttype) make_long();  	/* length */ 
 
      /* call serial_read function */
-     gen("jsr","_ReadSerial","  ");
+     gen_jsr("_ReadSerial");
      gen("add.l","#12","sp");
      enter_XREF("_ReadSerial");
     }
@@ -256,7 +257,7 @@ void write_serial()
     if (make_integer(expr()) == shorttype) make_long();	/* length */ 
 
     /* call serial_write function */
-    gen("jsr","_WriteSerial","  ");
+    gen_jsr("_WriteSerial");
     gen("add.l","#12","sp");
     enter_XREF("_WriteSerial");
    }	 	 

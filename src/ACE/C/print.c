@@ -38,6 +38,7 @@
 */
 
 #include "acedef.h"
+#include "codegen.h"
 
 #define QUN_CODE 3
 
@@ -70,7 +71,7 @@ int code;
  }
 
  /* call function */
- gen("jsr","_Ucodeprint","  ");
+ gen_jsr("_Ucodeprint");
  gen("addq","#4","sp");
  enter_XREF("_Ucodeprint");
 }
@@ -121,22 +122,22 @@ do
   switch(exprtype)
   {
    case shorttype :  make_long();
-		     gen("jsr","_Ushortprint","  ");
+		     gen_jsr("_Ushortprint");
 		     gen("addq","#4","sp");	
 		     enter_XREF("_Ushortprint");
 		     break;
 
-   case longtype :   gen("jsr","_Ulongprint","  ");
+   case longtype :   gen_jsr("_Ulongprint");
 		     gen("addq","#4","sp");	
 		     enter_XREF("_Ulongprint");
 		     break;
 
-   case singletype : gen("jsr","_Usingleprint","  ");
+   case singletype : gen_jsr("_Usingleprint");
 		     gen("addq","#4","sp");	
 		     enter_XREF("_Usingleprint");
 		     break;
 
-   case stringtype : gen("jsr","_Ustringprint","  ");
+   case stringtype : gen_jsr("_Ustringprint");
 		     gen("addq","#4","sp");	
 		     enter_XREF("_Ustringprint");
 		     break;
@@ -167,15 +168,15 @@ int code;
  switch(code)
  {
   /* LF */
-  case LF_CODE : 	gen("jsr","_printsLF","  ");
+  case LF_CODE : 	gen_jsr("_printsLF");
  		 	enter_XREF("_printsLF");
 		 	break;
   /* TAB */
-  case TAB_CODE :  	gen("jsr","_printsTAB","  ");
+  case TAB_CODE :  	gen_jsr("_printsTAB");
  			enter_XREF("_printsTAB");
 			break;
   /* SPACE */
-  case SPACE_CODE :	gen("jsr","_printsSPC","  ");
+  case SPACE_CODE :	gen_jsr("_printsSPC");
  			enter_XREF("_printsSPC");
 			break;
  }
@@ -223,23 +224,23 @@ do
   switch(exprtype)
   {
    case shorttype :  gen("move.w","(sp)+","d0");
-		     gen("jsr","_shortprints","  ");
+		     gen_jsr("_shortprints");
 		     enter_XREF("_shortprints");
 		     break;
 
    case longtype :   gen("move.l","(sp)+","d0");  
-		     gen("jsr","_longprints","  ");
+		     gen_jsr("_longprints");
 		     enter_XREF("_longprints");
 		     break;
 
    case singletype : gen("move.l","(sp)+","d0");
-		     gen("jsr","_singleprints","  ");
+		     gen_jsr("_singleprints");
 		     enter_XREF("_singleprints");
 		     enter_XREF("_MathBase");
 		     break;
 
    case stringtype : gen("movea.l","(sp)+","a0");
-		     gen("jsr","_stringprints","  ");
+		     gen_jsr("_stringprints");
 		     enter_XREF("_stringprints");
 		     break;
   }
