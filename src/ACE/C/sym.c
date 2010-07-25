@@ -368,29 +368,6 @@ CODE *curr,*temp;
  free_code(code);
 }
 
-void gen(opcode,srcopr,destopr)
-char *opcode;
-char *srcopr;
-char *destopr;
-{
- /* allocate memory for a new node & each field */
- if ((new_code = (CODE *)alloc_code(opcode,srcopr,destopr)) == NULL)
- {
-  printf("Can't allocate memory for code node!\n");
-  early_exit=TRUE;
-  kill_all_lists();
-  cleanup();
- }
-
- /* fill code struct */
- strcpy(new_code->opcode,opcode);
- strcpy(new_code->srcopr,srcopr);
- strcpy(new_code->destopr,destopr);
- 
- new_code->next = NULL;
- curr_code->next = new_code;
- curr_code = curr_code->next;
-}
 
 void change(cx,opcode,srcopr,destopr)
 CODE *cx;
