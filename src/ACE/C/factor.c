@@ -293,7 +293,7 @@ BOOL need_symbol;
 		      fact_item->address != extfunc)
 			gen("move.w",srcbuf,"-(sp)");
 		  else
-			gen("move.w","d0","-(sp)");
+			gen_push16d(0);
 		 }
   		 else  /* string, long, single */
   		 {
@@ -323,7 +323,7 @@ BOOL need_symbol;
     		 gen("jsr",func_address,"  ");
 
 		 if (fact_item->type == shorttype)
-		    gen("move.w","d0","-(sp)");
+		    gen_push16d(0);
 		 else
 		    gen_push32d(0); /* push return value */
 
@@ -344,7 +344,7 @@ BOOL need_symbol;
 	         call_external_function(ext_name,&need_symbol);
 		 /* push return value */
 		 if (fact_item->type == shorttype)
-		    gen("move.w","d0","-(sp)");
+		    gen_push16d(0);
 		 else
 		    gen_push32d(0);
 		 ftype=fact_item->type;
@@ -410,7 +410,7 @@ BOOL need_symbol;
 		     break;
 
   case csrlinsym  : gen_jsr("_csrlin");
-		    gen("move.w","d0","-(sp)");
+		    gen_push16d(0);
 		    enter_XREF("_csrlin");
 		    ftype=shorttype;
 		    insymbol();
@@ -443,7 +443,7 @@ BOOL need_symbol;
 		break;
 
   case headingsym : gen_jsr("_heading");
-		    gen("move.w","d0","-(sp)");
+		    gen_push16d(0);
 		    enter_XREF("_heading");
 		    enter_XREF("_IntuitionBase");
 		    ftype=shorttype;
@@ -461,7 +461,7 @@ BOOL need_symbol;
 		  break;
 
   case possym  : gen_jsr("_pos");
-		 gen("move.w","d0","-(sp)");
+		 gen_push16d(0);
 		 enter_XREF("_pos");
 		 ftype=shorttype;
 		 insymbol();
@@ -476,7 +476,7 @@ BOOL need_symbol;
 		  ftype = make_integer(expr());
 		  switch(ftype)
 		  {
-			case shorttype 	: gen("move.w","(sp)+","d0");
+			case shorttype 	: gen_pop16d(0);
 					  break;
 
 			case longtype  	: gen_pop32d(0);
@@ -497,7 +497,7 @@ BOOL need_symbol;
 		break;
 
   case systemsym : gen_jsr("_system_version");
-		   gen("move.w","d0","-(sp)");
+		   gen_push16d(0);
 		   enter_XREF("_system_version");
 		   ftype=shorttype;
 		   insymbol();
@@ -524,7 +524,7 @@ BOOL need_symbol;
 		    break;
 
   case xcorsym	: gen_jsr("_xcor");
-		  gen("move.w","d0","-(sp)");
+		  gen_push16d(0);
 		  enter_XREF("_xcor");
 		  enter_XREF("_GfxBase");
 		  ftype=shorttype;
@@ -533,7 +533,7 @@ BOOL need_symbol;
 		  break;
 
   case ycorsym	: gen_jsr("_ycor");
-		  gen("move.w","d0","-(sp)");
+		  gen_push16d(0);
 		  enter_XREF("_ycor");
 		  enter_XREF("_GfxBase");
 		  ftype=shorttype;

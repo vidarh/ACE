@@ -227,7 +227,7 @@ int wtype;
      case undefined : _error(0);  /* expression expected */ 
 		      break;
 
-     case shorttype : 	gen("move.w","(sp)+","d1");
+     case shorttype : 	gen_pop16d(1);
  		      	gen("move.l","_seq_filenumber","d0");
 		      	gen_jsr("_writeshort");
 		      	enter_XREF("_writeshort");
@@ -362,7 +362,7 @@ int exprtype,arguments=0;
 
       switch(exprtype)
       {
-       	case shorttype : 	gen("move.w","(sp)+","d0");
+       	case shorttype : 	gen_pop16d(0);
 		     		gen_jsr("_fprintshort");
 		      		enter_XREF("_fprintshort");
 		     		break;

@@ -234,7 +234,7 @@ int  sub_type,def_expr_type;
 	     _error(4);
 	  else
 	  if (sub_type == shorttype)
-	  	gen("move.w","(sp)+","d0");
+	  	gen_pop16d(0);
 	  else
 		gen_pop32d(0);
 

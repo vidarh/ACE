@@ -58,6 +58,16 @@ void gen_pop32d(unsigned char reg)
   gen("move.l","(sp)+",dreg[reg]);
 }
 
+void gen_push16d(unsigned char reg)
+{
+  gen("move.w",dreg[reg],"-(sp)");
+}
+
+void gen_pop16d(unsigned char reg)
+{
+  gen("move.w","(sp)+",dreg[reg]);
+}
+
 void gen_push_addr(unsigned char reg)
 {
   gen("move.l",areg[reg],"-(sp)");

@@ -45,7 +45,7 @@ int	rword,stype;
   {
    insymbol();
    make_sure_short(expr()); /* screen-id */
-   gen("move.w","(sp)+","d0");
+   gen_pop16d(0);
    gen_jsr("_closescreen");
    enter_XREF("_closescreen");
    enter_XREF("_IntuitionBase");
@@ -64,7 +64,7 @@ int	rword,stype;
 	{
 		/* screen-id */
 		make_sure_short(stype);
-		gen("move.w","(sp)+","d0");
+		gen_pop16d(0);
 
 		/* forward or back? */
 		switch(rword)
@@ -106,11 +106,11 @@ int	rword,stype;
        make_sure_short(expr()); /* mode */
        
        /* pop parameters */
-       gen("move.w","(sp)+","d4"); /* mode */
-       gen("move.w","(sp)+","d3"); /* depth */
-       gen("move.w","(sp)+","d2"); /* height */
-       gen("move.w","(sp)+","d1"); /* width */
-       gen("move.w","(sp)+","d0"); /* screen-id (1-9) */
+       gen_pop16d(4); /* mode */
+       gen_pop16d(3); /* depth */
+       gen_pop16d(2); /* height */
+       gen_pop16d(1); /* width */
+       gen_pop16d(0); /* screen-id (1-9) */
 
        /* open the screen */
        gen_jsr("_openscreen");

@@ -239,7 +239,7 @@ char mulbuf[40],srcbuf[40];
  {
   sprintf(mulbuf,"#%ld",ndx_mult);
 
-  gen("move.w","(sp)+","d1");  	 
+  gen_pop16d(1);  	 
   gen("ext.l","d1","  "); 
   gen_push32d(1);   /* push next index after coercing to long */
   gen("move.l",mulbuf,"-(sp)"); /* push cumulative index */
@@ -372,7 +372,7 @@ int    mbr_type=undefined;
     {
      gen("move.b",absbuf,"d0");
      gen("ext.w","d0","  ");
-     gen("move.w","d0","-(sp)");
+     gen_push16d(0);
      mbr_type=shorttype;              /* byte */
     }
     else

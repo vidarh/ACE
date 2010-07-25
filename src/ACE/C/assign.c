@@ -102,7 +102,7 @@ int storetype,exptype;
  else
  if ((storetype == longtype) && (exptype == shorttype))
  {
-  gen("move.w","(sp)+","d0");
+  gen_pop16d(0);
   gen("ext.l","d0","  ");
   gen_push32d(0);
  }
@@ -111,7 +111,7 @@ int storetype,exptype;
  {
   gen_pop32d(0);
   /*gen("andi.l","#$ffff","d0");*/
-  gen("move.w","d0","-(sp)");
+  gen_push16d(0);
  }
 
  return(storetype);  /* could be bytetype (for struct member) */
@@ -318,7 +318,7 @@ int    exprtype,storetype;
 
       if (member->type == bytetype)
       {
-       gen("move.w","(sp)+","d0");
+       gen_pop16d(0);
        gen("move.b","d0",absbuf);  /* byte */
       }
       else
@@ -482,7 +482,7 @@ int  exprtype;
 	{
 		/* External subprogram being assigned a value */
 		if (storage_item->type == shorttype)
-			gen("move.w","(sp)+","d0");
+			gen_pop16d(0);
 		else
 			/* longint, single, string */
 			gen_pop32d(0);

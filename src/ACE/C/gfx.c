@@ -87,7 +87,7 @@ BOOL colorset=FALSE;
 	 /* pen color */
 	 insymbol();
 	 make_sure_short(expr());
-	 gen("move.w","(sp)+","d0");
+	 gen_pop16d(0);
 	 gen("move.l","_RPort","a1");
 	 gen("move.l","_GfxBase","a6");
 	 gen_jsr("_LVOSetAPen(a6)");
@@ -99,10 +99,10 @@ BOOL colorset=FALSE;
 	else colorset=FALSE;
        }
        /* pop y-coordinate */
-       gen("move.w","(sp)+","d1");
+       gen_pop16d(1);
       }
       /* pop x-coordinate */
-      gen("move.w","(sp)+","d0");
+      gen_pop16d(0);
      }	
 
      /* plot point */
@@ -198,17 +198,17 @@ BOOL bordercolor=FALSE;
    }
    /* pop parameters */
    if (bordercolor)
-      gen("move.w","(sp)+","d3");
+      gen_pop16d(3);
    else
       gen("moveq","#-1","d3");  /* flag no border color-id */
 
    if (paintcolor)
-      gen("move.w","(sp)+","d2");
+      gen_pop16d(2);
    else
       gen("moveq","#-1","d2");  /* flag no paint color-id */
 
-   gen("move.w","(sp)+","d1");  /* Y */
-   gen("move.w","(sp)+","d0");  /* X */
+   gen_pop16d(1);  /* Y */
+   gen_pop16d(0);  /* X */
    
    /* call paint routine */
    gen_jsr("_paint");
@@ -269,7 +269,7 @@ BOOL aspect=FALSE;
       if (sym != comma)   /* else skipping to next parameter (start angle) */
       {
        make_sure_short(expr());
-       gen("move.w","(sp)+","d0");
+       gen_pop16d(0);
        gen("move.l","_RPort","a1");
        gen("move.l","_GfxBase","a6");
        gen_jsr("_LVOSetAPen(a6)");
@@ -407,8 +407,8 @@ CODE *cx,*cx1,*cx2,*cx3,*cx4,*cx5,*cx6;
       _error(9);
    else
    {
-    gen("move.w","(sp)+","d1");   /* ymin */
-    gen("move.w","(sp)+","d0");   /* xmin */
+    gen_pop16d(1);   /* ymin */
+    gen_pop16d(0);   /* xmin */
     
     /* save x1 & y1 since they may be changed by expr() calls below. */
     gen("move.w","d0","_xmin");   cx1=curr_code;
@@ -480,7 +480,7 @@ CODE *cx,*cx1,*cx2,*cx3,*cx4,*cx5,*cx6;
          make_sure_short(expr());
          gen("move.l","_RPort","a1");
          gen("move.l","_GfxBase","a6");
-         gen("move.w","(sp)+","d0");
+         gen_pop16d(0);
          gen_jsr("_LVOSetAPen(a6)");
 	 gen("move.w","(sp)+","_ymin");
 	 cx5=curr_code;
@@ -510,8 +510,8 @@ CODE *cx,*cx1,*cx2,*cx3,*cx4,*cx5,*cx6;
       /* draw the line, outline box, or filled box */
       if (box)
       {
-	gen("move.w","(sp)+","d5");  /* y2 */
-	gen("move.w","(sp)+","d4");  /* x2 */
+	gen_pop16d(5);  /* y2 */
+	gen_pop16d(4);  /* x2 */
 	gen("move.w","_ymin","d3");     /* y1 */
     	gen("move.w","_xmin","d2");     /* x1 */
        	/* x1=d2; y1=d3 x2=d4; y2=d5 */
@@ -541,8 +541,8 @@ CODE *cx,*cx1,*cx2,*cx3,*cx4,*cx5,*cx6;
 	change(cx,"nop","  ","  ");   /* don't need Move */
         gen("move.l","_RPort","a1");
         gen("move.l","_GfxBase","a6");
-	gen("move.w","(sp)+","d3");  /* ymax */
-	gen("move.w","(sp)+","d2");  /* xmax */
+	gen_pop16d(3);  /* ymax */
+	gen_pop16d(2);  /* xmax */
      	gen("move.w","_ymin","d1");     /* ymin */
 	gen("move.w","_xmin","d0");     /* xmin */
         gen_jsr("_LVORectFill(a6)");
@@ -555,8 +555,8 @@ CODE *cx,*cx1,*cx2,*cx3,*cx4,*cx5,*cx6;
         /* draw line */
         gen("move.l","_RPort","a1");
         gen("move.l","_GfxBase","a6");
-	gen("move.w","(sp)+","d1");  /* y2 */
-	gen("move.w","(sp)+","d0");  /* x2 */
+	gen_pop16d(1);  /* y2 */
+	gen_pop16d(0);  /* x2 */
 	/* already moved to x1,y1 */
         gen_jsr("_LVODraw(a6)");
         enter_XREF("_LVODraw");
@@ -594,7 +594,7 @@ void color()
  /* foreground color */
  insymbol();
  make_sure_short(expr());
- gen("move.w","(sp)+","d0");
+ gen_pop16d(0);
  gen("move.w","d0","_fg");   /* foreground pen for text color change */
  gen("move.w","d0","_fgdpen");  /* change global foreground color holder */
  gen("move.l","_RPort","a1");
@@ -611,7 +611,7 @@ void color()
   /* background color */
   insymbol();
   make_sure_short(expr());
-  gen("move.w","(sp)+","d0");
+  gen_pop16d(0);
   gen("move.w","d0","_bg");  /* background pen for text color change */
   gen("move.w","d0","_bgpen"); /* change global background pen color */
   gen("move.l","_RPort","a1");
@@ -666,12 +666,12 @@ BOOL relative;
        else
        {
         /* pop y-coordinate */
-        gen("move.w","(sp)+","d1");
+        gen_pop16d(1);
 	insymbol();
        }
       }
       /* pop x-coordinate */
-      gen("move.w","(sp)+","d0");
+      gen_pop16d(0);
      }	
 
      /* include point in area info' */
@@ -741,7 +741,7 @@ BOOL linepatterncalled;
   {
    /* get line-pattern */
    make_sure_short(expr());
-   gen("move.w","(sp)+","d0");	/* line-pattern */
+   gen_pop16d(0);	/* line-pattern */
    gen("move.l","#0","d1");	/* RESTORE flag */
    gen_jsr("_linepattern");
    enter_XREF("_linepattern");
@@ -848,14 +848,14 @@ void scroll()
        }
 
        	/* pop parameters */
-	gen("move.w","(sp)+","d1");		/* delta-y */
+	gen_pop16d(1);		/* delta-y */
 	gen("neg.w","d1","  ");			
-	gen("move.w","(sp)+","d0");		/* delta-x */
+	gen_pop16d(0);		/* delta-x */
 	gen("neg.w","d0","  ");
-	gen("move.w","(sp)+","d5");  		/* ymax */
-	gen("move.w","(sp)+","d4");  		/* xmax */
-	gen("move.w","(sp)+","d3");  		/* ymin */
-	gen("move.w","(sp)+","d2");  		/* xmin */
+	gen_pop16d(5);  		/* ymax */
+	gen_pop16d(4);  		/* xmax */
+	gen_pop16d(3);  		/* ymin */
+	gen_pop16d(2);  		/* xmin */
 
 	/* call ScrollRaster function */
 	gen("movea.l","_RPort","a1");		/* RastPort */

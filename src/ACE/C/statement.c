@@ -128,11 +128,11 @@ BOOL volume=FALSE;
  }
  else gen("moveq","#0","d3");  /* default voice = 0 */
 
- if (voice)  gen("move.w","(sp)+","d3");  /* pop voice */
- if (volume) gen("move.w","(sp)+","d2");  /* pop volume */
+ if (voice)  gen_pop16d(3);  /* pop voice */
+ if (volume) gen_pop16d(2);  /* pop volume */
 
  gen_pop32d(1);  /* pop duration */
- gen("move.w","(sp)+","d0");  /* pop period */
+ gen_pop16d(0);  /* pop period */
 
  gen_jsr("_sound");
  enter_XREF("_sound");
@@ -717,8 +717,8 @@ SHORT popcount;
   }
   else gen("move.w","#1","-(sp)");  /* COLUMN */
 
-  gen("move.w","(sp)+","d1");  /* pop COLUMN */
-  gen("move.w","(sp)+","d0");  /* pop ROW */  
+  gen_pop16d(1);  /* pop COLUMN */
+  gen_pop16d(0);  /* pop ROW */  
 
   gen_jsr("_locate");
   enter_XREF("_locate");
@@ -793,7 +793,7 @@ SHORT popcount;
        gen_pop32d(3); /* blue */
        gen_pop32d(2); /* green */
        gen_pop32d(1); /* red */
-       gen("move.w","(sp)+","d0"); /* color-id  (0-31) */
+       gen_pop16d(0); /* color-id  (0-31) */
 
        /* open the screen */
        gen_jsr("_palette");
@@ -949,7 +949,7 @@ SHORT popcount;
  {
   insymbol();
   make_sure_short(expr());
-  gen("move.w","(sp)+","d0");
+  gen_pop16d(0);
   gen_jsr("_setheading");
   enter_XREF("_setheading");
  }
@@ -965,8 +965,8 @@ SHORT popcount;
    insymbol();
    make_sure_short(expr()); /* y */
    /* pop operands */
-   gen("move.w","(sp)+","d1"); /* y */
-   gen("move.w","(sp)+","d0"); /* x */
+   gen_pop16d(1); /* y */
+   gen_pop16d(0); /* x */
    gen_jsr("_setxy");
    enter_XREF("_setxy");
    enter_XREF("_GfxBase");
@@ -1049,7 +1049,7 @@ SHORT popcount;
  {
   insymbol();
   make_sure_short(expr());
-  gen("move.w","(sp)+","d0");
+  gen_pop16d(0);
   gen_jsr("_turn");
   enter_XREF("_turn");
  }	
@@ -1059,7 +1059,7 @@ SHORT popcount;
  {
   insymbol();
   make_sure_short(expr());
-  gen("move.w","(sp)+","d0");
+  gen_pop16d(0);
   gen_jsr("_turnleft");
   enter_XREF("_turnleft");
  }	
@@ -1069,7 +1069,7 @@ SHORT popcount;
  {
   insymbol();
   make_sure_short(expr());
-  gen("move.w","(sp)+","d0");
+  gen_pop16d(0);
   gen_jsr("_turnright");
   enter_XREF("_turnright");
  }	
@@ -1117,7 +1117,7 @@ SHORT popcount;
     gen_pop_addr(0);  /* pop address of waveform data */
    }
   }
-  gen("move.w","(sp)+","d0");  /* pop voice */
+  gen_pop16d(0);  /* pop voice */
   gen_jsr("_wave"); 
   enter_XREF("_wave");
  }
@@ -1262,7 +1262,7 @@ SHORT popcount;
    {
     insymbol();
     make_sure_short(expr());  
-    gen("move.w","(sp)+","d0");  /* pop expression */ 
+    gen_pop16d(0);  /* pop expression */ 
     gen_pop_addr(0);  /* pop address */
     gen("move.w","d0","(a0)");   /* store expression */
    }

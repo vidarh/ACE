@@ -223,7 +223,7 @@ do
 
   switch(exprtype)
   {
-   case shorttype :  gen("move.w","(sp)+","d0");
+   case shorttype :  gen_pop16d(0);
 		     gen_jsr("_shortprints");
 		     enter_XREF("_shortprints");
 		     break;
