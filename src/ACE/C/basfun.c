@@ -1682,7 +1682,7 @@ int  nftype;
    if (curr_item->type == stringtype)
    {
     sprintf(numbuf,"#%ld",curr_item->size);
-    gen("move.l",numbuf,"-(sp)"); 
+    gen_push32_var(numbuf); 
     nftype=longtype;
    }
   }
@@ -1691,7 +1691,7 @@ int  nftype;
   if (exist(id,array) || exist(id,structdef))
   {
    sprintf(numbuf,"#%ld",curr_item->size);
-   gen("move.l",numbuf,"-(sp)"); 
+   gen_push32_var(numbuf); 
    nftype=longtype;
   }
   else
@@ -1699,7 +1699,7 @@ int  nftype;
   if (exist(id,structure))
   {  
    sprintf(numbuf,"#%ld",curr_item->other->size);
-   gen("move.l",numbuf,"-(sp)"); 
+   gen_push32_var(numbuf); 
    nftype=longtype;
   }
   else
@@ -1737,7 +1737,7 @@ int  nftype;
   if (sym == stringsym)
   {
    sprintf(numbuf,"#%ld",MAXSTRLEN);
-   gen("move.l",numbuf,"-(sp)"); 
+   gen_push32_var(numbuf); 
    nftype=longtype;
   }
   else

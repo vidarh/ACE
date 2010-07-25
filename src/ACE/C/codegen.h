@@ -11,6 +11,8 @@ void gen_pop16d(unsigned char reg);
 void gen_push_addr(unsigned char reg);
 void gen_pop_addr(unsigned char reg);
 void gen_pop_ignore(unsigned int bytes);
-void gen_pop32_var(const char * label)
-void gen_pop16_var(const char * label)
+void gen_pop32_var(const char * label);
+void gen_pop16_var(const char * label);
+void gen_push32_var(const char * label);
+void gen_push16_var(const char * label);
 #endif

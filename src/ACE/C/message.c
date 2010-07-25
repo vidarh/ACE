@@ -164,7 +164,7 @@ char	addrbuf[40];
      						gen_push32d(0);
     					}
      					else
-      	 					gen("move.l",addrbuf,"-(sp)");
+      	 					gen_push32_var(addrbuf);
 
     					insymbol();
 

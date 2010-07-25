@@ -122,21 +122,21 @@ BOOL need_symbol;
  switch(sym)
  {
   case shortconst  : sprintf(numbuf,"#%d",shortval);
-                     gen("move.w",numbuf,"-(sp)");
+                     gen_push16_var(numbuf);
                      ftype=typ;
                      insymbol();
                      return(ftype);
                      break;
 
   case longconst   : sprintf(numbuf,"#%ld",(long)longval);
-       		     gen("move.l",numbuf,"-(sp)");
+       		     gen_push32_var(numbuf);
                      ftype=typ;
                      insymbol();
                      return(ftype);
                      break;
 
   case singleconst : sprintf(numbuf,"#$%lx",(unsigned long)singleval);
-       		     gen("move.l",numbuf,"-(sp)");
+       		     gen_push32_var(numbuf);
                      ftype=typ;
        		     insymbol();
                      return(ftype);
@@ -233,9 +233,9 @@ BOOL need_symbol;
                 else  
 		/* ordinary variable */ 
   		if (typ == shorttype)
-            	   gen("move.w",srcbuf,"-(sp)");
+            	   gen_push16_var(srcbuf);
   		else  /* string, long, single */ 
-     		   gen("move.l",srcbuf,"-(sp)"); /* push value */
+     		   gen_push32_var(srcbuf); /* push value */
 
    		ftype=typ;
    		insymbol();
@@ -262,14 +262,14 @@ BOOL need_symbol;
 		{
 		 if (typ == shorttype)
 		    /* short integer */	
-		    gen("move.w",ext_name,"-(sp)");
+		    gen_push16_var(ext_name);
 		 else
 		 if (typ == stringtype)
 		    /* string */
 		    gen("pea",ext_name,"  ");		 
 		 else
 		    /* long integer, single-precision */
-		    gen("move.l",ext_name,"-(sp)");
+		    gen_push32_var(ext_name);
 		 ftype=typ;
 		 insymbol();
  	  	 if (sym == lparen) _error(71);  /* undimensioned array? */
@@ -291,7 +291,7 @@ BOOL need_symbol;
 	 	 {
           	  if (fact_item->object == subprogram && 
 		      fact_item->address != extfunc)
-			gen("move.w",srcbuf,"-(sp)");
+			gen_push16_var(srcbuf);
 		  else
 			gen_push16d(0);
 		 }
@@ -299,7 +299,7 @@ BOOL need_symbol;
   		 {
 		  if (fact_item->object == subprogram &&
 		      fact_item->address != extfunc)
-  		  	gen("move.l",srcbuf,"-(sp)"); /* push value */
+  		  	gen_push32_var(srcbuf); /* push value */
 		  else
 			gen_push32d(0);
   		 }
