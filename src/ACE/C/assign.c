@@ -104,7 +104,7 @@ int storetype,exptype;
  {
   gen("move.w","(sp)+","d0");
   gen("ext.l","d0","  ");
-  gen("move.l","d0","-(sp)");
+  gen_push32d(0);
  }
  else
  if ((storetype == shorttype) && (exptype == longtype))
@@ -1058,7 +1058,7 @@ SYM  *storage;
 			break;
 
     case longtype   :	gen_jsr("_htol");
-			gen("move.l","d0","-(sp)");
+			gen_push32d(0);
 			make_integer(singletype);
 			if (storage->object == variable)
 			{
@@ -1077,7 +1077,7 @@ SYM  *storage;
 			break;
 
     case shorttype   :	gen_jsr("_htol");
-			gen("move.l","d0","-(sp)");
+			gen_push32d(0);
 			make_sure_short(singletype);
 			if (storage->object == variable)
 			{

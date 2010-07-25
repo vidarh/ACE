@@ -159,7 +159,7 @@ BOOL offset_on_stack;
 			 gen("pea",tempstrname,"  ");
 			 gen_jsr("_arg");
 			 gen("addq","#8","sp");
-			 gen("move.l","d0","-(sp)");
+			 gen_push32d(0);
 			 enter_XREF("_arg");
 			 cli_args=TRUE;
 			 sftype=stringtype;
@@ -216,7 +216,7 @@ BOOL offset_on_stack;
 	
 				gen_jsr("_filerequest");
 				gen("addq","#8","sp");
-				gen("move.l","d0","-(sp)");
+				gen_push32d(0);
 				enter_XREF("_filerequest");
 				enter_XREF("_GfxBase");
 				sftype=stringtype;
@@ -316,7 +316,7 @@ BOOL offset_on_stack;
 				/* INPUTBOX */
 				gen_jsr("_longint_input_box");
 				gen("add.l","#20","sp");
-				gen("move.l","d0","-(sp)");
+				gen_push32d(0);
 				enter_XREF("_longint_input_box");
 				sftype = longtype;
 			   }
@@ -325,7 +325,7 @@ BOOL offset_on_stack;
 				/* INPUTBOX$ */
 				gen_jsr("_string_input_box");
 				gen("add.l","#20","sp");
-				gen("move.l","d0","-(sp)");
+				gen_push32d(0);
 				enter_XREF("_string_input_box");
 				sftype = stringtype;
 			   }
@@ -356,7 +356,7 @@ BOOL offset_on_stack;
 		       	gen("move.l","(sp)+","d0");  /* pop filenumber */
 		        gen("move.l","(sp)+","d1");  /* pop no. of characters */
 		       	gen_jsr("_inputstrfromfile");
-		       	gen("move.l","d0","-(sp)");  /* push string result */
+		       	gen_push32d(0);  /* push string result */
 
 		       	enter_XREF("_inputstrfromfile");
 		       	enter_XREF("_DOSBase");
@@ -398,7 +398,7 @@ BOOL offset_on_stack;
 			   
 			   /* call INSTR */
 			   gen_jsr("_instr");
-			   gen("move.l","d0","-(sp)");	/* posn of Y$ in X$ */
+			   gen_push32d(0);	/* posn of Y$ in X$ */
 			   enter_XREF("_instr");
 			   sftype=longtype;
 			  }
@@ -435,7 +435,7 @@ BOOL offset_on_stack;
 			{
 			 gen("move.l","(sp)+","a2");
 			 gen_jsr("_strlen");
-			 gen("move.l","d0","-(sp)");
+			 gen_push32d(0);
 			 enter_XREF("_strlen");	
 			 sftype=longtype;
 			}
@@ -497,7 +497,7 @@ BOOL offset_on_stack;
 			   	gen_jsr("_spacestring");
 			 else
 				gen_jsr("_spc");
-			 gen("move.l","d0","-(sp)");
+			 gen_push32d(0);
 			 if (func == spacestrsym)
 				enter_XREF("_spacestring");
 			 else
@@ -532,7 +532,7 @@ BOOL offset_on_stack;
 			   {
 			    gen_jsr("_strsingle");
 			    gen("addq","#4","sp");
-			    gen("move.l","d0","-(sp)"); /* push string result */
+			    gen_push32d(0); /* push string result */
 			    enter_XREF("_strsingle");
 			    enter_XREF("_MathBase");
 			   }
@@ -572,7 +572,7 @@ BOOL offset_on_stack;
 			  make_temp_string();
 			  gen("lea",tempstrname,"a0");
 			  gen_jsr("_stringstr");
-			  gen("move.l","d0","-(sp)");	/* push string result */
+			  gen_push32d(0);	/* push string result */
 			  enter_XREF("_stringstr");
 			  sftype=stringtype;
 			 }
@@ -685,7 +685,7 @@ BOOL offset_on_stack;
 			{
 			 gen_jsr("_val"); /* string is on the stack */
 			 gen("addq","#4","sp");
-			 gen("move.l","d0","-(sp)");
+			 gen_push32d(0);
 			 enter_XREF("_val");
 			 enter_XREF("_MathBase");  /* _val needs math libs */
 			 enter_XREF("_MathTransBase");
@@ -717,7 +717,7 @@ char func[80];
    strcpy(func,funcname);
    strcat(func,"(a6)");
    gen("jsr",func,"  ");
-   gen("move.l","d0","-(sp)");
+   gen_push32d(0);
    enter_XREF(funcname);
    enter_XREF("_MathTransBase");
    enter_XREF("_MathBase");
@@ -809,7 +809,7 @@ char varptr_obj_name[MAXIDSIZE];
          	     {
            		gen("move.l","(sp)+","d0");
    	   		gen_jsr("_absl");
-   	   		gen("move.l","d0","-(sp)");
+   	   		gen_push32d(0);
    	   		enter_XREF("_absl");
          	     }
          	     else
@@ -817,7 +817,7 @@ char varptr_obj_name[MAXIDSIZE];
          	     {
            		gen("move.l","(sp)+","d0");
    	   		gen_jsr("_absf");
-   	   		gen("move.l","d0","-(sp)");
+   	   		gen_push32d(0);
    	   		enter_XREF("_absf");
 			enter_XREF("_MathBase");
          	     }
@@ -852,7 +852,7 @@ char varptr_obj_name[MAXIDSIZE];
 			 /* call ACEalloc() function */
 			 gen_jsr("_ACEalloc");
 			 gen("addq","#8","sp");
-			 gen("move.l","d0","-(sp)");  /* push result */
+			 gen_push32d(0);  /* push result */
 			 enter_XREF("_ACEalloc"); 
 			 enter_XREF("_IntuitionBase");
 			}
@@ -885,7 +885,7 @@ char varptr_obj_name[MAXIDSIZE];
 			  {
  			   gen("move.w","(sp)+","d0");
 			   gen("ext.l","d0","  ");
-			   gen("move.l","d0","-(sp)");
+			   gen_push32d(0);
 			   nftype=longtype;
 			  }
 			  else
@@ -917,7 +917,7 @@ char varptr_obj_name[MAXIDSIZE];
 		      	    make_long();	
 		   	 gen("move.l","(sp)+","d0"); /* pop filenumber */
 		   	 gen_jsr("_eoftest");
-		   	 gen("move.l","d0","-(sp)");
+		   	 gen_push32d(0);
 		   	 enter_XREF("_eoftest");
 		   	 enter_XREF("_DOSBase");
 		     	 nftype=longtype;
@@ -935,7 +935,7 @@ char varptr_obj_name[MAXIDSIZE];
 			 gen("move.l","(sp)+","d0");
 			 gen("movea.l","_MathBase","a6");
 			 gen_jsr("_LVOSPFix(a6)");
-			 gen("move.l","d0","-(sp)");
+			 gen_push32d(0);
 			 enter_XREF("_MathBase");
 			 enter_XREF("_LVOSPFix");
 			 nftype=longtype;
@@ -954,7 +954,7 @@ char varptr_obj_name[MAXIDSIZE];
 		        make_sure_short(nftype);
 		        gen("move.w","(sp)+","d0"); /* pop argument */
 		        gen_jsr("_fre");
-		        gen("move.l","d0","-(sp)");
+		        gen_push32d(0);
 		        enter_XREF("_fre");
 		        nftype=longtype;
 		       }
@@ -966,7 +966,7 @@ char varptr_obj_name[MAXIDSIZE];
 			  if (nftype == shorttype) make_long();
 			  gen_jsr("_GadFunc");
 			  gen("addq","#4","sp");
-			  gen("move.l","d0","-(sp)");
+			  gen_push32d(0);
 			  enter_XREF("_GadFunc");
 			  nftype=longtype;
 			  break;
@@ -980,7 +980,7 @@ char varptr_obj_name[MAXIDSIZE];
 			      make_long();
 			   gen("move.l","(sp)+","d0");
 			   gen_jsr("_handle");
-			   gen("move.l","d0","-(sp)");
+			   gen_push32d(0);
 			   enter_XREF("_handle");
 			   nftype=longtype;
 			  }
@@ -1005,7 +1005,7 @@ char varptr_obj_name[MAXIDSIZE];
 
 			    gen_jsr("_iff_func");
 			    gen("addq","#8","sp");
-			    gen("move.l","d0","-(sp)");	/* push return value */
+			    gen_push32d(0);	/* push return value */
 			    enter_XREF("_iff_func");
 			
 			    nftype = longtype;
@@ -1022,7 +1022,7 @@ char varptr_obj_name[MAXIDSIZE];
 			 gen("move.l","_MathBase","a6");
 			 gen_jsr("_LVOSPFloor(a6)");
 			 gen_jsr("_LVOSPFix(a6)");
-			 gen("move.l","d0","-(sp)");
+			 gen_push32d(0);
 			 enter_XREF("_MathBase");
 			 enter_XREF("_LVOSPFloor");
 			 enter_XREF("_LVOSPFix");
@@ -1045,7 +1045,7 @@ char varptr_obj_name[MAXIDSIZE];
 			    make_long();
 			 gen_jsr("_FilePosition");
 			 gen("addq","#4","sp");
-			 gen("move.l","d0","-(sp)");
+			 gen_push32d(0);
 			 enter_XREF("_FilePosition");
 			 nftype=longtype;
 			}
@@ -1061,7 +1061,7 @@ char varptr_obj_name[MAXIDSIZE];
 			    make_long();
 			 gen("move.l","(sp)+","d0");
 			 gen_jsr("_lof");
-			 gen("move.l","d0","-(sp)");
+			 gen_push32d(0);
 			 enter_XREF("_lof");
 			 nftype=longtype;
 			}
@@ -1077,7 +1077,7 @@ char varptr_obj_name[MAXIDSIZE];
 			  {	
 				gen_jsr("_long_from_string");
 				gen("addq","#4","sp");
-				gen("move.l","d0","-(sp)");
+				gen_push32d(0);
 				enter_XREF("_long_from_string");
 				nftype=longtype;
 			  }
@@ -1091,7 +1091,7 @@ char varptr_obj_name[MAXIDSIZE];
 				if (nftype == shorttype) make_long();
 				gen_jsr("_MenuFunc");
 				gen("addq","#4","sp");
-				gen("move.l","d0","-(sp)");
+				gen_push32d(0);
 				enter_XREF("_MenuFunc");
 				nftype=longtype;
 			}
@@ -1229,7 +1229,7 @@ char varptr_obj_name[MAXIDSIZE];
 			  gen("move.l","_RPort","a1"); /* rastport */
 			  gen("move.l","_GfxBase","a6");
 			  gen_jsr("_LVOReadPixel(a6)");
-			  gen("move.l","d0","-(sp)");
+			  gen_push32d(0);
 			  enter_XREF("_LVOReadPixel");
 			  enter_XREF("_GfxBase");
 			  enter_XREF("_RPort");
@@ -1285,7 +1285,7 @@ char varptr_obj_name[MAXIDSIZE];
 
 			    gen_jsr("_serial_func");
 			    gen("addq","#8","sp");
-			    gen("move.l","d0","-(sp)");	/* push return value */
+			    gen_push32d(0);	/* push return value */
 			    enter_XREF("_serial_func");
 			
 			    nftype = longtype;
@@ -1300,7 +1300,7 @@ char varptr_obj_name[MAXIDSIZE];
 			{
 			 gen("move.w","(sp)+","d0");
 			 gen_jsr("_sgnw");
-			 gen("move.l","d0","-(sp)");
+			 gen_push32d(0);
 			 enter_XREF("_sgnw");
 			 nftype=longtype;
 			}
@@ -1309,7 +1309,7 @@ char varptr_obj_name[MAXIDSIZE];
 			{
 			 gen("move.l","(sp)+","d0");
 			 gen_jsr("_sgnl");
-			 gen("move.l","d0","-(sp)");
+			 gen_push32d(0);
 			 enter_XREF("_sgnl");
 			 nftype=longtype;
 			}
@@ -1318,7 +1318,7 @@ char varptr_obj_name[MAXIDSIZE];
 			{
 			 gen("move.l","(sp)+","d1");
 			 gen_jsr("_sgnf");
-			 gen("move.l","d0","-(sp)");
+			 gen_push32d(0);
 			 enter_XREF("_sgnf");
 			 enter_XREF("_MathBase");
 			 nftype=longtype;
@@ -1347,7 +1347,7 @@ char varptr_obj_name[MAXIDSIZE];
 			   gen("move.l","(sp)+","d0"); /* pop shift factor */
 			   gen("move.l","(sp)+","d1"); /* pop value */
 			   gen("asl.l","d0","d1");     /* shift d1 by d0 */
-			   gen("move.l","d1","-(sp)"); /* push result */
+			   gen_push32d(1); /* push result */
 			   nftype=longtype;
 			  }
 			  else { _error(4); nftype=undefined; }
@@ -1376,7 +1376,7 @@ char varptr_obj_name[MAXIDSIZE];
 			   gen("move.l","(sp)+","d0"); /* pop shift factor */
 			   gen("move.l","(sp)+","d1"); /* pop value */
 			   gen("asr.l","d0","d1");     /* shift d1 by d0 */
-			   gen("move.l","d1","-(sp)"); /* push result */
+			   gen_push32d(1); /* push result */
 			   nftype=longtype;
 			  }
 			  else { _error(4); nftype=undefined; }
@@ -1437,7 +1437,7 @@ char varptr_obj_name[MAXIDSIZE];
 	 case windowsym : make_sure_short(nftype);
 		  	  gen("move.w","(sp)+","d0");
 			  gen_jsr("_windowfunc");
-			  gen("move.l","d0","-(sp)");
+			  gen_push32d(0);
 			  enter_XREF("_windowfunc");
 			  enter_XREF("_IntuitionBase");
 			  nftype=longtype;
@@ -1450,7 +1450,7 @@ char varptr_obj_name[MAXIDSIZE];
 			   if (nftype == shorttype) make_long();
 			   gen_jsr("_sayfunc");
 			   gen("addq","#4","sp");
-			   gen("move.l","d0","-(sp)");
+			   gen_push32d(0);
 			   enter_XREF("_sayfunc");
 			   nftype=longtype;
 			  }
@@ -1464,7 +1464,7 @@ char varptr_obj_name[MAXIDSIZE];
 			   if (nftype == shorttype) make_long();
 			   gen_jsr("_screenfunc");
 			   gen("addq","#4","sp");
-			   gen("move.l","d0","-(sp)");
+			   gen_push32d(0);
 			   enter_XREF("_screenfunc");
 			   enter_XREF("_IntuitionBase");
 			   nftype=longtype;
@@ -1553,7 +1553,7 @@ BOOL   found;
 			    }
 			    else
 				/* absolute address in frame of variable */
-			        gen("move.l","d0","-(sp)");
+			        gen_push32d(0);
 			    return(longtype);    
 			   }
 			   else
@@ -1638,7 +1638,7 @@ BOOL   found;
 				 get_abs_ndx(varptr_item); /* offset -> d7 */
 				 gen("move.l","(sp)+","d0"); /* array start */
 				 gen("add.l","d7","d0"); /* start+offset=addr */
-			 	 gen("move.l","d0","-(sp)"); /* push address */
+			 	 gen_push32d(0); /* push address */
 				 insymbol(); /* symbol after rparen */
 				}
 			    }

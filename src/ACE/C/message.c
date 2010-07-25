@@ -161,7 +161,7 @@ char	addrbuf[40];
      						point_to_array(storage,addrbuf);
      						gen("move.l",addrbuf,"d0");
      						gen("add.l","d7","d0");
-     						gen("move.l","d0","-(sp)");
+     						gen_push32d(0);
     					}
      					else
       	 					gen("move.l",addrbuf,"-(sp)");

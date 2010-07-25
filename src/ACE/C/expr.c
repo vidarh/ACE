@@ -92,7 +92,7 @@ CODE *cx[];
  {
   gen("move.w","(sp)+","d0");
   gen("ext.l","d0","  ");
-  gen("move.l","d0","-(sp)");
+  gen_push32d(0);
   *typ2=longtype;
   return(TRUE);
  }
@@ -110,7 +110,7 @@ void make_long()
 {
  gen("move.w","(sp)+","d0");
  gen("ext.l","d0","  ");
- gen("move.l","d0","-(sp)");
+ gen_push32d(0);
 }
 
 int ptr_term()
@@ -209,7 +209,7 @@ CODE *cx[5];
 
    gen_jsr("_power");	/* - Call exponentiation function. */
    gen("addq","#8","sp");	/* - Remove parameters from stack. */
-   gen("move.l","d0","-(sp)");  /* - Push the result. */
+   gen_push32d(0);  /* - Push the result. */
 				
    enter_XREF("_power");
    enter_XREF("_MathTransBase"); /* opens FFP+IEEE SP transcendental libraries */
@@ -247,7 +247,7 @@ BOOL negate=FALSE;
    case singletype : gen("move.l","(sp)+","d0"); 
        gen("move.l","_MathBase","a6");
        gen_jsr("_LVOSPNeg(a6)");
-       gen("move.l","d0","-(sp)");
+       gen_push32d(0);
        enter_XREF("_MathBase");
        enter_XREF("_LVOSPNeg");
        break;
@@ -401,7 +401,7 @@ CODE *cx[5];
    /* integer division - args on stack */
    gen_jsr("ace_ldiv");
    gen("add.l","#8","sp");
-   gen("move.l","d0","-(sp)");
+   gen_push32d(0);
    enter_XREF("ace_ldiv");
   }
   else _error(4); /* notype -> type mismatch */
@@ -470,7 +470,7 @@ CODE *cx[5];
     /* integer MOD - args on stack */
     gen_jsr("ace_lrem");
     gen("add.l","#8","sp");
-    gen("move.l","d0","-(sp)");
+    gen_push32d(0);
     enter_XREF("ace_lrem");
    }
    else
@@ -479,7 +479,7 @@ CODE *cx[5];
     gen("move.l","(sp)+","d1");   /* divisor */
     gen("move.l","(sp)+","d0");   /* dividend */
     gen_jsr("_modffp");
-    gen("move.l","d0","-(sp)");
+    gen_push32d(0);
     enter_XREF("_modffp");
     enter_XREF("_MathBase");
     localtype=singletype;
@@ -564,7 +564,7 @@ CODE *cx[5];
             gen("move.w","d0","-(sp)");
    else
    if (modtype != stringtype)
-      gen("move.l","d0","-(sp)");
+      gen_push32d(0);
                  break;
 
     case minus : if ((modtype != stringtype) && (modtype != shorttype))
@@ -596,7 +596,7 @@ CODE *cx[5];
      		gen("move.w","d0","-(sp)");
    	else
    	    if (modtype != stringtype)
-      		gen("move.l","d0","-(sp)");
+      		gen_push32d(0);
      }
     } 
     else _error(4); /* notype -> type mismatch */
@@ -721,7 +721,7 @@ CODE *cx[5];
 				 	  enter_XREF("_strge");
 					  break;
 			}
-			gen("move.l","d0","-(sp)"); /* push boolean result */
+			gen_push32d(0); /* push boolean result */
 			break;
     }
 
@@ -734,7 +734,7 @@ CODE *cx[5];
      gen(branch,labname,"  ");
      gen("moveq","#0","d5"); /* not true */
      gen(lablabel,"  ","  ");
-     gen("move.l","d5","-(sp)"); /* boolean result on stack */
+     gen_push32d(5); /* boolean result on stack */
     }
    } else _error(4);
   }
@@ -1001,7 +1001,7 @@ int typ;
  if (typ == shorttype)
     gen("move.w","d0","-(sp)");
  else
-    gen("move.l","d0","-(sp)");
+    gen_push32d(0);
 }
 
 void gen_round(type)
@@ -1013,7 +1013,7 @@ int type;
 */
   gen("move.l","(sp)+","d0");
   gen_jsr("_round");
-  gen("move.l","d0","-(sp)");
+  gen_push32d(0);
   enter_XREF("_round");
   enter_XREF("_MathBase");
 
@@ -1045,7 +1045,7 @@ int typ;
 
   gen("move.l","_MathBase","a6");
   gen_jsr("_LVOSPFlt(a6)");
-  gen("move.l","d0","-(sp)");
+  gen_push32d(0);
   enter_XREF("_LVOSPFlt");
   enter_XREF("_MathBase");
 }

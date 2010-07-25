@@ -301,7 +301,7 @@ BOOL need_symbol;
 		      fact_item->address != extfunc)
   		  	gen("move.l",srcbuf,"-(sp)"); /* push value */
 		  else
-			gen("move.l","d0","-(sp)");
+			gen_push32d(0);
   		 }
   		 ftype=fact_item->type;
    		 insymbol();
@@ -325,7 +325,7 @@ BOOL need_symbol;
 		 if (fact_item->type == shorttype)
 		    gen("move.w","d0","-(sp)");
 		 else
-		    gen("move.l","d0","-(sp)"); /* push return value */
+		    gen_push32d(0); /* push return value */
 
                  if (restore_a4) 
                     { gen("move.l","_a4_temp","a4"); restore_a4=FALSE; }
@@ -346,7 +346,7 @@ BOOL need_symbol;
 		 if (fact_item->type == shorttype)
 		    gen("move.w","d0","-(sp)");
 		 else
-		    gen("move.l","d0","-(sp)");
+		    gen_push32d(0);
 		 ftype=fact_item->type;
 		 if (need_symbol) insymbol();
 		 return(ftype);
@@ -401,7 +401,7 @@ BOOL need_symbol;
   /* parameterless functions */
 
   case argcountsym : gen_jsr("_argcount");
-		     gen("move.l","d0","-(sp)");
+		     gen_push32d(0);
 		     enter_XREF("_argcount");
 		     ftype=longtype;
 		     cli_args=TRUE;
@@ -418,7 +418,7 @@ BOOL need_symbol;
 		    break;
  
   case datestrsym : gen_jsr("_date");
-		    gen("move.l","d0","-(sp)");
+		    gen_push32d(0);
 		    enter_XREF("_date");
 		    enter_XREF("_DOSBase"); /* DateStamp() needs dos.library */
 		    ftype=stringtype;
@@ -427,7 +427,7 @@ BOOL need_symbol;
 		    break;			
 
   case daysym   : gen_jsr("_getday");
-		  gen("move.l","d0","-(sp)");
+		  gen_push32d(0);
 		  enter_XREF("_getday");
 		  ftype=longtype;
 		  insymbol();
@@ -435,7 +435,7 @@ BOOL need_symbol;
 		  break;
 
   case errsym : gen_jsr("_err");
-		gen("move.l","d0","-(sp)");
+		gen_push32d(0);
 		enter_XREF("_err");
 		ftype=longtype;
 		insymbol();
@@ -452,7 +452,7 @@ BOOL need_symbol;
 		    break;
 
   case inkeysym : gen_jsr("_inkey");
-		  gen("move.l","d0","-(sp)");
+		  gen_push32d(0);
 		  enter_XREF("_inkey");
 		  enter_XREF("_DOSBase");
 		  ftype=stringtype;
@@ -489,7 +489,7 @@ BOOL need_symbol;
 		      insymbol();
 		}
 		gen_jsr("_rnd");
-		gen("move.l","d0","-(sp)");
+		gen_push32d(0);
 		enter_XREF("_rnd");
 		enter_XREF("_MathBase"); /* make sure mathffp lib is open */
 		ftype=singletype;
@@ -505,7 +505,7 @@ BOOL need_symbol;
 		   break;
 
   case timersym : gen_jsr("_timer");
-		  gen("move.l","d0","-(sp)");
+		  gen_push32d(0);
 		  enter_XREF("_timer");
 		  enter_XREF("_DOSBase"); /* DateStamp() needs dos.library */
 		  enter_XREF("_MathBase"); /* _timer needs basic ffp funcs */
@@ -515,7 +515,7 @@ BOOL need_symbol;
 		  break;
 
   case timestrsym : gen_jsr("_timeofday");
-		    gen("move.l","d0","-(sp)");
+		    gen_push32d(0);
 		    enter_XREF("_timeofday");
 		    enter_XREF("_DOSBase"); /* DateStamp() needs dos.library */
 		    ftype=stringtype;

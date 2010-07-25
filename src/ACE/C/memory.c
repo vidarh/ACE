@@ -55,7 +55,7 @@ int addrtype;
   {
    gen("move.w","(sp)+","d0");
    gen("ext.l","d0","  ");
-   gen("move.l","d0","-(sp)");
+   gen_push32d(0);
   }
   if (sym == comma)
   { 
@@ -84,7 +84,7 @@ int addrtype;
   {
    gen("move.w","(sp)+","d0");
    gen("ext.l","d0","  ");
-   gen("move.l","d0","-(sp)");
+   gen_push32d(0);
   }
   if (sym == comma)
   { 
@@ -113,7 +113,7 @@ int addrtype,datatype;
   {
    gen("move.w","(sp)+","d0");
    gen("ext.l","d0","  ");
-   gen("move.l","d0","-(sp)");
+   gen_push32d(0);
   }
   if (sym == comma)
   { 

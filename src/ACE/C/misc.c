@@ -241,7 +241,7 @@ char mulbuf[40],srcbuf[40];
 
   gen("move.w","(sp)+","d1");  	 
   gen("ext.l","d1","  "); 
-  gen("move.l","d1","-(sp)");   /* push next index after coercing to long */
+  gen_push32d(1);   /* push next index after coercing to long */
   gen("move.l",mulbuf,"-(sp)"); /* push cumulative index */
   gen_jsr("lmulu");
   gen("add.l","#8","sp");
@@ -259,7 +259,7 @@ char mulbuf[40],srcbuf[40];
   sprintf(srcbuf,"#%ld",curr->numconst.longnum);
 
   /* calculate absolute offset */  
-  gen("move.l","d7","-(sp)");
+  gen_push32d(7);
   gen("move.l",srcbuf,"-(sp)");
   gen_jsr("lmulu");	/* d7*MAXSTRLEN */
   gen("add.l","#8","sp");
