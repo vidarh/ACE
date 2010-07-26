@@ -558,6 +558,7 @@ BOOL	alloc_code_members();
 void	free_code_members();
 
 /* sym.c */
+void	kill_all_lists();
 void	new_symtab();
 void	kill_symtab();
 void	find_tab_tail();
@@ -807,3 +808,10 @@ void	show_title();
 void	usage();
 BOOL	check_options();
 void	dump_reserved_words();
+
+void turn_event_off(char * eventHandler);
+void define_common_or_global_variable(int varsym);
+void random_file_get();
+void random_file_put();
+void ace_rename();
+void pattern();

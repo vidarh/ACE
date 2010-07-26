@@ -63,7 +63,7 @@ void gen_push32_val(long val)
 void gen_pop_ignore(unsigned int bytes)
 {
   char buf[16];
-  sprintf(buf,"#%ld",bytes);
+  sprintf(buf,"#%d",(int)bytes);
   if (bytes > 7) {
 	gen("add.l",buf,"sp");
   } else {

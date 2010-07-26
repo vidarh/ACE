@@ -283,7 +283,7 @@ SYM  *declared_func;
 
 unsigned char		*buf;
 FILE * f;
-unsigned char		ch,name[MAXIDSIZE];
+char		ch,name[MAXIDSIZE];
 LONG	 		bmap_size,count,cc,rc;
 SHORT			offset=0;
 BOOL     		found=FALSE;
@@ -297,7 +297,7 @@ BOOL     		found=FALSE;
   buf = (unsigned char *)alloc(bmap_size);
   f = fopen(bmap,"r");
   if(!f) return FALSE;
-  if(fread(buf,1,bmap_size,f) < bmap_size) return FALSE;
+  if(fread(buf,1,bmap_size,f) < (ULONG)bmap_size) return FALSE;
   fclose(f);
 
   count=0;  /* start of buffer */

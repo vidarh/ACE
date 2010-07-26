@@ -653,7 +653,7 @@ BOOL offset_on_stack;
 			   gen("lea",tempstrname,"a1"); /* outstr */
 			   gen("movea.l","a0","a2");
 			   gen_jsr("_strlen"); /* inlen in d0 */
-			   sprintf(srcbuf,"#%ld",MAXSTRLEN); /* #MAXSTRLEN */
+			   sprintf(srcbuf,"#%d",MAXSTRLEN); /* #MAXSTRLEN */
 			   gen("move.l",srcbuf,"d1"); /* outlen = MAXSTRLEN */
 			   gen("movea.l","_TransBase","a6");
 			   gen_jsr("_LVOTranslate(a6)");
@@ -1539,7 +1539,7 @@ BOOL   found;
 			    strcpy(addrbuf,addreg[lev]);
 
 			    /* get the frame offset */
-			    sprintf(numbuf,"#%ld",varptr_item->address);
+			    sprintf(numbuf,"#%d",varptr_item->address);
 
 			    /* calculate the absolute address */
 			    gen("move.l",addrbuf,"d0");
@@ -1565,7 +1565,7 @@ BOOL   found;
 			    strcpy(addrbuf,addreg[lev]);
 
 			    /* get the frame offset */
-			    sprintf(numbuf,"#%ld",varptr_item->address);
+			    sprintf(numbuf,"#%d",varptr_item->address);
 
 			    /* calculate the absolute address */
 			    gen("move.l",addrbuf,"d0");
@@ -1604,7 +1604,7 @@ BOOL   found;
 			       else
 				 {
 				  /* push address of struct member */
-				  sprintf(numbuf,"#%ld",member->offset);
+				  sprintf(numbuf,"#%ld",(long)member->offset);
 				  gen("movea.l","(a0)","a0");
 				  gen("adda.l",numbuf,"a0");
 				  gen_push_addr(0);
@@ -1690,7 +1690,7 @@ int  nftype;
   /* array variable or structure definition? */
   if (exist(id,array) || exist(id,structdef))
   {
-   sprintf(numbuf,"#%ld",curr_item->size);
+   sprintf(numbuf,"#%ld",(long)curr_item->size);
    gen_push32_var(numbuf); 
    nftype=longtype;
   }
@@ -1698,7 +1698,7 @@ int  nftype;
   /* structure variable? */
   if (exist(id,structure))
   {  
-   sprintf(numbuf,"#%ld",curr_item->other->size);
+   sprintf(numbuf,"#%ld",(long)curr_item->other->size);
    gen_push32_var(numbuf); 
    nftype=longtype;
   }
@@ -1736,7 +1736,7 @@ int  nftype;
   else
   if (sym == stringsym)
   {
-   sprintf(numbuf,"#%ld",MAXSTRLEN);
+   sprintf(numbuf,"#%d",MAXSTRLEN);
    gen_push32_var(numbuf); 
    nftype=longtype;
   }

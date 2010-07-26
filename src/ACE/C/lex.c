@@ -49,6 +49,7 @@
 */
 
 #include "lexvar.c"
+#include <math.h>
 
 /* globals */
 #ifdef AMIGA
@@ -408,7 +409,7 @@ void nextch()
 /* character handler */
 {
 char lineno_buf[15], *tmp;
-int  i,n;
+unsigned int  i,n;
 
 #ifdef AMIGA
  /* if user hits ctrl-c clean up and abort. */

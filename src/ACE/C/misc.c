@@ -237,7 +237,7 @@ char mulbuf[40],srcbuf[40];
  /* pop indices from stack one at a time */ 
  for (i=curr->dims;i>=0;i--)
  {
-  sprintf(mulbuf,"#%ld",ndx_mult);
+  sprintf(mulbuf,"#%d",ndx_mult);
 
   gen_pop16d(1);  	 
   gen("ext.l","d1","  "); 
@@ -256,7 +256,7 @@ char mulbuf[40],srcbuf[40];
   /* multiply d7 (containing absolute index) by string element size */
 
   /* #string_element_size */
-  sprintf(srcbuf,"#%ld",curr->numconst.longnum);
+  sprintf(srcbuf,"#%d",curr->numconst.longnum);
 
   /* calculate absolute offset */  
   gen_push32d(7);
@@ -291,7 +291,7 @@ char buf[40],numbuf[40];
  {
   case shorttype  : itoa(item->numconst.shortnum,buf,10); break;
   case longtype   : ltoa(item->numconst.longnum,buf,10); break;
-  case singletype : sprintf(buf,"%lx",item->numconst.singlenum);
+  case singletype : sprintf(buf,"%lx",(unsigned long)item->numconst.singlenum);
                     strcat(numbuf,"$");
   		    break;
  }
@@ -381,7 +381,7 @@ int    mbr_type=undefined;
     else
     if (mbr_type == stringtype)
     {
-     sprintf(numbuf,"#%ld",member->offset);
+     sprintf(numbuf,"#%d",member->offset);
      gen("adda.l",numbuf,"a0");
      gen_push_addr(0);  /* push string address */
     }

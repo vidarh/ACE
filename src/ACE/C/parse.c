@@ -54,6 +54,7 @@
 */
 
 #include "acedef.h"
+#include "codegen.h"
 
 /* externals */
 extern	char	*srcfile,*destfile;

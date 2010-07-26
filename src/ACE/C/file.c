@@ -645,8 +645,7 @@ void files()
  enter_XREF("_files");
 }
 
-char *push_struct_var_info(structVar)
-SYM *structVar;
+void push_struct_var_info(SYM * structVar)
 {
 char addrbuf[40], sizebuf[10];
 

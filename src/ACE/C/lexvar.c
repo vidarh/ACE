@@ -112,7 +112,7 @@ char *rsym[] =
     "=\0","<\0",">\0","#\0","&O","&H","@\0","eoln\0","SENTINEL" };
 
 /* special characters (for reserved symbols) */
-char spec_sym[] = "=+-*/\^(),.';:?<>@";
+char spec_sym[] = "=+-*/\\^(),.';:?<>@";
 
 /* other symbols apart from reserved words */
 char *symbol[] = { "shortconst","longconst","singleconst","doubleconst",
