@@ -579,7 +579,7 @@ void MsgBox()
 			else
         		{
 				/* no second button! (pass NULL) */
-	     			gen("move.l","#0","-(sp)");
+	     			gen_push32_val(0);
 		     
 	    			/* call the function */
 	    			gen_jsr("_sysrequest");

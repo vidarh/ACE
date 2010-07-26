@@ -119,7 +119,7 @@ int  mtype;
 			if (mtype != stringtype) _error(4);
 		}
 		else
-			gen("move.l","#0","-(sp)");	/* command-key */
+			gen_push32_val(0);	/* command-key */
 
 	 /* call function */
 	 gen_jsr("_ModifyMenu");

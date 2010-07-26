@@ -212,7 +212,7 @@ BOOL offset_on_stack;
 					if (expr() != stringtype) _error(4);
 				}
 				else
-					gen("move.l","#0","-(sp)");
+					gen_push32_val(0);
 	
 				gen_jsr("_filerequest");
 				gen_pop_ignore(8);
@@ -264,10 +264,10 @@ BOOL offset_on_stack;
 					if (expr() != stringtype) _error(4);
 				}
 				else
-					gen("move.l","#0","-(sp)");
+					gen_push32_val(0);
 			   }
 			   else 
-				gen("move.l","#0","-(sp)"); 
+				gen_push32_val(0); 
 
 			   if (sym == comma)		/* default value */
 			   {
@@ -277,10 +277,10 @@ BOOL offset_on_stack;
 					if (expr() != stringtype) _error(4);
 				}
 				else
-					gen("move.l","#0","-(sp)");
+					gen_push32_val(0);
 			   }
 			   else 
-				gen("move.l","#0","-(sp)");
+				gen_push32_val(0);
 
 			   if (sym == comma)		/* xpos */
 			   {
@@ -291,10 +291,10 @@ BOOL offset_on_stack;
 						make_long();
 				}
 				else
-					gen("move.l","#0","-(sp)");
+					gen_push32_val(0);
 			   }
 			   else 
-				gen("move.l","#0","-(sp)");
+				gen_push32_val(0);
 
 			   if (sym == comma)		/* ypos */
 			   {
@@ -305,10 +305,10 @@ BOOL offset_on_stack;
 						make_long();
 				}
 				else
-					gen("move.l","#0","-(sp)");
+					gen_push32_val(0);
 			   }
 			   else 
-				gen("move.l","#0","-(sp)");
+				gen_push32_val(0);
 
 			   /* which function? */
 			   if (func == inputboxsym)
@@ -832,7 +832,7 @@ char varptr_obj_name[MAXIDSIZE];
 		
 			 if (sym != comma)
 			 {
-			    gen("move.l","#9","-(sp)");	/* 9 = default type */
+			    gen_push32_val(9);	/* 9 = default type */
 			    nftype=longtype;
 			 }
 			 else 
@@ -1129,7 +1129,7 @@ char varptr_obj_name[MAXIDSIZE];
 			         { _error(4); nftype=undefined; return 0; }
 			     }
 			     else
-			     	 gen("move.l","#0","-(sp)"); /* #2 = NULL*/
+			     	 gen_push32_val(0); /* #2 = NULL*/
 			     
 			     /* call the function */
 			     gen_jsr("_sysrequest");
@@ -1663,19 +1663,19 @@ int  nftype;
   {
    if (curr_item->type == shorttype)
    {
-    gen("move.l","#2","-(sp)"); 
+    gen_push32_val(2); 
     nftype=longtype;
    }
    else
    if (curr_item->type == longtype)
    {
-    gen("move.l","#4","-(sp)"); 
+    gen_push32_val(4); 
     nftype=longtype;
    }
    else
    if (curr_item->type == singletype)
    {
-    gen("move.l","#4","-(sp)"); 
+    gen_push32_val(4); 
     nftype=longtype;
    }
    else
@@ -1712,25 +1712,25 @@ int  nftype;
   /* type identifier? */
   if (sym == bytesym)
   {
-   gen("move.l","#1","-(sp)"); 
+   gen_push32_val(1); 
    nftype=longtype;
   }
   else
   if (sym == shortintsym)
   {
-   gen("move.l","#2","-(sp)"); 
+   gen_push32_val(2); 
    nftype=longtype;
   }
   else
   if (sym == longintsym || sym == addresssym)
   {
-   gen("move.l","#4","-(sp)"); 
+   gen_push32_val(4); 
    nftype=longtype;
   }
   else
   if (sym == singlesym)
   {
-   gen("move.l","#4","-(sp)"); 
+   gen_push32_val(4); 
    nftype=longtype;
   }
   else

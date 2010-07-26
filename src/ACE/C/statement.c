@@ -927,7 +927,7 @@ SHORT popcount;
    }
    else _error(28); 
   }
-  else gen("move.l","#0","-(sp)");  /* no mode-array -> push NULL */
+  else gen_push32_val(0);  /* no mode-array -> push NULL */
 
   gen_jsr("_say");
   gen_pop_ignore(8);  /* pop two parameters */

@@ -5,6 +5,7 @@
 
 void gen_jsr(const char * label);
 void gen_push32d(unsigned char reg);
+void gen_push32_val(long val);
 void gen_pop32d(unsigned char reg);
 void gen_push16d(unsigned char reg);
 void gen_pop16d(unsigned char reg);

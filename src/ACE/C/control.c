@@ -507,7 +507,7 @@ int  countertype,limittype,steptype;
     switch(countertype)   /* default step = 1 */
     {
      case shorttype  : gen("move.w","#1","-(sp)"); break;
-     case longtype   : gen("move.l","#1","-(sp)"); break;
+     case longtype   : gen_push32_val(1); break;
      case singletype : gen("move.l","#$80000041","-(sp)"); break;
     }
     steptype=countertype;

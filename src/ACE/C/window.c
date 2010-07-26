@@ -75,7 +75,7 @@ int wtype;
     if (wtype != stringtype) _error(4); /* type mismatch */
    }
    else
-	gen("move.l","#0","-(sp)");	/* NULL */
+	gen_push32_val(0);	/* NULL */
    
    if (sym != comma) _error(16);
    else
@@ -139,10 +139,10 @@ int wtype;
 		   	   make_long();  /* scrn-id */
 		}
 		else
-			gen("move.l","#0","-(sp)");
+			gen_push32_val(0);
 	 }
 	 else
-		gen("move.l","#0","-(sp)");		
+		gen_push32_val(0);		
 	 
 	 /* call open-window routine */
 	 gen_jsr("_OpenWdw");

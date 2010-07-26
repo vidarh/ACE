@@ -196,13 +196,13 @@ int  gtype;
 	 		insymbol();
 			if (sym == onsym)
 			{
-				gen("move.l","#1","-(sp)");
+				gen_push32_val(1);
 				insymbol();
 			}
 			else
 			if (sym == offsym)
 			{
-				gen("move.l","#0","-(sp)");
+				gen_push32_val(0);
 				insymbol();
 			}
 			else
@@ -251,31 +251,31 @@ int  gtype;
 
 				if (sym == buttonsym)
 				{
-					gen("move.l","#1","-(sp)");
+					gen_push32_val(1);
 					insymbol();
 				}
 				else
 				if (sym == stringsym)
 				{
-					gen("move.l","#2","-(sp)");
+					gen_push32_val(2);
 					insymbol();
 				}
 				else
 				if (sym == longintsym)
 				{
-					gen("move.l","#3","-(sp)");
+					gen_push32_val(3);
 					insymbol();
 				}
 				else
 				if (sym == potxsym)
 				{
-					gen("move.l","#4","-(sp)");
+					gen_push32_val(4);
 					insymbol();
 				}
 				else
 				if (sym == potysym)
 				{
-					gen("move.l","#5","-(sp)");
+					gen_push32_val(5);
 					insymbol();
 				}
 				else
@@ -289,7 +289,7 @@ int  gtype;
 			** Optional gadget style parameter.
 			*/
 			if (sym != comma)
-				gen("move.l","#0","-(sp)");	/* style = 0 */
+				gen_push32_val(0);	/* style = 0 */
 			else
 			{
  				insymbol();
@@ -297,7 +297,7 @@ int  gtype;
 				if (sym != comma)
 					make_sure_long(expr());	/* style */
 				else
-					gen("move.l","#0","-(sp)");  /* style = 0 */	
+					gen_push32_val(0);  /* style = 0 */	
 			}			
 		
 			/*
@@ -305,9 +305,9 @@ int  gtype;
 			*/
 			if (sym != comma)
 			{
-				gen("move.l","#0","-(sp)");  /* font name = NULL */
-				gen("move.l","#0","-(sp)");  /* font size = 0 */
-				gen("move.l","#0","-(sp)");  /* font style = 0 */
+				gen_push32_val(0);  /* font name = NULL */
+				gen_push32_val(0);  /* font size = 0 */
+				gen_push32_val(0);  /* font style = 0 */
 			}
 			else
 			{

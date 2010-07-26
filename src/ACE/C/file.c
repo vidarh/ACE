@@ -628,7 +628,7 @@ void files()
   if (expr() != stringtype) _error(4);
  }
  else
-     gen("move.l","#0","-(sp)");  /* NULL for storage file name */
+     gen_push32_val(0);  /* NULL for storage file name */
       
  /* target file or directory specified? */
  if (sym == comma)
@@ -637,7 +637,7 @@ void files()
   if (expr() != stringtype) _error(4);
  }
  else
-     gen("move.l","#0","-(sp)");  /* NULL for target name */
+     gen_push32_val(0);  /* NULL for target name */
 
  /* call _files routine */
  gen_jsr("_files");
@@ -728,7 +728,7 @@ SYM *structVar;
 				** seek to a particular record 
 				** before reading.
 				*/
-				gen("move.l","#0","-(sp)");
+				gen_push32_val(0);
 
 			/*
 			** Call function.
@@ -792,7 +792,7 @@ SYM *structVar;
 				** seek to a particular record 
 				** before writing.
 				*/
-				gen("move.l","#0","-(sp)");
+				gen_push32_val(0);
 
 			/*
 			** Call function.

@@ -57,16 +57,16 @@ int code;
  switch(code)
  {
   /* LF */
-  case LF_CODE : 	gen("move.l","#0","-(sp)");
+  case LF_CODE : 	gen_push32_val(0);
 		 	break;
   /* TAB */
-  case TAB_CODE :  	gen("move.l","#1","-(sp)");
+  case TAB_CODE :  	gen_push32_val(1);
 			break;
   /* SPACE */
-  case SPACE_CODE :	gen("move.l","#2","-(sp)");
+  case SPACE_CODE :	gen_push32_val(2);
 			break;  
   /* QUN */
-  case QUN_CODE :	gen("move.l","#3","-(sp)");
+  case QUN_CODE :	gen_push32_val(3);
 			break;	
  }
 

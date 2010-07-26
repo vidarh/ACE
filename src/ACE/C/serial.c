@@ -116,10 +116,10 @@ void open_serial()
 	    make_long(); 			/* Read buffer size */ 
       }
       else
-	 gen("move.l","#512","-(sp)");		/* defaults to 512 bytes */	
+	 gen_push32_val(512);		/* defaults to 512 bytes */	
      }	
      else 
-         gen("move.l","#512","-(sp)");		/* defaults to 512 bytes */
+         gen_push32_val(512);		/* defaults to 512 bytes */
 
      /* optional serial device name */
      if (sym == comma)
@@ -128,7 +128,7 @@ void open_serial()
       if (expr() != stringtype) _error(4);	/* serial device name */
      }
      else
-	 gen("move.l","#0","-(sp)");		/* defaults to NULL */
+	 gen_push32_val(0);		/* defaults to NULL */
 
      /* call open_serial function */
      gen_jsr("_OpenSerial");

@@ -53,6 +53,13 @@ void gen_push32d(unsigned char reg)
   gen("move.l",dreg[reg],"-(sp)");
 }
 
+void gen_push32_val(long val)
+{
+  char buf[16];
+  sprintf(buf,"#%ld",val);
+  gen("move.l",buf,"-(sp)");
+}
+
 void gen_pop_ignore(unsigned int bytes)
 {
   char buf[16];

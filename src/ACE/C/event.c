@@ -555,7 +555,7 @@ char lab[80],lablabel[80];
 */
    make_label(lab,lablabel);
 
-   gen("move.l","#1","-(sp)");
+   gen_push32_val(1);
    gen_jsr("_wdw_close_test");
    gen_pop_ignore(4);
    gen("tst.l","d0","  ");
@@ -581,7 +581,7 @@ char lab[80],lablabel[80];
 */
    make_label(lab,lablabel);
 
-   gen("move.l","#0","-(sp)");
+   gen_push32_val(0);
    gen_jsr("_wdw_close_test");
    gen_pop_ignore(4);
    gen("tst.l","d0","  ");
@@ -610,7 +610,7 @@ char lab[80],lablabel[80];
 */
    make_label(lab,lablabel);
 
-   gen("move.l","#0","-(sp)");
+   gen_push32_val(0);
    gen_jsr("_gadget_event_test");
    gen_pop_ignore(4);
    gen("tst.l","d0","  ");
