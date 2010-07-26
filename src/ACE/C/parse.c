@@ -697,8 +697,6 @@ char *tmparg;
 		if (tmparg) free(tmparg);
  }
 
- open_shared_libs();
-
  /* 
  ** compile program 
  */
@@ -713,7 +711,7 @@ char *tmparg;
  {
     /* options plus source file */
     if (!check_options(argv[1])) 
-       { usage(); close_shared_libs(); exit(10); } /* illegal options */  
+       { usage(); exit(10); } /* illegal options */  
     open_files(argv[2]);  
     setup();
     compile(srcfile,destfile);

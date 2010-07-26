@@ -52,32 +52,8 @@
 #include <math.h>
 
 /* globals */
-#ifdef AMIGA
-ULONG 	MathBase = NULL;
-ULONG 	MathTransBase = NULL;
-ULONG	IntuitionBase = NULL;
-#endif
 BOOL 	inside_string = FALSE;	/* see last line of nextch() */
 
-/* functions */
-void open_shared_libs()
-{
-#ifdef AMIGA
- if ((IntuitionBase = OpenLibrary("intuition.library",0)) == NULL)
- {
-  printf("Unable to open intuition.library!\n");
-  exit(10);
- }
-#endif
-}
-
-void close_shared_libs()
-{
-#ifdef AMIGA
- if (IntuitionBase != NULL) CloseLibrary(MathTransBase);
-#endif
-}
- 
 void setup()
 {
 int i;
@@ -134,8 +110,6 @@ void cleanup()
  if (err_log != NULL) fclose(err_log);
 
  free_alloc();
- 
- close_shared_libs();
 
  /* exit with return value */
  if (early_exit) exitvalue=10;

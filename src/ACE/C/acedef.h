@@ -58,10 +58,6 @@
 
 #ifdef AMIGA
 #include <exec/types.h>
-#include <exec/memory.h>
-#include <libraries/mathffp.h>
-#include <libraries/mathlibrary.h>
-#include <libraries/dos.h>
 #else
 #include <inttypes.h>
 #include <stdint.h>

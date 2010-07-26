@@ -40,8 +40,9 @@
 /* external variables */
 extern	int	lev;
 
-#ifndef AMIGA
+#ifndef MEMF_ANY
 #define MEMF_ANY 0
+#endif
 
 struct Remember {
   struct Remember * next;
@@ -70,7 +71,6 @@ void FreeRemember(struct Remember ** rem, BOOL unused_)
   }
   *rem = 0;
 }
-#endif
 
 /* local variables */
 struct Remember *GenRememberList = NULL;
