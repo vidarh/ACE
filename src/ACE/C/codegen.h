@@ -16,4 +16,10 @@ void gen_pop32_var(const char * label);
 void gen_pop16_var(const char * label);
 void gen_push32_var(const char * label);
 void gen_push16_var(const char * label);
+void gen_nop();
+void gen_label(const char * label);
+void gen_bne(const char * label);
+void gen_jmp(const char * label);
+void gen_tst32d(unsigned char reg);
+void gen_tst16d(unsigned char reg);
 #endif

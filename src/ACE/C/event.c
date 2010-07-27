@@ -409,7 +409,7 @@ char lab[80],lablabel[80];
    gen_jsr("_ctrl_c_test");
    gen("tst.l","d0","  ");
    gen("beq.s",lab,"  ");
-   gen("jmp","_EXIT_PROG","  ");
+   gen_jmp("_EXIT_PROG");
    gen(lablabel,"  ","  ");
 
    enter_XREF("_ctrl_c_test");
@@ -430,14 +430,14 @@ char lab[80],lablabel[80];
    gen("beq.s",lab,"  ");
 
    if (break_event_branch == callsym)
-      gen("jsr",break_event_label,"  ");
+	 gen_jsr(break_event_label);
    else
    if (break_event_branch == gosubsym) 
       gen_branch("jsr",break_event_label);
    else
       gen_branch("jmp",break_event_label);
 
-   gen(lablabel,"  ","  ");
+   gen_label(lablabel);
 
    enter_XREF("_ctrl_c_test");
 }
@@ -456,12 +456,12 @@ char lab[80],lablabel[80];
  gen("beq.s",lab,"  ");
 
  if (menu_event_branch == callsym)
-   gen("jsr",menu_event_label,"  ");
+   gen_jsr(menu_event_label);
  else
  if (menu_event_branch == gosubsym) 
-    gen_branch("jsr",menu_event_label);
+   gen_branch("jsr",menu_event_label);
  else
-    gen_branch("jmp",menu_event_label);
+   gen_branch("jmp",menu_event_label);
  gen(lablabel,"  ","  ");
  enter_XREF("_menu_test");
 }
@@ -481,7 +481,7 @@ char lab[80],lablabel[80];
  gen("beq.s",lab,"  ");
 
  if (mouse_event_branch == callsym)
-    gen("jsr",mouse_event_label,"  ");
+   gen_jsr(mouse_event_label);
  else
  if (mouse_event_branch == gosubsym) 
     gen_branch("jsr",mouse_event_label);
@@ -506,7 +506,7 @@ char lab[80],lablabel[80];
  gen("beq.s",lab,"  ");
 
  if (timer_event_branch == callsym)
-   gen("jsr",timer_event_label,"  ");
+   gen_jsr(timer_event_label);
  else
  if (timer_event_branch == gosubsym) 
    gen_branch("jsr",timer_event_label);
@@ -532,12 +532,12 @@ char lab[80],lablabel[80];
  gen("beq.s",lab,"  ");
 
  if (error_event_branch == callsym)
-    gen("jsr",error_event_label,"  ");
+   gen_jsr(error_event_label);
  else
- if (error_event_branch == gosubsym) 
-    gen_branch("jsr",error_event_label);
- else
-    gen_branch("jmp",error_event_label);
+   if (error_event_branch == gosubsym) 
+	 gen_branch("jsr",error_event_label);
+   else
+	 gen_branch("jmp",error_event_label);
  gen(lablabel,"  ","  ");
  enter_XREF("_testerror");
 }
@@ -560,8 +560,8 @@ char lab[80],lablabel[80];
    gen_pop_ignore(4);
    gen("tst.l","d0","  ");
    gen("beq.s",lab,"  ");
-   gen("jmp","_EXIT_PROG","  ");
-   gen(lablabel,"  ","  ");
+   gen_jmp("_EXIT_PROG");
+   gen_label(lablabel);
 
    enter_XREF("_wdw_close_test");
 }
@@ -588,13 +588,13 @@ char lab[80],lablabel[80];
    gen("beq.s",lab,"  ");
  
   if (wdw_event_branch == callsym)
-	gen("jsr",wdw_event_label,"  ");
+	gen_jsr(wdw_event_label);
    else
-   if (wdw_event_branch == gosubsym) 
-      	gen_branch("jsr",wdw_event_label);
-   else
-    	gen_branch("jmp",wdw_event_label);
-   gen(lablabel,"  ","  ");
+	 if (wdw_event_branch == gosubsym) 
+	   gen_branch("jsr",wdw_event_label);
+	 else
+	   gen_branch("jmp",wdw_event_label);
+   gen_label(lablabel);
 
    enter_XREF("_wdw_close_test");
 }
@@ -617,13 +617,13 @@ char lab[80],lablabel[80];
    gen("beq.s",lab,"  ");
 
    if (gad_event_branch == callsym)
-	gen("jsr",gad_event_label,"  ");
+	 gen_jsr(gad_event_label);
    else
-   if (gad_event_branch == gosubsym) 
-      	gen_branch("jsr",gad_event_label);
-   else
-    	gen_branch("jmp",gad_event_label);
-   gen(lablabel,"  ","  ");
+	 if (gad_event_branch == gosubsym) 
+	   gen_branch("jsr",gad_event_label);
+	 else
+	   gen_branch("jmp",gad_event_label);
+   gen_label(lablabel);
 
    enter_XREF("_gadget_event_test");
 }

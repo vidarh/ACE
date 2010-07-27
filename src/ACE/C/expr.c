@@ -184,7 +184,7 @@ CODE *cx[5];
    /* may need to coerce to singletype */
    for (i=0;i<=4;i++)
    {
-    gen("nop","  ","  ");
+    gen_nop();
     cx[i]=curr_code;
    }
   }
@@ -278,7 +278,7 @@ CODE *cx[5];
    /* may need to coerce to singletype or longtype */
    for (i=0;i<=4;i++)
    {
-    gen("nop","  ","  ");
+    gen_nop();
     cx[i]=curr_code;
    }
   }
@@ -377,7 +377,7 @@ CODE *cx[5];
   /* may need to coerce to long */
   for (i=0;i<=2;i++)
   {
-   gen("nop","  ","  ");
+   gen_nop();
    cx[i]=curr_code;
   }
 
@@ -426,7 +426,7 @@ CODE *cx[5];
   /* may need to coerce to single */
   for (i=0;i<=4;i++)
   {
-   gen("nop","  ","  ");
+   gen_nop();
    cx[i]=curr_code;
   }
 
@@ -508,7 +508,7 @@ CODE *cx[5];
    /* may need to coerce */
    for (i=0;i<=4;i++)
    {
-    gen("nop","  ","  ");
+    gen_nop();
     cx[i]=curr_code;
    }
   }
@@ -661,7 +661,7 @@ CODE *cx[5];
    /* may need to coerce */
    for (i=0;i<=4;i++)
    {
-    gen("nop","  ","  ");
+    gen_nop();
     cx[i]=curr_code;
    }
   }
@@ -787,7 +787,7 @@ CODE *cx[5];
      /* may need to coerce */
      for (i=0;i<=4;i++)
      {
-      gen("nop","  ","  ");
+      gen_nop();
       cx[i]=curr_code;
      }
     }
@@ -835,7 +835,7 @@ CODE *cx[5];
      /* may need to coerce */
      for (i=0;i<=4;i++)
      {
-      gen("nop","  ","  ");
+      gen_nop();
       cx[i]=curr_code;
      }
     }
@@ -893,7 +893,7 @@ CODE *cx[5];
      /* may need to coerce */
      for (i=0;i<=4;i++)
      {
-      gen("nop","  ","  ");
+      gen_nop();
       cx[i]=curr_code;
      }
     }
@@ -947,7 +947,7 @@ CODE *cx[5];
      /* may need to coerce */
      for (i=0;i<=4;i++)
      {
-      gen("nop","  ","  ");
+      gen_nop();
       cx[i]=curr_code;
      }
     }

@@ -549,8 +549,8 @@ SHORT popcount;
  /* end & stop */
  if ((sym == endsym) || (sym == stopsym))
  {
-  gen("jmp","_EXIT_PROG","  ");
-  insymbol();
+   gen_jmp("_EXIT_PROG");
+   insymbol();
  }
  else
  /* exit (ie: EXIT SUB/FOR) */
@@ -561,7 +561,7 @@ SHORT popcount;
   if (sym == forsym)
   {
   	/* EXIT FOR */
-	gen("nop","  ","  ");
+	gen_nop();
 	exit_for_cx = curr_code;
 	insymbol();
   }
@@ -572,7 +572,7 @@ SHORT popcount;
    	if (sym != subsym) 
       	   _error(35);
    	else
-      	   gen("jmp",exit_sub_name,"  ");
+	  gen_jmp(exit_sub_name);
 
    	insymbol();
   }
@@ -1032,7 +1032,7 @@ SHORT popcount;
      /* SYSTEM returncode */
      if (stype == shorttype) make_long()  ; /* get short integer exit value */
      gen_pop32_var("_returncode");
-     gen("jmp","_EXIT_PROG","  ");
+     gen_jmp("_EXIT_PROG");
      enter_XREF("_returncode");
   }
   else

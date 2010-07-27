@@ -80,12 +80,12 @@ CODE *cx2;
    /* ELSE? */
    if (sym == elsesym)
    {
-    gen("nop","  ","  ");  /* jump after THEN statement block */
+    gen_nop();  /* jump after THEN statement block */
     cx2=curr_code;
 
     /* execute ELSE code section if expression false */
     make_label(labname1,lablabel1);
-    gen(lablabel1,"  ","  ");
+    gen_label(lablabel1);
     change(cx1,"jmp",labname1,"  ");
     
     insymbol();
@@ -100,7 +100,7 @@ CODE *cx2;
     {
      /* branch after THEN */
      make_label(labname2,lablabel2);
-     gen(lablabel2,"  ","  ");
+     gen_label(lablabel2);
      change(cx2,"jmp",labname2,"  ");
      insymbol();
     }
@@ -113,7 +113,7 @@ CODE *cx2;
 	if (sym == ifsym)
         {
  	 make_label(labname3,lablabel3);
- 	 gen(lablabel3,"  ","  ");
+ 	 gen_label(lablabel3);
  	 change(cx1,"jmp",labname3,"  ");
 	 insymbol();
         }
@@ -144,7 +144,7 @@ int  exprtype;
  exprtype=make_integer(exprtype);
  for (i=0;i<=2;i++) 
  {
-  gen("nop","  ","  ");
+  gen_nop();
   cx[i]=curr_code;
  }
  coerce(&exprtype,&targettype,cx);
@@ -154,12 +154,12 @@ int  exprtype;
   if ((sym == thensym) || (sym == gotosym))
   {
    gen_pop32d(0);
-   gen("cmpi.l","#0","d0");
+   gen_tst32d(0);
    make_label(labname1,lablabel1);
-   gen("bne.s",labname1,"  ");
-   gen("nop","  ","  ");  /* jump past THEN code section */
+   gen_bne(labname1);
+   gen_nop();  /* jump past THEN code section */
    cx1=curr_code;
-   gen(lablabel1,"  ","  "); /* execute THEN code */
+   gen_label(lablabel1); /* execute THEN code */
 
   if (sym == gotosym) 
      statement();  /* IF..GOTO */
@@ -192,9 +192,9 @@ int  exprtype;
         (lastsym == ident && 
          sym != equal && sym != lparen && sym != memberpointer)) 
      {
- 	/* NOT an assignment statement */
-	strcpy(id,idholder);  /* restore id */
-    	gen("jmp",id,destbuf);
+	   /* NOT an assignment statement */
+	   strcpy(id,idholder);  /* restore id */
+       gen("jmp",id,destbuf);
      }
      else 
        if (lastsym == ident)
@@ -224,12 +224,12 @@ int  exprtype;
 
    if (sym == elsesym)
    {
-    gen("nop","  ","  ");  /* jump past ELSE code section */
+    gen_nop(); /* jump past ELSE code section */
     cx2=curr_code;
 
     /* execute ELSE code section if expression false */
     make_label(labname2,lablabel2);
-    gen(lablabel2,"  ","  ");
+    gen_label(lablabel2);
     change(cx1,"jmp",labname2,"  ");
     
     insymbol();
@@ -238,13 +238,13 @@ int  exprtype;
 
     /* unconditional branch after THEN */
     make_label(labname3,lablabel3);
-    gen(lablabel3,"  ","  ");
+    gen_label(lablabel3);
     change(cx2,"jmp",labname3,"  ");
    }
    else
        {
  	make_label(labname4,lablabel4);
- 	gen(lablabel4,"  ","  ");
+ 	gen_label(lablabel4);
  	change(cx1,"jmp",labname4,"  ");
        }
   }
@@ -275,7 +275,7 @@ int  exprtype;
  exprtype=make_integer(exprtype);
  for (i=0;i<=2;i++) 
  {
-  gen("nop","  ","  ");
+  gen_nop();
   cx[i]=curr_code;
  }
  coerce(&exprtype,&targettype,cx);  /* cx necessary if change from SHORT */
@@ -285,10 +285,10 @@ int  exprtype;
   gen_pop32d(0);
   gen("cmpi.l","#0","d0");
   make_label(labname2,lablabel2);
-  gen("bne.s",labname2,"  "); 
-  gen("nop","  ","  ");  /* jump out of loop when condition is FALSE */
+  gen_bne(labname2);
+  gen_nop();   /* jump out of loop when condition is FALSE */
   cx2=curr_code;
-  gen(lablabel2,"  ","  ");  
+  gen_label(lablabel2);
 
   while ((sym != wendsym) && (!end_of_source)) statement();
 
@@ -296,7 +296,7 @@ int  exprtype;
 
   check_for_event();
 
-  gen("jmp",labname1,"  ");
+  gen_jmp(labname1);
 
   make_label(labname3,lablabel3);
   gen(lablabel3,"  ","  ");
@@ -331,11 +331,11 @@ int  exprtype;
   if (exprtype == longtype)
   {
    gen_pop32d(0);
-   gen("cmpi.l","#0","d0");
+   gen_tst32d(0);
    make_label(labname2,lablabel2);
-   gen("bne.s",labname2,"  ");
-   gen("jmp",labname1,"  ");	/* loop until condition is TRUE */
-   gen(lablabel2,"  ","  ");
+   gen_bne(labname2);
+   gen_jmp(labname1); 	/* loop until condition is TRUE */
+   gen_label(lablabel2); 
   }
   else _error(4);
  }
@@ -369,10 +369,10 @@ SHORT i;
    if (exprtype == longtype)
    {
     gen_pop32d(0);
-    gen("cmpi.l","#0","d0");
+    gen_tst32d(0);
     make_label(labname1,lablabel1);
-    gen("bne.s",labname1,"  "); 
-    gen("nop","  ","  ");	/* try next case */
+    gen_bne(labname1);
+    gen_nop();	/* try next case */
     cx = curr_code;
     gen(lablabel1,"  ","  ");   /* execute code for THIS case */
     
@@ -516,7 +516,7 @@ int  countertype,limittype,steptype;
 
     /* top of for..next loop */
     make_label(labname1,lablabel1);
-    gen(lablabel1,"  ","  ");
+    gen_label(lablabel1);
     
     /* compare start & limit values */
     strcpy(cntbuf,counteraddr);
@@ -534,7 +534,7 @@ int  countertype,limittype,steptype;
      gen("bgt","  ","  ");	  /* if STEP +ve -> counter>limit? */
      cx1=curr_code;
      make_label(labname3,lablabel3); /* don't want to do -ve step test too! */
-     gen("jmp",labname3,"  ");
+     gen_jmp(labname3);
      gen(lablabel2,"  ","  ");
      gen("cmp.w","d1","d0");
      gen("blt","  ","  ");      /* if STEP -ve -> counter<limit? */
@@ -553,7 +553,7 @@ int  countertype,limittype,steptype;
      gen("bgt","  ","  ");	  /* if STEP +ve -> counter>limit? */
      cx1=curr_code;
      make_label(labname3,lablabel3); /* don't want to do -ve step test too! */
-     gen("jmp",labname3,"  ");
+     gen_jmp(labname3);
      gen(lablabel2,"  ","  ");
      gen("cmp.l","d1","d0");
      gen("blt","  ","  ");      /* if STEP -ve -> counter<limit? */
@@ -687,7 +687,7 @@ long i,opt=0;
      sprintf(numbuf,"#%ld",opt);  
      gen("cmpi.l",numbuf,"(sp)");
      make_label(lab,lablabel);
-     gen("bne.s",lab,"  ");  /* is opt equal to value on stack? */
+     gen_bne(lab);  /* is opt equal to value on stack? */
 
      gen_pop_ignore(4);  /* remove value from stack before branch */
 

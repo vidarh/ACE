@@ -43,9 +43,47 @@ static char * areg[] = {"a0","a1","a2","a3","a4","a5","a6","a7"};
  *
  **/
 
+void gen_label(const char * label)
+{
+  gen(label,"  ","  ");
+}
+
+void gen_bne(const char * label)
+{
+  gen("bne.s",label,"  ");
+}
+
+
+/* Used to create ops to possibly cange later */
+void gen_nop()
+{
+  gen("nop","  ","  ");
+}
+
 void gen_jsr(const char * label)
 {
   gen("jsr",label,"  ");
+}
+
+void gen_jmp(const char * label)
+{
+  gen("jmp",label,"  ");
+}
+
+void gen_tst32d(unsigned char reg)
+{
+  /* FIXME: Isn't tst.l d0 faster? Keeping for now to
+   * allow using diff against "old" ace as a regression test
+   */
+  gen("cmpi.l","#0",dreg[reg]);
+}
+
+void gen_tst16d(unsigned char reg)
+{
+  /* FIXME: Isn't tst.w d0 faster? Keeping for now to
+   * allow using diff against "old" ace as a regression test
+   */
+  gen("cmpi.w","#0",dreg[reg]);
 }
 
 void gen_push32d(unsigned char reg)
