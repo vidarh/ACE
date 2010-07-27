@@ -733,7 +733,7 @@ CODE *cx[5];
      strcpy(branch,cond_branch_op(op));
      gen(branch,labname,"  ");
      gen("moveq","#0","d5"); /* not true */
-     gen(lablabel,"  ","  ");
+     gen_label(lablabel);
      gen_push32d(5); /* boolean result on stack */
     }
    } else _error(4);

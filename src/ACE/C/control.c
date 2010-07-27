@@ -265,7 +265,7 @@ int  i;
 int  exprtype;
 
  make_label(labname1,lablabel1);
- gen(lablabel1,"  ","  ");
+ gen_label(lablabel1);
  cx1=curr_code;
  
  insymbol();
@@ -299,7 +299,7 @@ int  exprtype;
   gen_jmp(labname1);
 
   make_label(labname3,lablabel3);
-  gen(lablabel3,"  ","  ");
+  gen_label(lablabel3);
   change(cx2,"jmp",labname3,"  ");
  }
  else _error(4);
@@ -315,7 +315,7 @@ char labname2[80],lablabel2[80];
 int  exprtype;
 
  make_label(labname1,lablabel1);
- gen(lablabel1,"  ","  ");
+ gen_label(lablabel1);
 
  insymbol();
  while ((sym != untilsym) && (!end_of_source)) statement();
@@ -374,7 +374,7 @@ SHORT i;
     gen_bne(labname1);
     gen_nop();	/* try next case */
     cx = curr_code;
-    gen(lablabel1,"  ","  ");   /* execute code for THIS case */
+    gen_label(lablabel1);   /* execute code for THIS case */
     
     statement();
     if (sym == colon) statement(); /* multi-statement */
@@ -384,7 +384,7 @@ SHORT i;
     
     /* label for next case */
     make_label(labname2,lablabel2);
-    gen(lablabel2,"  ","  ");
+    gen_label(lablabel2);
     change(cx,"jmp",labname2,"  ");
    }
    else _error(4); /* type mismatch */
@@ -407,7 +407,7 @@ SHORT i;
   else
   {
    make_label(case_end_labname,case_end_lablabel);
-   gen(case_end_lablabel,"  ","  ");
+   gen_label(case_end_lablabel);
    for (i=0;i<casecount;i++) change(case_ptr[i],"jmp",case_end_labname,"  ");
    insymbol();
   }
@@ -535,11 +535,11 @@ int  countertype,limittype,steptype;
      cx1=curr_code;
      make_label(labname3,lablabel3); /* don't want to do -ve step test too! */
      gen_jmp(labname3);
-     gen(lablabel2,"  ","  ");
+     gen_label(lablabel2);
      gen("cmp.w","d1","d0");
      gen("blt","  ","  ");      /* if STEP -ve -> counter<limit? */
      cx2=curr_code;
-     gen(lablabel3,"  ","  ");    /* label for bypassing -ve step test */
+     gen_label(lablabel3);    /* label for bypassing -ve step test */
     }
     else
     if (countertype == longtype)
@@ -554,11 +554,11 @@ int  countertype,limittype,steptype;
      cx1=curr_code;
      make_label(labname3,lablabel3); /* don't want to do -ve step test too! */
      gen_jmp(labname3);
-     gen(lablabel2,"  ","  ");
+     gen_label(lablabel2);
      gen("cmp.l","d1","d0");
      gen("blt","  ","  ");      /* if STEP -ve -> counter<limit? */
      cx2=curr_code;
-     gen(lablabel3,"  ","  ");    /* label for bypassing -ve step test */
+     gen_label(lablabel3);    /* label for bypassing -ve step test */
    }
     else
     if (countertype == singletype)
@@ -578,15 +578,15 @@ int  countertype,limittype,steptype;
      gen("bgt","  ","  ");	  /* if STEP +ve -> counter>limit? */
      cx1=curr_code;
      make_label(labname3,lablabel3); /* don't want to do -ve step test too! */
-     gen("jmp",labname3,"  ");
-     gen(lablabel2,"  ","  ");
+     gen_jmp(labname3);
+     gen_label(lablabel2);
      gen("move.l",cntbuf,"d0");   /* counter */
      gen("move.l",limbuf,"d1");   /* limit */
      gen("move.l","_MathBase","a6");
      gen_jsr("_LVOSPCmp(a6)");
      gen("blt","  ","  ");      /* if STEP -ve -> counter<limit? */
      cx2=curr_code;
-     gen(lablabel3,"  ","  ");    /* label for bypassing -ve step test */
+     gen_label(lablabel3);      /* label for bypassing -ve step test */
     }
 
     /* statement block */
@@ -627,10 +627,10 @@ int  countertype,limittype,steptype;
 
     check_for_event();
 
-    gen("jmp",labname1,"  ");  /* back to top of loop */
+    gen_jmp(labname1);  /* back to top of loop */
 
     make_label(labname3,lablabel3);
-    gen(lablabel3,"  ","  ");
+    gen_label(lablabel3);
 
     /* POP the step & limit from stack */ 
     if (countertype == shorttype)
@@ -697,12 +697,12 @@ long i,opt=0;
 		      break;
 
       case gosubsym : gen_branch("jsr",id);
-		      gen("nop","  ","  ");  /* jump to end of choices */
+		      gen_nop();  /* jump to end of choices */
 		      option[opt-1] = curr_code;
 		      break;
      }
 
-     gen(lablabel,"  ","  ");
+     gen_label(lablabel);
     }
 
     insymbol();

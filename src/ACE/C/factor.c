@@ -284,7 +284,7 @@ BOOL need_symbol;
 		  insymbol();
 		  load_params(fact_item);
 		 }
-		 gen("jsr",sub_name,"  ");
+		 gen_jsr(sub_name);
 
 		 /* push the return value */
     		 if (fact_item->type == shorttype)
@@ -320,7 +320,7 @@ BOOL need_symbol;
     		 gen("move.l",librarybase,"a6");
     		 itoa(fact_item->address,func_address,10);
     		 strcat(func_address,"(a6)");
-    		 gen("jsr",func_address,"  ");
+    		 gen_jsr(func_address);
 
 		 if (fact_item->type == shorttype)
 		    gen_push16d(0);

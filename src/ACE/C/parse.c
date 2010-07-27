@@ -172,12 +172,12 @@ int  sub_type,def_expr_type;
     addr[lev]=0; 
     new_symtab();
     make_label(end_of_sub_name,end_of_sub_label);
-    gen("jmp",end_of_sub_name,"  ");
+    gen_jmp(end_of_sub_name);
 
     /* subprogram label -> _SUB_ prefix to make it unique */
     strcpy(sub_label,sub_name);
     strcat(sub_label,":\0");
-    gen(sub_label,"  ","  ");
+    gen_label(sub_label);
 
     /* all SUBs need link instruction -- add # of bytes later */
     gen("link","a5","  ");
@@ -254,10 +254,10 @@ int  sub_type,def_expr_type;
     change(link,"link","a5",bytes);  
 
     /* exit code */
-    if (subprog == subsym) gen(exit_sub_label,"  ","  ");
+    if (subprog == subsym) gen_label(exit_sub_label);
     gen("unlk","a5","  ");
     gen("rts","  ","  ");
-    gen(end_of_sub_label,"  ","  ");
+    gen_label(end_of_sub_label);
 
     kill_symtab();
     lev=ZERO;

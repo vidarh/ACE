@@ -410,7 +410,7 @@ char lab[80],lablabel[80];
    gen("tst.l","d0","  ");
    gen("beq.s",lab,"  ");
    gen_jmp("_EXIT_PROG");
-   gen(lablabel,"  ","  ");
+   gen_label(lablabel);
 
    enter_XREF("_ctrl_c_test");
 }
@@ -462,7 +462,7 @@ char lab[80],lablabel[80];
    gen_branch("jsr",menu_event_label);
  else
    gen_branch("jmp",menu_event_label);
- gen(lablabel,"  ","  ");
+ gen_label(lablabel);
  enter_XREF("_menu_test");
 }
 
@@ -487,7 +487,7 @@ char lab[80],lablabel[80];
     gen_branch("jsr",mouse_event_label);
  else
     gen_branch("jmp",mouse_event_label);
- gen(lablabel,"  ","  ");
+ gen_label(lablabel);
  enter_XREF("_mouse");
 }
 
@@ -512,7 +512,7 @@ char lab[80],lablabel[80];
    gen_branch("jsr",timer_event_label);
  else
    gen_branch("jmp",timer_event_label);
- gen(lablabel,"  ","  ");
+ gen_label(lablabel);
  enter_XREF("_ontimer");
  enter_XREF("_MathBase");  /* timer routines need mathffp.library */
 }
@@ -538,7 +538,7 @@ char lab[80],lablabel[80];
 	 gen_branch("jsr",error_event_label);
    else
 	 gen_branch("jmp",error_event_label);
- gen(lablabel,"  ","  ");
+ gen_label(lablabel);
  enter_XREF("_testerror");
 }
 

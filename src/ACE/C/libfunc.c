@@ -201,11 +201,11 @@ char lab[80],lablabel[80];
      gen_jsr("_open_library");
      make_library_base(libname);
      gen("move.l","d0",librarybase);
-     gen("cmpi.l","#0","d0");
+     gen_tst32d(0);
      make_label(lab,lablabel);
-     gen("bne.s",lab,"  ");
-     gen("jmp","_EXIT_PROG","  "); /* quit program if can't open library */
-     gen(lablabel,"  ","  ");
+     gen_bne(lab);
+     gen_jmp("_EXIT_PROG"); /* quit program if can't open library */
+     gen_label(lablabel);
      enter_XREF("_open_library");
 
      /* enter new library info' into "other libraries" list */

@@ -159,7 +159,7 @@ char label_lab[50];
     { 
      /* no, so create it */
      enter(label_lab,notype,label,0); 
-     gen(label_lab,"  ","  "); 
+     gen_label(label_lab);
      turn_event_off(label_name);  /* see event.c */
     }
     else _error(6);  /* duplicate label */
@@ -271,7 +271,7 @@ SHORT popcount;
      gen("move.l",librarybase,"a6");
      itoa(func_item->address,func_address,10);
      strcat(func_address,"(a6)");
-     gen("jsr",func_address,"  ");
+     gen_jsr(func_address);
      if (restore_a4) { gen("move.l","_a4_temp","a4"); restore_a4=FALSE; }
      if (restore_a5) { gen("move.l","_a5_temp","a5"); restore_a5=FALSE; }
     }
@@ -280,7 +280,7 @@ SHORT popcount;
       /* call SUB */
       if (sub_item->no_of_params != 0) 
          { load_params(sub_item); insymbol(); }
-      gen("jsr",sub_name,"  ");
+      gen_jsr(sub_name);
     }
   }
   else
@@ -405,7 +405,7 @@ SHORT popcount;
     gen("move.l",librarybase,"a6");
     itoa(func_item->address,func_address,10);
     strcat(func_address,"(a6)");
-    gen("jsr",func_address,"  ");
+    gen_jsr(func_address);
     if (restore_a4) { gen("move.l","_a4_temp","a4"); restore_a4=FALSE; }
     if (restore_a5) { gen("move.l","_a5_temp","a5"); restore_a5=FALSE; }
    }
@@ -480,7 +480,7 @@ SHORT popcount;
         /* user-defined subprogram */
         if (curr_item->no_of_params != 0) 
            { insymbol(); load_params(curr_item); }
-        gen("jsr",sub_name,"  ");
+        gen_jsr(sub_name);
        }
    }
   }

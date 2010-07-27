@@ -716,7 +716,7 @@ char func[80];
    gen("movea.l","_MathTransBase","a6");
    strcpy(func,funcname);
    strcat(func,"(a6)");
-   gen("jsr",func,"  ");
+   gen_jsr(func);
    gen_push32d(0);
    enter_XREF(funcname);
    enter_XREF("_MathTransBase");
