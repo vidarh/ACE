@@ -22,4 +22,9 @@ void gen_bne(const char * label);
 void gen_jmp(const char * label);
 void gen_tst32d(unsigned char reg);
 void gen_tst16d(unsigned char reg);
+void gen_load32a(const char * label, unsigned char reg);
+void gen_load32d(const char * label, unsigned char reg);
+
+void gen_gfxcall(const char * lvo);
+
 #endif

@@ -154,3 +154,29 @@ void gen_pop_addr(unsigned char reg)
 {
   gen("move.l","(sp)+",areg[reg]);
 }
+
+void gen_load32a(const char * label, unsigned char reg)
+{
+  gen("move.l",label,areg[reg]);
+}
+
+void gen_load32d(const char * label, unsigned char reg)
+{
+  gen("move.l",label,dreg[reg]);
+}
+
+/***** "Mid level" code generation functions *****/
+
+void gen_gfxcall(const char * lvo)
+{
+  char buf[200];
+  strcpy(buf,"_LVO");
+  strncat(buf,lvo,sizeof(buf)-4);
+  enter_XREF(buf);
+  strncat(buf,"(a6)",sizeof(buf)-strlen(buf));
+  gen_load32a("_RPort",1);
+  gen_load32a("_GfxBase",6);
+  enter_XREF("_GfxBase");
+  enter_XREF("_RPort");
+  gen_jsr(buf);
+}

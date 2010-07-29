@@ -171,11 +171,11 @@ SYM  *storage;
      if (storage->object == array)
      {
       point_to_array(storage,addrbuf);
-      gen("move.l",addrbuf,"a0");
+      gen_load32a(addrbuf,0);
       gen("adda.l","d7","a0");
      }
      else
-      	 gen("move.l",addrbuf,"a0");	/* string address */
+      	 gen_load32a(addrbuf,0);	/* string address */
       
      gen_pop32d(0);	/* filenumber */
 
@@ -228,30 +228,30 @@ int wtype;
 		      break;
 
      case shorttype : 	gen_pop16d(1);
- 		      	gen("move.l","_seq_filenumber","d0");
+ 		      	gen_load32d("_seq_filenumber",0);
 		      	gen_jsr("_writeshort");
 		      	enter_XREF("_writeshort");
 		      	break;
 
      case longtype : 	gen_pop32d(1);
-		     	gen("move.l","_seq_filenumber","d0");
+		     	gen_load32d("_seq_filenumber",0);
 		     	gen_jsr("_writelong");
 		     	enter_XREF("_writelong");
 		     	break;
 
      case singletype : 	gen_pop32d(1);
-		       	gen("move.l","_seq_filenumber","d0");
+		       	gen_load32d("_seq_filenumber",0);
 		       	gen_jsr("_writesingle");
 		       	enter_XREF("_writesingle");
 			enter_XREF("_MathBase");
 		       	break;
 
-     case stringtype : 	gen("move.l","_seq_filenumber","d0");
+     case stringtype :  gen_load32d("_seq_filenumber",0);
 			gen_jsr("_writequote");	
 		       	gen_pop_addr(0);
-		       	gen("move.l","_seq_filenumber","d0");
+				gen_load32d("_seq_filenumber",0);
 		       	gen_jsr("_writestring");
-		       	gen("move.l","_seq_filenumber","d0");
+				gen_load32d("_seq_filenumber",0);
 		       	gen_jsr("_writequote");
 		       	enter_XREF("_writequote");	
 		       	enter_XREF("_writestring");		
@@ -261,7 +261,7 @@ int wtype;
     /* need a delimiter? */
     if (sym == comma) 
     { 
-     gen("move.l","_seq_filenumber","d0");
+	  gen_load32d("_seq_filenumber",0);
      gen_jsr("_writecomma"); 
      enter_XREF("_writecomma"); 
     }
@@ -270,7 +270,7 @@ int wtype;
    while (sym == comma);  
 
    /* write LF to mark EOLN */
-   gen("move.l","_seq_filenumber","d0");
+   gen_load32d("_seq_filenumber",0);
    gen_jsr("_write_eoln");
    enter_XREF("_write_eoln");
    
@@ -287,7 +287,7 @@ int code;
 
  check_for_event();
 
- gen("move.l","_seq_filenumber","d0");
+ gen_load32d("_seq_filenumber",0);
 
  switch(code)
  {
@@ -356,9 +356,9 @@ int exprtype,arguments=0;
 
       /* pass filenumber to write routine */
       if (exprtype == stringtype) 
-	 gen("move.l","_seq_filenumber","d0");
+		gen_load32d("_seq_filenumber",0);
       else
-	 gen("move.l","_seq_filenumber","d1");
+		gen_load32d("_seq_filenumber",1);
 
       switch(exprtype)
       {
@@ -446,8 +446,7 @@ SYM  *storage;
     */
 
     /* pass file number */
-    gen("move.l","_seq_filenumber","d0");
-     
+	gen_load32d("_seq_filenumber",0);
     switch(storage->type)
     {
     case shorttype  : gen_jsr("_finputshort");
@@ -456,7 +455,7 @@ SYM  *storage;
 		      {
 		       if ((storage->shared) && (lev == ONE))
 		       {
-         		gen("move.l",addrbuf,"a0");  /* abs address of store */
+				 gen_load32a(addrbuf,0); /* abs address of store */
             		gen("move.w","d0","(a0)");
 		       }
 		       else
@@ -481,7 +480,7 @@ SYM  *storage;
 		      {
 		       if ((storage->shared) && (lev == ONE))
 		       {
-         		gen("move.l",addrbuf,"a0");  /* abs address of store */
+         		gen_load32a(addrbuf,0);  /* abs address of store */
             		gen("move.l","d0","(a0)");
 		       }
 		       else
@@ -506,8 +505,8 @@ SYM  *storage;
 		      {
 		       if ((storage->shared) && (lev == ONE))
 		       {
-         		gen("move.l",addrbuf,"a0");  /* abs address of store */
-            		gen("move.l","d0","(a0)");
+				 gen_load32a(addrbuf,0);  /* abs address of store */
+				 gen("move.l","d0","(a0)");
 		       }
 		       else
 			   /* ordinary variable */
@@ -658,7 +657,7 @@ char addrbuf[40], sizebuf[10];
 		/*
 		** Shared structure variable.
 		*/
-		gen("movea.l",addrbuf,"a0");	/* struct variable address */
+	  gen_load32a(addrbuf,0);	/* struct variable address */
 		gen("move.l","(a0)","-(sp)");	/* start address of struct */
 	}
 	else

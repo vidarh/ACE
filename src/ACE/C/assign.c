@@ -213,7 +213,7 @@ char addrbuf[20],buf[80];
 
  /* copy string on stack to variable */
  gen_pop_addr(1);  /* source */
- gen("move.l",addrbuf,"a0");  /* destination */
+ gen_load32a(addrbuf,0);  /* destination */
  gen_jsr("_strcpy");   /* copy source to destination */
  enter_XREF("_strcpy");  
 }

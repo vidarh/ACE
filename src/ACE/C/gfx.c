@@ -52,6 +52,7 @@ extern	CODE	*curr_code;
 extern	SYM	*curr_item;
 extern	char	id[MAXIDSIZE];
 
+
 /* functions */
 void pset()
 {
@@ -88,12 +89,7 @@ BOOL colorset=FALSE;
 	 insymbol();
 	 make_sure_short(expr());
 	 gen_pop16d(0);
-	 gen("move.l","_RPort","a1");
-	 gen("move.l","_GfxBase","a6");
-	 gen_jsr("_LVOSetAPen(a6)");
-	 enter_XREF("_LVOSetAPen");
-	 enter_XREF("_GfxBase");
-	 enter_XREF("_RPort");
+	 gen_gfxcall("SetAPen");
 	 colorset=TRUE;
 	}
 	else colorset=FALSE;
@@ -108,10 +104,10 @@ BOOL colorset=FALSE;
      /* plot point */
      if (!colorset)
      {
-      gen("move.l","_GfxBase","a6");
-      enter_XREF("_GfxBase");
-      gen("move.l","_RPort","a1");
-      enter_XREF("_RPort");
+	   gen_load32a("_GfxBase",6);
+	   enter_XREF("_GfxBase");
+	   gen_load32a("_RPort",1);
+	   enter_XREF("_RPort");
      }
 
      if (relative)
@@ -146,12 +142,10 @@ BOOL colorset=FALSE;
 
      if (colorset)
      {
-      /* change back to old pen */
-      gen("move.w","_fgdpen","d0");
-      gen("move.l","_RPort","a1");
-      gen("move.l","_GfxBase","a6");
-      gen_jsr("_LVOSetAPen(a6)");
-      enter_XREF("_fgdpen");
+	   /* change back to old pen */
+	   gen("move.w","_fgdpen","d0");
+	   gen_gfxcall("SetAPen");
+	   enter_XREF("_fgdpen");
      }
 }
 
@@ -270,12 +264,7 @@ BOOL aspect=FALSE;
       {
        make_sure_short(expr());
        gen_pop16d(0);
-       gen("move.l","_RPort","a1");
-       gen("move.l","_GfxBase","a6");
-       gen_jsr("_LVOSetAPen(a6)");
-       enter_XREF("_LVOSetAPen");
-       enter_XREF("_GfxBase");
-       enter_XREF("_RPort");
+	   gen_gfxcall("SetAPen");
        colorset=TRUE;
       }
      }
@@ -323,7 +312,7 @@ BOOL aspect=FALSE;
 
      if (relative)
      {
-       gen("move.l","_RPort","a1");
+       gen_load32a("_RPort",1);
 
        gen("move.w","_shortx","d0");
        gen("add.w","36(a1)","d0");   /* x + RPort->cp_x */
@@ -337,13 +326,13 @@ BOOL aspect=FALSE;
      /* convert x & y values to floats */
      gen("move.w","_shortx","d0");
      gen("ext.l","d0","  ");
-     gen("move.l","_MathBase","a6");
+     gen_load32a("_MathBase",6);
      gen_jsr("_LVOSPFlt(a6)");
      gen("move.l","d0","_floatx");
 
      gen("move.w","_shorty","d0");
      gen("ext.l","d0","  ");
-     gen("move.l","_MathBase","a6");
+     gen_load32a("_MathBase",6);
      gen_jsr("_LVOSPFlt(a6)");
      gen("move.l","d0","_floaty");
 
@@ -369,8 +358,8 @@ BOOL aspect=FALSE;
      {
       /* change back to old pen */
       gen("move.w","_fgdpen","d0");
-      gen("move.l","_RPort","a1");
-      gen("move.l","_GfxBase","a6");
+      gen_load32a("_RPort",1);
+      gen_load32a("_RPort",6);
       gen_jsr("_LVOSetAPen(a6)");
       enter_XREF("_fgdpen");
      }          
@@ -416,15 +405,10 @@ CODE *cx,*cx1,*cx2,*cx3,*cx4,*cx5,*cx6;
     enter_BSS("_xmin","ds.w 1");
     enter_BSS("_ymin","ds.w 1");
 
-    gen("move.l","_RPort","a1");
-    gen("move.l","_GfxBase","a6");
-    enter_XREF("_GfxBase");
-    enter_XREF("_RPort");
-
      if (!relative)
      {
       /* move to x,y */
-      gen_jsr("_LVOMove(a6)"); 
+      gen_gfxcall("Move");
       cx=curr_code;  /* don't need this Move for boxfill */
       /* XREF declared by box or line (see below) */
      }
@@ -439,10 +423,7 @@ CODE *cx,*cx1,*cx2,*cx3,*cx4,*cx5,*cx6;
     {
      /* no second coordinate clause */
      /* draw line from last pen position to x,y */
-     gen("move.l","_RPort","a1");
-     gen("move.l","_GfxBase","a6");
-     gen_jsr("_LVODraw(a6)");
-     enter_XREF("_LVODraw");
+	  gen_gfxcall("Draw");
     }
     else _error(21);
    }
@@ -477,16 +458,13 @@ CODE *cx,*cx1,*cx2,*cx3,*cx4,*cx5,*cx6;
 	 cx3=curr_code;
 	 gen_push16_var("_ymin");
 	 cx4=curr_code;
-         make_sure_short(expr());
-         gen("move.l","_RPort","a1");
-         gen("move.l","_GfxBase","a6");
-         gen_pop16d(0);
-         gen_jsr("_LVOSetAPen(a6)");
+	 make_sure_short(expr());
+	 gen_pop16d(0);
+	 gen_gfxcall("SetAPen");
 	 gen_pop16_var("_ymin");
 	 cx5=curr_code;
 	 gen_pop16_var("_xmin");	/* restore d0 & d1 */
 	 cx6=curr_code;
-         enter_XREF("_LVOSetAPen");
 	}
         else colorset=FALSE;
        }
@@ -513,54 +491,53 @@ CODE *cx,*cx1,*cx2,*cx3,*cx4,*cx5,*cx6;
 	gen_pop16d(5);  /* y2 */
 	gen_pop16d(4);  /* x2 */
 	gen("move.w","_ymin","d3");     /* y1 */
-    	gen("move.w","_xmin","d2");     /* x1 */
-       	/* x1=d2; y1=d3 x2=d4; y2=d5 */
-       	/* already moved to x1,y1 */
-        gen("move.l","_RPort","a1");
-        gen("move.l","_GfxBase","a6");
-        gen("move.w","d4","d0");	
+	gen("move.w","_xmin","d2");     /* x1 */
+	/* x1=d2; y1=d3 x2=d4; y2=d5 */
+	/* already moved to x1,y1 */
+
+	gen("move.w","d4","d0");	
 	gen("move.w","d3","d1");	
-	gen_jsr("_LVODraw(a6)"); /* x1,y1 - x2,y1 */
-        gen("move.w","d4","d0");	
+	gen_gfxcall("Draw");     /* x1,y1 - x2,y1 */
+	gen("move.w","d4","d0");	
 	gen("move.w","d5","d1");	
 	gen_jsr("_LVODraw(a6)"); /* x2,y1 - x2,y2 */
-        gen("move.w","d2","d0");	
+	gen("move.w","d2","d0");	
 	gen("move.w","d5","d1");	
 	gen_jsr("_LVODraw(a6)"); /* x2,y2 - x1,y2 */
-        gen("move.w","d2","d0");	
+	gen("move.w","d2","d0");	
 	gen("move.w","d3","d1");	
 	gen_jsr("_LVODraw(a6)"); /* x1,y2 - x1,y1 */
 	enter_XREF("_LVODraw");
 	enter_XREF("_LVOMove");
-        enter_BSS("_xmin","ds.w 1");
-        enter_BSS("_ymin","ds.w 1");
+	enter_BSS("_xmin","ds.w 1");
+	enter_BSS("_ymin","ds.w 1");
       }		
       else
       if (boxfill)
       {
 	change(cx,"nop","  ","  ");   /* don't need Move */
-        gen("move.l","_RPort","a1");
-        gen("move.l","_GfxBase","a6");
+	gen_load32a("_RPort",1);
+	gen_load32a("_GfxBase",6);
 	gen_pop16d(3);  /* ymax */
 	gen_pop16d(2);  /* xmax */
-     	gen("move.w","_ymin","d1");     /* ymin */
+	gen("move.w","_ymin","d1");     /* ymin */
 	gen("move.w","_xmin","d0");     /* xmin */
-        gen_jsr("_LVORectFill(a6)");
-        enter_XREF("_LVORectFill"); 
-        enter_BSS("_xmin","ds.w 1");
-        enter_BSS("_ymin","ds.w 1");
+	gen_jsr("_LVORectFill(a6)");
+	enter_XREF("_LVORectFill"); 
+	enter_BSS("_xmin","ds.w 1");
+	enter_BSS("_ymin","ds.w 1");
       }
       else
       {
         /* draw line */
-        gen("move.l","_RPort","a1");
-        gen("move.l","_GfxBase","a6");
-	gen_pop16d(1);  /* y2 */
-	gen_pop16d(0);  /* x2 */
-	/* already moved to x1,y1 */
+        gen_load32a("_RPort",1);
+        gen_load32a("_GfxBase",6);
+		gen_pop16d(1);  /* y2 */
+		gen_pop16d(0);  /* x2 */
+		/* already moved to x1,y1 */
         gen_jsr("_LVODraw(a6)");
         enter_XREF("_LVODraw");
-   	enter_XREF("_LVOMove");
+		enter_XREF("_LVOMove");
 	/* don't need to save x1 & x2 in _xmin & _ymin */
 	change(cx1,"nop","  ","  ");
  	change(cx2,"nop","  ","  ");
@@ -582,12 +559,12 @@ CODE *cx,*cx1,*cx2,*cx3,*cx4,*cx5,*cx6;
  {
   /* change back to old pen */
   gen("move.w","_fgdpen","d0");
-  gen("move.l","_RPort","a1");
-  gen("move.l","_GfxBase","a6");
-  gen_jsr("_LVOSetAPen(a6)");
+  gen_gfxcall("SetAPen");
   enter_XREF("_fgdpen");
  }
 }
+
+
 
 void color()
 {
@@ -597,12 +574,7 @@ void color()
  gen_pop16d(0);
  gen("move.w","d0","_fg");   /* foreground pen for text color change */
  gen("move.w","d0","_fgdpen");  /* change global foreground color holder */
- gen("move.l","_RPort","a1");
- gen("move.l","_GfxBase","a6");
- gen_jsr("_LVOSetAPen(a6)");
- enter_XREF("_LVOSetAPen");
- enter_XREF("_GfxBase");
- enter_XREF("_RPort");
+ gen_gfxcall("SetAPen");
  enter_XREF("_fgdpen");
  enter_BSS("_fg","ds.w 1");
 
@@ -614,10 +586,7 @@ void color()
   gen_pop16d(0);
   gen("move.w","d0","_bg");  /* background pen for text color change */
   gen("move.w","d0","_bgpen"); /* change global background pen color */
-  gen("move.l","_RPort","a1");
-  gen("move.l","_GfxBase","a6");
-  gen_jsr("_LVOSetBPen(a6)");
-  enter_XREF("_LVOSetBPen");
+  gen_gfxcall("SetBPen");
   enter_XREF("_bgpen");
   enter_BSS("_bg","ds.w 1");
  }
@@ -774,7 +743,7 @@ BOOL linepatterncalled;
        	/* get address of array */
        	itoa(-1*curr_item->address,addrbuf,10);
        	strcat(addrbuf,frame_ptr[lev]);
-       	gen("move.l",addrbuf,"a0");	/* start address of array */
+       	gen_load32a(addrbuf,0);	/* start address of array */
 
        	/* size of array? */
 	sprintf(numbuf,"#%ld",(long)curr_item->size/2);
@@ -858,12 +827,7 @@ void scroll()
 	gen_pop16d(2);  		/* xmin */
 
 	/* call ScrollRaster function */
-	gen("movea.l","_RPort","a1");		/* RastPort */
-	gen("movea.l","_GfxBase","a6");
-	gen_jsr("_LVOScrollRaster(a6)");
-	enter_XREF("_LVOScrollRaster");
-	enter_XREF("_GfxBase");
-	enter_XREF("_RPort");
+	gen_gfxcall("ScrollRaster");
        } 
       }
      }

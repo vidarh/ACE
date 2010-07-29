@@ -655,7 +655,7 @@ BOOL offset_on_stack;
 			   gen_jsr("_strlen"); /* inlen in d0 */
 			   sprintf(srcbuf,"#%d",MAXSTRLEN); /* #MAXSTRLEN */
 			   gen("move.l",srcbuf,"d1"); /* outlen = MAXSTRLEN */
-			   gen("movea.l","_TransBase","a6");
+			   gen_load32a("_TransBase",6);
 			   gen_jsr("_LVOTranslate(a6)");
 			   gen("pea",tempstrname,"  "); /* outstr on stack */
 			   enter_XREF("_TransBase");
@@ -713,7 +713,7 @@ char func[80];
   {
    if (nftype != singletype) gen_Flt(nftype);  
    gen_pop32d(0);
-   gen("movea.l","_MathTransBase","a6");
+   gen_load32a("_MathTransBase",6);
    strcpy(func,funcname);
    strcat(func,"(a6)");
    gen_jsr(func);
@@ -933,7 +933,7 @@ char varptr_obj_name[MAXIDSIZE];
 	 case fixsym  : if (nftype == singletype)
 			{
 			 gen_pop32d(0);
-			 gen("movea.l","_MathBase","a6");
+			 gen_load32a("_MathBase",6);
 			 gen_jsr("_LVOSPFix(a6)");
 			 gen_push32d(0);
 			 enter_XREF("_MathBase");
@@ -1019,7 +1019,7 @@ char varptr_obj_name[MAXIDSIZE];
 	 case intsym  : if (nftype == singletype)
 			{
 			 gen_pop32d(0);
-			 gen("move.l","_MathBase","a6");
+			 gen_load32a("_MathBase",6);
 			 gen_jsr("_LVOSPFloor(a6)");
 			 gen_jsr("_LVOSPFix(a6)");
 			 gen_push32d(0);
@@ -1226,9 +1226,7 @@ char varptr_obj_name[MAXIDSIZE];
 			  make_sure_short(expr());
 			  gen_pop16d(1);  /* y */
 			  gen_pop16d(0);  /* x */
-			  gen("move.l","_RPort","a1"); /* rastport */
-			  gen("move.l","_GfxBase","a6");
-			  gen_jsr("_LVOReadPixel(a6)");
+			  gen_gfxcall("ReadPixel");
 			  gen_push32d(0);
 			  enter_XREF("_LVOReadPixel");
 			  enter_XREF("_GfxBase");
@@ -1542,7 +1540,7 @@ BOOL   found;
 			    sprintf(numbuf,"#%d",varptr_item->address);
 
 			    /* calculate the absolute address */
-			    gen("move.l",addrbuf,"d0");
+			    gen_load32d(addrbuf,0);
 			    gen("sub.l",numbuf,"d0");
 			    if ((varptr_item->type == stringtype)
 			       || ((varptr_item->shared) && (lev == ONE)))
@@ -1568,7 +1566,7 @@ BOOL   found;
 			    sprintf(numbuf,"#%d",varptr_item->address);
 
 			    /* calculate the absolute address */
-			    gen("move.l",addrbuf,"d0");
+			    gen_load32d(addrbuf,0);
 			    gen("sub.l",numbuf,"d0");
 
 			    /* location in frame contains array/struct address 
