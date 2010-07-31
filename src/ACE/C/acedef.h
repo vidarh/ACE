@@ -56,8 +56,10 @@
 
 #include <math.h>
 
-#ifdef AMIGA
+#ifdef __AMIGA__
 #include <exec/types.h>
+/* dos/dos.h for SIGBREAKF_CTRL_C */
+#include <dos/dos.h>
 #else
 #include <inttypes.h>
 #include <stdint.h>
@@ -811,3 +813,4 @@ void random_file_get();
 void random_file_put();
 void ace_rename();
 void pattern();
+
