@@ -33,7 +33,7 @@
 **	   7th,8th January 1994
 */
 	
-#include <acedef.h>
+#include "acedef.h"
 #include <string.h>
 #include <stdlib.h>
 
