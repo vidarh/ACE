@@ -3,6 +3,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <math.h>
  
 /* reverse:  reverse string s in place */
 static void reverse(char s[])
@@ -39,12 +40,10 @@ char * strupr (char * a)
 {
   char *ret = a;
 
-  while (*a != '\0')
-    {
-      if (islower (*a))
-		*a = toupper (*a);
-      ++a;
-    }
+  while (*a != '\0') {
+    *a = toupper(*a);
+    ++a;
+  }
 
   return ret;
 }
@@ -58,6 +57,11 @@ long fsize(const char *filename) {
 	return st.st_size;
 
   return -1; 
+}
+
+/* FIXME: Test that this actually works as intended */
+double round(double val) {
+   return (val >= 0.0) ? floor(val + 0.5) : ceil(val - 0.5);
 }
 
 #endif
