@@ -385,7 +385,7 @@ void nextch()
 char lineno_buf[15], *tmp;
 unsigned int  i,n;
 
-#ifdef AMIGA
+#ifdef __AMIGA__
  /* if user hits ctrl-c clean up and abort. */
  if (SetSignal(0L,SIGBREAKF_CTRL_C) & SIGBREAKF_CTRL_C)
  {
