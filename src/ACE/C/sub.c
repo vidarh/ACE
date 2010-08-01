@@ -265,7 +265,7 @@ int   formaltype[MAXPARAMS];
   {
    /* disable multi-tasking 
       before passing parameters */
-   gen("movea.l","_AbsExecBase","a6");
+   gen_load32a("_AbsExecBase",6);
    gen_jsr("_LVOForbid(a6)");
    enter_XREF("_AbsExecBase");
    enter_XREF("_LVOForbid");
@@ -302,7 +302,7 @@ char  addrbuf[40];
  else
  {
   /* if actual parameters passed, Forbid() called -> Permit() */
-  gen("movea.l","_AbsExecBase","a6");
+  gen_load32a("_AbsExecBase",6);
   gen_jsr("_LVOPermit(a6)");
   enter_XREF("_AbsExecBase");
   enter_XREF("_LVOPermit");

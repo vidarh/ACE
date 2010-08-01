@@ -407,8 +407,8 @@ char lab[80],lablabel[80];
    make_label(lab,lablabel);
 
    gen_jsr("_ctrl_c_test");
-   gen("tst.l","d0","  ");
-   gen("beq.s",lab,"  ");
+   gen_tst32d(0);
+   gen_beq(lab);
    gen_jmp("_EXIT_PROG");
    gen_label(lablabel);
 
@@ -426,8 +426,8 @@ char lab[80],lablabel[80];
    make_label(lab,lablabel);
 
    gen_jsr("_ctrl_c_test");
-   gen("tst.l","d0","  ");
-   gen("beq.s",lab,"  ");
+   gen_tst32d(0);
+   gen_beq(lab);
 
    if (break_event_branch == callsym)
 	 gen_jsr(break_event_label);
@@ -451,9 +451,9 @@ char lab[80],lablabel[80];
    MENU trapping subroutine. */
 
  gen_jsr("_menu_test");
- gen("tst.l","d0","  ");
+ gen_tst32d(0);
  make_label(lab,lablabel);
- gen("beq.s",lab,"  ");
+ gen_beq(lab);
 
  if (menu_event_branch == callsym)
    gen_jsr(menu_event_label);
@@ -476,9 +476,9 @@ char lab[80],lablabel[80];
 
  gen("moveq","#0","d0");
  gen_jsr("_mouse");
- gen("tst.l","d0","  ");
+ gen_tst32d(0);
  make_label(lab,lablabel);
- gen("beq.s",lab,"  ");
+ gen_beq(lab);
 
  if (mouse_event_branch == callsym)
    gen_jsr(mouse_event_label);
@@ -501,9 +501,9 @@ char lab[80],lablabel[80];
 
  gen("move.l",ontimer_seconds,"d0");
  gen_jsr("_ontimer");
- gen("tst.l","d0","  ");
+ gen_tst32d(0);
  make_label(lab,lablabel);
- gen("beq.s",lab,"  ");
+ gen_beq(lab);
 
  if (timer_event_branch == callsym)
    gen_jsr(timer_event_label);
@@ -527,9 +527,9 @@ char lab[80],lablabel[80];
 */
 
  gen_jsr("_testerror");
- gen("tst.l","d0","  ");
+ gen_tst32d(0);
  make_label(lab,lablabel);
- gen("beq.s",lab,"  ");
+ gen_beq(lab);
 
  if (error_event_branch == callsym)
    gen_jsr(error_event_label);
@@ -558,8 +558,8 @@ char lab[80],lablabel[80];
    gen_push32_val(1);
    gen_jsr("_wdw_close_test");
    gen_pop_ignore(4);
-   gen("tst.l","d0","  ");
-   gen("beq.s",lab,"  ");
+   gen_tst32d(0);
+   gen_beq(lab);
    gen_jmp("_EXIT_PROG");
    gen_label(lablabel);
 
@@ -584,8 +584,8 @@ char lab[80],lablabel[80];
    gen_push32_val(0);
    gen_jsr("_wdw_close_test");
    gen_pop_ignore(4);
-   gen("tst.l","d0","  ");
-   gen("beq.s",lab,"  ");
+   gen_tst32d(0);
+   gen_beq(lab);
  
   if (wdw_event_branch == callsym)
 	gen_jsr(wdw_event_label);
@@ -613,8 +613,8 @@ char lab[80],lablabel[80];
    gen_push32_val(0);
    gen_jsr("_gadget_event_test");
    gen_pop_ignore(4);
-   gen("tst.l","d0","  ");
-   gen("beq.s",lab,"  ");
+   gen_tst32d(0);
+   gen_beq(lab);
 
    if (gad_event_branch == callsym)
 	 gen_jsr(gad_event_label);

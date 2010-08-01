@@ -53,6 +53,21 @@ void gen_bne(const char * label)
   gen("bne.s",label,"  ");
 }
 
+void gen_beq(const char * label)
+{
+  gen("beq.s",label,"  ");
+}
+
+void gen_bgt(const char * label)
+{
+  gen("bgt.s",label,"  ");
+}
+
+void gen_blt(const char * label)
+{
+  gen("blt.s",label,"  ");
+}
+
 
 /* Used to create ops to possibly cange later */
 void gen_nop()

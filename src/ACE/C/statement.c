@@ -1178,7 +1178,7 @@ SHORT popcount;
 		     case longtype   : gen("add.l","#1","(a0)");
 		     		       break;
 
-		     case singletype : gen("movea.l","_MathBase","a6");
+			case singletype : gen_load32a("_MathBase", 6);
 				       gen("move.l","(a0)","d0");
 				       gen("move.l","#$80000041","d1");
 				       gen_jsr("_LVOSPAdd(a6)");
@@ -1233,7 +1233,7 @@ SHORT popcount;
 		     case longtype   : gen("sub.l","#1","(a0)");
 		     		       break;
 
-		     case singletype : gen("movea.l","_MathBase","a6");
+			case singletype : gen_load32a("_MathBase",6);
 				       gen("move.l","(a0)","d0");
 				       gen("move.l","#$80000041","d1");
 				       gen_jsr("_LVOSPSub(a6)");

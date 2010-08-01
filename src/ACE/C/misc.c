@@ -352,13 +352,9 @@ int    mbr_type=undefined;
     itoa(-1*item->address,addrbuf,10);
     strcat(addrbuf,frame_ptr[lev]);
 
+	gen_load32a(addrbuf,0);
     if (item->shared && lev == ONE)
-    {
-       gen("movea.l",addrbuf,"a0");  /* struct variable address */
-       gen("movea.l","(a0)","a0");   /* start address of struct */    	
-    }
-    else
-        gen("movea.l",addrbuf,"a0"); /* start address of struct */
+	  gen("movea.l","(a0)","a0");   /* start address of struct */    	
 
     /* offset from struct start */ 
     if (mbr_type != stringtype)
@@ -400,7 +396,7 @@ int    mbr_type=undefined;
 
   if (item->shared && lev == ONE) 
   {
-     gen("movea.l",addrbuf,"a0"); /* address of structure variable */
+	gen_load32a(addrbuf,0);        /* address of structure variable */
      gen("move.l","(a0)","-(sp)");  /* start address of structure */
   }
   else

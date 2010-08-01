@@ -330,7 +330,7 @@ CODE *cx[5];
 					localtype=longtype;
 					break;
 
-		     case singletype :  gen("movea.l","_MathBase","a6");
+			case singletype :  gen_load32a("_MathBase",6);
 					gen_jsr("_LVOSPMul(a6)");
 					enter_XREF("_MathBase");
       		     			enter_XREF("_LVOSPMul");
@@ -341,7 +341,7 @@ CODE *cx[5];
 
     case fdiv     : gen_pop32d(1);  /* 2nd operand */
 		    gen_pop32d(0);  /* 1st operand */
-		    gen("movea.l","_MathBase","a6");
+		    gen_load32a("_MathBase",6);
 		    gen_jsr("_LVOSPDiv(a6)");  
 		    enter_XREF("_MathBase");
       		    enter_XREF("_LVOSPDiv");

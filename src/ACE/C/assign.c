@@ -301,13 +301,9 @@ int    exprtype,storetype;
       ltoa(-1*item->address,addrbuf,10);
       strcat(addrbuf,frame_ptr[lev]);
 
+	  gen_load32a(addrbuf,0);
       if (item->shared && lev == ONE)
-      {
-	 gen("movea.l",addrbuf,"a0");  /* structure variable address */	
-	 gen("movea.l","(a0)","a0");   /* start address of structure */
-      }
-      else
-          gen("movea.l",addrbuf,"a0"); /* start address of structure */
+		gen("movea.l","(a0)","a0");   /* start address of structure */
 
       /* offset from struct start */ 
       if (member->type != stringtype)
@@ -358,11 +354,11 @@ int    exprtype,storetype;
     
     if (item->shared && lev == ONE)
     {     
-       gen("movea.l",addrbuf,"a0");     /* address of structure variable */
-       gen("move.l","(sp)+","(a0)");    /* store new address in variable */
+	  gen_load32a(addrbuf,0);      /* address of structure variable */
+	  gen("move.l","(sp)+","(a0)");    /* store new address in variable */
     }
     else
-        gen_pop32_var(addrbuf);  /* store new address in variable */
+	  gen_pop32_var(addrbuf);  /* store new address in variable */
    }
   }
  }

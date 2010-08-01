@@ -529,34 +529,34 @@ int  countertype,limittype,steptype;
      gen("move.w",limbuf,"d1");   /* limit */
      gen("cmpi.w","#0",stepaddr);
      make_label(labname2,lablabel2);
-     gen("blt",labname2,"  ");
+     gen_blt(labname2);
      gen("cmp.w","d1","d0");
-     gen("bgt","  ","  ");	  /* if STEP +ve -> counter>limit? */
+     gen_bgt("  ");  	  /* if STEP +ve -> counter>limit? */
      cx1=curr_code;
      make_label(labname3,lablabel3); /* don't want to do -ve step test too! */
      gen_jmp(labname3);
      gen_label(lablabel2);
      gen("cmp.w","d1","d0");
-     gen("blt","  ","  ");      /* if STEP -ve -> counter<limit? */
+     gen_blt("  ");          /* if STEP -ve -> counter<limit? */
      cx2=curr_code;
      gen_label(lablabel3);    /* label for bypassing -ve step test */
     }
     else
     if (countertype == longtype)
     {
-     gen("move.l",cntbuf,"d0");   /* counter */
-     gen("move.l",limbuf,"d1");   /* limit */
+	  gen_load32d(cntbuf,0);      /* counter */
+	  gen_load32d(limbuf,1);      /* limit */
      gen("cmpi.l","#0",stepaddr);
      make_label(labname2,lablabel2);
      gen("blt",labname2,"  ");
      gen("cmp.l","d1","d0");
-     gen("bgt","  ","  ");	  /* if STEP +ve -> counter>limit? */
+     gen_bgt("  ");  	  /* if STEP +ve -> counter>limit? */
      cx1=curr_code;
      make_label(labname3,lablabel3); /* don't want to do -ve step test too! */
      gen_jmp(labname3);
      gen_label(lablabel2);
      gen("cmp.l","d1","d0");
-     gen("blt","  ","  ");      /* if STEP -ve -> counter<limit? */
+     gen_blt("  ");           /* if STEP -ve -> counter<limit? */
      cx2=curr_code;
      gen_label(lablabel3);    /* label for bypassing -ve step test */
    }
@@ -564,27 +564,27 @@ int  countertype,limittype,steptype;
     if (countertype == singletype)
     { 
      gen("moveq","#0","d1");
-     gen("move.l",stpbuf,"d0");   /* d0 < d1? (where d1=0) */
-     gen("move.l","_MathBase","a6");
+     gen_load32d(stpbuf,0);   /* d0 < d1? (where d1=0) */
+     gen_load32a("_MathBase",6);
      gen_jsr("_LVOSPCmp(a6)");
      enter_XREF("_MathBase");
      enter_XREF("_LVOSPCmp");
      make_label(labname2,lablabel2);
-     gen("blt",labname2,"  ");  /* test result of ffp Cmp above */
-     gen("move.l",cntbuf,"d0");   /* counter */
-     gen("move.l",limbuf,"d1");   /* limit */
-     gen("move.l","_MathBase","a6");
+     gen_blt(labname2);           /* test result of ffp Cmp above */
+     gen_load32d(cntbuf,0);       /* counter */
+     gen_load32d(limbuf,1);       /* limit */
+     gen_load32a("_MathBase",6);
      gen_jsr("_LVOSPCmp(a6)");
-     gen("bgt","  ","  ");	  /* if STEP +ve -> counter>limit? */
+     gen_bgt("  ");	  /* if STEP +ve -> counter>limit? */
      cx1=curr_code;
      make_label(labname3,lablabel3); /* don't want to do -ve step test too! */
      gen_jmp(labname3);
      gen_label(lablabel2);
-     gen("move.l",cntbuf,"d0");   /* counter */
-     gen("move.l",limbuf,"d1");   /* limit */
-     gen("move.l","_MathBase","a6");
+     gen_load32d(cntbuf,0);       /* counter */
+     gen_load32d(limbuf,1);       /* limit */
+     gen_load32a("_MathBase",6);
      gen_jsr("_LVOSPCmp(a6)");
-     gen("blt","  ","  ");      /* if STEP -ve -> counter<limit? */
+     gen_blt("  ");               /* if STEP -ve -> counter<limit? */
      cx2=curr_code;
      gen_label(lablabel3);      /* label for bypassing -ve step test */
     }
@@ -612,16 +612,17 @@ int  countertype,limittype,steptype;
      case shorttype  : 	gen("move.w",stpbuf,"d0");
 		     	gen("add.w","d0",counteraddr);
 			break;
-     case longtype   : 	gen("move.l",stpbuf,"d0");
-		     	gen("add.l","d0",counteraddr);
-			break;
-     case singletype :  gen("move.l",stpbuf,"d0");
+     case longtype   :
+	   gen_load32d(stpbuf,0);
+	   gen("add.l","d0",counteraddr);
+	   break;
+	case singletype :  gen_load32d(stpbuf,0);
 			gen("move.l",cntbuf,"d1");
-			gen("move.l","_MathBase","a6");
+			gen_load32a("_MathBase",6);
 			gen_jsr("_LVOSPAdd(a6)");
 			gen("move.l","d0",counteraddr);
-     			enter_XREF("_MathBase");
-     			enter_XREF("_LVOSPAdd");
+			enter_XREF("_MathBase");
+			enter_XREF("_LVOSPAdd");
 			break;
     }
 
