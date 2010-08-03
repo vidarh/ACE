@@ -245,7 +245,7 @@ BOOL negate=FALSE;
    case longtype   : gen("neg.l","(sp)","  "); break;
 
    case singletype : gen_pop32d(0); 
-       gen("move.l","_MathBase","a6");
+       gen_load32a("_MathBase",6);
        gen_jsr("_LVOSPNeg(a6)");
        gen_push32d(0);
        enter_XREF("_MathBase");
@@ -330,7 +330,7 @@ CODE *cx[5];
 					localtype=longtype;
 					break;
 
-			case singletype :  gen_load32a("_MathBase",6);
+		     case singletype :  gen_load32a("_MathBase",6);
 					gen_jsr("_LVOSPMul(a6)");
 					enter_XREF("_MathBase");
       		     			enter_XREF("_LVOSPMul");
@@ -538,7 +538,7 @@ CODE *cx[5];
     case longtype   :	gen("add.l","d1","d0");
     		    	break;
 
-    case singletype : 	gen("move.l","_MathBase","a6");
+    case singletype : 	gen_load32a("_MathBase",6);
         		gen_jsr("_LVOSPAdd(a6)");
         		enter_XREF("_LVOSPAdd");
         		enter_XREF("_MathBase");
@@ -583,7 +583,7 @@ CODE *cx[5];
     case longtype   : 	gen("sub.l","d1","d0");
          		break;
 
-    case singletype :	gen("move.l","_MathBase","a6");
+    case singletype :	gen_load32a("_MathBase",6);
         		gen_jsr("_LVOSPSub(a6)");
        			enter_XREF("_LVOSPSub");
         		enter_XREF("_MathBase");
@@ -692,7 +692,7 @@ CODE *cx[5];
     case singletype : 	gen_pop32d(1);  /* 2nd */
         		gen_pop32d(0);  /* 1st */
         		gen("moveq","#-1","d5");     /* assume true */
-        		gen("move.l","_MathBase","a6");
+        		gen_load32a("_MathBase",6);
         		gen_jsr("_LVOSPCmp(a6)");
         		enter_XREF("_LVOSPCmp");
         		enter_XREF("_MathBase");
@@ -1043,7 +1043,7 @@ int typ;
 
   if (typ == shorttype) gen("ext.l","d0","  "); /* extend sign */
 
-  gen("move.l","_MathBase","a6");
+  gen_load32a("_MathBase",6);
   gen_jsr("_LVOSPFlt(a6)");
   gen_push32d(0);
   enter_XREF("_LVOSPFlt");
