@@ -575,7 +575,7 @@ int  countertype,limittype,steptype;
      gen_load32d(limbuf,1);   /* limit */
      gen_load32a("_MathBase",6);
      gen_jsr("_LVOSPCmp(a6)");
-     gen_bgt(bgt);	  /* if STEP +ve -> counter>limit? */
+     gen_bgt("  ");	  /* if STEP +ve -> counter>limit? */
      cx1=curr_code;
      make_label(labname3,lablabel3); /* don't want to do -ve step test too! */
      gen_jmp(labname3);
