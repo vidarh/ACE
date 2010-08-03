@@ -268,7 +268,7 @@ SHORT popcount;
         make_library_base(func_item->libname);
      else
         strcpy(librarybase,acelib[libnum].base);
-     gen("move.l",librarybase,"a6");
+     gen_load32a(librarybase,6);
      itoa(func_item->address,func_address,10);
      strcat(func_address,"(a6)");
      gen_jsr(func_address);
@@ -402,12 +402,12 @@ SHORT popcount;
        make_library_base(func_item->libname);
     else
        strcpy(librarybase,acelib[libnum].base);
-    gen("move.l",librarybase,"a6");
+    gen_load32a(librarybase,6);
     itoa(func_item->address,func_address,10);
     strcat(func_address,"(a6)");
     gen_jsr(func_address);
-    if (restore_a4) { gen("move.l","_a4_temp","a4"); restore_a4=FALSE; }
-    if (restore_a5) { gen("move.l","_a5_temp","a5"); restore_a5=FALSE; }
+    if (restore_a4) { gen_load32a("_a4_temp",4); restore_a4=FALSE; }
+    if (restore_a5) { gen_load32a("_a5_temp",5); restore_a5=FALSE; }
    }
    else
    {
@@ -1178,7 +1178,7 @@ SHORT popcount;
 		     case longtype   : gen("add.l","#1","(a0)");
 		     		       break;
 
-			case singletype : gen_load32a("_MathBase", 6);
+		     case singletype : gen_load32a("_MathBase",6);
 				       gen("move.l","(a0)","d0");
 				       gen("move.l","#$80000041","d1");
 				       gen_jsr("_LVOSPAdd(a6)");
@@ -1233,7 +1233,7 @@ SHORT popcount;
 		     case longtype   : gen("sub.l","#1","(a0)");
 		     		       break;
 
-			case singletype : gen_load32a("_MathBase",6);
+		     case singletype : gen_load32a("_MathBase",6);
 				       gen("move.l","(a0)","d0");
 				       gen("move.l","#$80000041","d1");
 				       gen_jsr("_LVOSPSub(a6)");

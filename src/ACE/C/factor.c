@@ -317,7 +317,7 @@ BOOL need_symbol;
        		    make_library_base(fact_item->libname);
     		 else
        		    strcpy(librarybase,acelib[libnum].base);
-    		 gen("move.l",librarybase,"a6");
+    		 gen_load32a(librarybase,6);
     		 itoa(fact_item->address,func_address,10);
     		 strcat(func_address,"(a6)");
     		 gen_jsr(func_address);
@@ -328,9 +328,9 @@ BOOL need_symbol;
 		    gen_push32d(0); /* push return value */
 
                  if (restore_a4) 
-                    { gen("move.l","_a4_temp","a4"); restore_a4=FALSE; }
+                    { gen_load32a("_a4_temp",4); restore_a4=FALSE; }
                  if (restore_a5) 
-                    { gen("move.l","_a5_temp","a5"); restore_a5=FALSE; }
+                    { gen_load32a("_a5_temp",5); restore_a5=FALSE; }
 
   		 ftype=fact_item->type;
    		 insymbol();
