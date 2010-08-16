@@ -104,8 +104,7 @@ BOOL colorset=FALSE;
      /* plot point */
      if (!colorset)
      {
-	   gen_load32a("_GfxBase",6);
-	   enter_XREF("_GfxBase");
+	   gen_libbase("Gfx");
 	   gen_load32a("_RPort",1);
 	   enter_XREF("_RPort");
      }
@@ -114,36 +113,30 @@ BOOL colorset=FALSE;
      {
        gen("add.w","36(a1)","d0");   /* x + RPort->cp_x */
        gen("add.w","38(a1)","d1");   /* y + RPort->cp_y */
-       gen_jsr("_LVOMove(a6)");
-       enter_XREF("_LVOMove");
+       gen_libcall("Move","Gfx");
      }
 
      /* 
      ** Save appropriate registers for call to WritePixel()
      ** since Move() may clobber them.
      */ 
-     gen("move.l","a1","a3");
-     gen("move.w","d0","d3");
-     gen("move.w","d1","d4");
-
-     gen_jsr("_LVOMove(a6)");
+     gen_move32aa(1,3);
+     gen_move16dd(0,3);
+     gen_move16dd(1,4);
+     gen_libcall("Move","Gfx");
 
      /* 
      ** Restore appropriate registers for call to WritePixel().
      */
-     gen("move.w","d4","d1");	
-     gen("move.w","d3","d0");	
-     gen("move.l","a3","a1");
-     	
-     gen_jsr("_LVOWritePixel(a6)");
-
-     enter_XREF("_LVOMove");  /* Must call Move() to change pen pos'n */
-     enter_XREF("_LVOWritePixel");  
+     gen_move16dd(4,1);
+     gen_move16dd(3,0);
+     gen_move32aa(3,1);
+     gen_libcall("WritePixel","Gfx");
 
      if (colorset)
      {
 	   /* change back to old pen */
-	   gen("move.w","_fgdpen","d0");
+	   gen_load16d("_fgdpen",0);
 	   gen_gfxcall("SetAPen");
 	   enter_XREF("_fgdpen");
      }
@@ -176,6 +169,7 @@ BOOL bordercolor=FALSE;
     if (sym == comma) 
     {
      insymbol();
+
      if (sym != comma)
      {
       make_sure_short(expr()); /* paintcolor-id */
@@ -314,30 +308,30 @@ BOOL aspect=FALSE;
      {
        gen_load32a("_RPort",1);
 
-       gen("move.w","_shortx","d0");
+       gen_load16d("_shortx",0);
        gen("add.w","36(a1)","d0");   /* x + RPort->cp_x */
        gen("move.w","d0","_shortx");
 
-       gen("move.w","_shorty","d0");
+       gen_load16d("_shorty",0);
        gen("add.w","38(a1)","d0");   /* y + RPort->cp_y */
        gen("move.w","d0","_shorty");
      }
 
      /* convert x & y values to floats */
-     gen("move.w","_shortx","d0");
+     gen_load16d("_shortx",0);
      gen("ext.l","d0","  ");
-     gen_load32a("_MathBase",6);
-     gen_jsr("_LVOSPFlt(a6)");
+     gen_libbase("Math");
+     gen_libcall("SPFlt","Math");
      gen("move.l","d0","_floatx");
 
-     gen("move.w","_shorty","d0");
+     gen_load16d("_shorty",0);
      gen("ext.l","d0","  ");
-     gen_load32a("_MathBase",6);
-     gen_jsr("_LVOSPFlt(a6)");
+     gen_libbase("Math");
+     gen_libcall("SPFlt","Math");
      gen("move.l","d0","_floaty");
 
-     gen("move.l","_floatx","d0");
-     gen("move.l","_floaty","d1");
+     gen_load32d("_floatx",0);
+     gen_load32d("_floaty",1);
 
      if (!start_angle) gen("moveq","#0","d3");  /* default is zero */
      if (!end_angle)  gen("move.l","#$b3800049","d4");  /* default is 359 */
@@ -346,7 +340,6 @@ BOOL aspect=FALSE;
      gen_jsr("_ellipse");
      enter_XREF("_ellipse");
      enter_XREF("_GfxBase");
-     enter_XREF("_MathBase");
      enter_XREF("_MathTransBase");  /* need these 3 libs for _ellipse */
 
      enter_BSS("_shortx","ds.w 1");
@@ -357,10 +350,8 @@ BOOL aspect=FALSE;
      if (colorset)
      {
       /* change back to old pen */
-      gen("move.w","_fgdpen","d0");
-      gen_load32a("_RPort",1);
-      gen_load32a("_RPort",6);
-      gen_jsr("_LVOSetAPen(a6)");
+      gen_load16d("_fgdpen",0);
+      gen_gfxcall("SetAPen");
       enter_XREF("_fgdpen");
      }          
 }
@@ -485,70 +476,64 @@ CODE *cx,*cx1,*cx2,*cx3,*cx4,*cx5,*cx6;
         }
       }
 
-      /* draw the line, outline box, or filled box */
-      if (box)
-      {
-	gen_pop16d(5);  /* y2 */
-	gen_pop16d(4);  /* x2 */
-	gen("move.w","_ymin","d3");     /* y1 */
-	gen("move.w","_xmin","d2");     /* x1 */
-	/* x1=d2; y1=d3 x2=d4; y2=d5 */
-	/* already moved to x1,y1 */
-
-	gen("move.w","d4","d0");	
-	gen("move.w","d3","d1");	
-	gen_gfxcall("Draw");     /* x1,y1 - x2,y1 */
-	gen("move.w","d4","d0");	
-	gen("move.w","d5","d1");	
-	gen_jsr("_LVODraw(a6)"); /* x2,y1 - x2,y2 */
-	gen("move.w","d2","d0");	
-	gen("move.w","d5","d1");	
-	gen_jsr("_LVODraw(a6)"); /* x2,y2 - x1,y2 */
-	gen("move.w","d2","d0");	
-	gen("move.w","d3","d1");	
-	gen_jsr("_LVODraw(a6)"); /* x1,y2 - x1,y1 */
-	enter_XREF("_LVODraw");
-	enter_XREF("_LVOMove");
-	enter_BSS("_xmin","ds.w 1");
-	enter_BSS("_ymin","ds.w 1");
-      }		
-      else
-      if (boxfill)
-      {
-	change(cx,"nop","  ","  ");   /* don't need Move */
-	gen_load32a("_RPort",1);
-	gen_load32a("_GfxBase",6);
-	gen_pop16d(3);  /* ymax */
-	gen_pop16d(2);  /* xmax */
-	gen("move.w","_ymin","d1");     /* ymin */
-	gen("move.w","_xmin","d0");     /* xmin */
-	gen_jsr("_LVORectFill(a6)");
-	enter_XREF("_LVORectFill"); 
-	enter_BSS("_xmin","ds.w 1");
-	enter_BSS("_ymin","ds.w 1");
-      }
-      else
-      {
-        /* draw line */
-        gen_load32a("_RPort",1);
-        gen_load32a("_GfxBase",6);
-		gen_pop16d(1);  /* y2 */
-		gen_pop16d(0);  /* x2 */
-		/* already moved to x1,y1 */
-        gen_jsr("_LVODraw(a6)");
-        enter_XREF("_LVODraw");
-		enter_XREF("_LVOMove");
-	/* don't need to save x1 & x2 in _xmin & _ymin */
-	change(cx1,"nop","  ","  ");
- 	change(cx2,"nop","  ","  ");
-	if (colorset)
-	{
-	 change(cx3,"nop","  ","  ");
-	 change(cx4,"nop","  ","  ");
-	 change(cx5,"nop","  ","  ");
-	 change(cx6,"nop","  ","  ");
-	}
-      }
+	   /* draw the line, outline box, or filled box */
+	   if (box)
+		 {
+		   gen_pop16d(5);  /* y2 */
+		   gen_pop16d(4);  /* x2 */
+		   gen_load16d("_ymin",3); /* y1 */
+		   gen_load16d("_xmin",2); /* x1 */
+		   /* x1=d2; y1=d3 x2=d4; y2=d5 */
+		   /* already moved to x1,y1 */
+		   
+		   gen_move16dd(4,0);
+		   gen_move16dd(3,1);
+		   gen_gfxcall("Draw");     /* x1,y1 - x2,y1 */
+		   gen_move16dd(4,0);
+		   gen_move16dd(5,1);
+		   gen_libcall("Draw","Gfx"); /* x2,y1 - x2,y2 */
+		   gen_move16dd(2,0);
+		   gen_move16dd(5,1);
+		   gen_libcall("Draw","Gfx"); /* x2,y2 - x1,y2 */
+		   gen_move16dd(2,0);
+		   gen_move16dd(3,1);
+		   gen_libcall("Draw","Gfx"); /* x1,y2 - x1,y1 */
+		   enter_BSS("_xmin","ds.w 1");
+		   enter_BSS("_ymin","ds.w 1");
+		 }		
+	   else if (boxfill)
+		 {
+		   change(cx,"nop","  ","  ");   /* don't need Move */
+		   gen_load32a("_RPort",1);
+		   gen_libbase("Gfx");
+		   gen_pop16d(3);  /* ymax */
+		   gen_pop16d(2);  /* xmax */
+		   gen_load16d("_ymin",1); /* ymin */
+		   gen_load16d("_xmin",0); /* xmin */
+		   gen_libcall("RectFill","Gfx");
+		   enter_BSS("_xmin","ds.w 1");
+		   enter_BSS("_ymin","ds.w 1");
+		 }
+	   else
+		 {
+		   /* draw line */
+		   gen_load32a("_RPort",1);
+		   gen_libbase("Gfx");
+		   gen_pop16d(1);  /* y2 */
+		   gen_pop16d(0);  /* x2 */
+		   /* already moved to x1,y1 */
+		   gen_libcall("Draw","Gfx");
+		   /* don't need to save x1 & x2 in _xmin & _ymin */
+		   change(cx1,"nop","  ","  ");
+		   change(cx2,"nop","  ","  ");
+		   if (colorset)
+			 {
+			   change(cx3,"nop","  ","  ");
+			   change(cx4,"nop","  ","  ");
+			   change(cx5,"nop","  ","  ");
+			   change(cx6,"nop","  ","  ");
+			 }
+		 }
      }  	    
     }
    }
@@ -584,8 +569,8 @@ void color()
   insymbol();
   make_sure_short(expr());
   gen_pop16d(0);
-  gen("move.w","d0","_bg");  /* background pen for text color change */
-  gen("move.w","d0","_bgpen"); /* change global background pen color */
+  gen_save16d(0,"_bg");  /* background pen for text color change */
+  gen_save16d(0,"_bgpen"); /* change global background pen color */
   gen_gfxcall("SetBPen");
   enter_XREF("_bgpen");
   enter_BSS("_bg","ds.w 1");
@@ -599,8 +584,8 @@ void color()
  }
 
  /* call text color change routine */
- gen("move.w","_fg","d0");
- gen("move.w","_bg","d1");
+ gen_load16d("_fg",0);
+ gen_load16d("_bg",0);
  gen_jsr("_changetextcolor");
  enter_XREF("_changetextcolor");
  enter_XREF("_DOSBase");

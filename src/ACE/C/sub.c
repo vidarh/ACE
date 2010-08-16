@@ -265,10 +265,8 @@ int   formaltype[MAXPARAMS];
   {
    /* disable multi-tasking 
       before passing parameters */
-   gen_load32a("_AbsExecBase",6);
-   gen_jsr("_LVOForbid(a6)");
-   enter_XREF("_AbsExecBase");
-   enter_XREF("_LVOForbid");
+   gen_libbase("AbsExec");
+   gen_libcall("Forbid","AbsExec");
 
    /* load parameters into next frame */
    for (n=0;n<sub_ptr->no_of_params;n++)
@@ -302,10 +300,8 @@ char  addrbuf[40];
  else
  {
   /* if actual parameters passed, Forbid() called -> Permit() */
-  gen_load32a("_AbsExecBase",6);
-  gen_jsr("_LVOPermit(a6)");
-  enter_XREF("_AbsExecBase");
-  enter_XREF("_LVOPermit");
+  gen_libbase("AbsExec");
+  gen_libcall("Permit","AbsExec");
 
   /* formal parameters expected */
   do

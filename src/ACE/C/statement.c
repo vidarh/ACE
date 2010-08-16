@@ -1178,14 +1178,13 @@ SHORT popcount;
 		     case longtype   : gen("add.l","#1","(a0)");
 		     		       break;
 
-		     case singletype : gen_load32a("_MathBase",6);
-				       gen("move.l","(a0)","d0");
-				       gen("move.l","#$80000041","d1");
-				       gen_jsr("_LVOSPAdd(a6)");
-				       gen("move.l","d0","(a0)");
-				       enter_XREF("_MathBase");
-				       enter_XREF("_LVOSPAdd");
-				       break;
+		     case singletype : 
+			   gen_libbase("Math");
+			   gen("move.l","(a0)","d0");
+			   gen("move.l","#$80000041","d1");
+			   gen_libcall("SPAdd","Math");
+			   gen("move.l","d0","(a0)");
+			   break;
 		    }
  		   }
  		  }
@@ -1227,20 +1226,21 @@ SHORT popcount;
 		    /* increment it by 1 */
 		    switch(dec_item->type)
 		    {
-		     case shorttype  : gen("sub.w","#1","(a0)");
-		     		       break;
+		     case shorttype: 
+			   gen("sub.w","#1","(a0)");
+			   break;
 
-		     case longtype   : gen("sub.l","#1","(a0)");
-		     		       break;
+		     case longtype: 
+			   gen("sub.l","#1","(a0)");
+			   break;
 
-		     case singletype : gen_load32a("_MathBase",6);
-				       gen("move.l","(a0)","d0");
-				       gen("move.l","#$80000041","d1");
-				       gen_jsr("_LVOSPSub(a6)");
-				       gen("move.l","d0","(a0)");
-				       enter_XREF("_MathBase");
-				       enter_XREF("_LVOSPSub");
-				       break;
+		     case singletype : 
+			   gen_libbase("Math");
+			   gen("move.l","(a0)","d0");
+			   gen("move.l","#$80000041","d1");
+			   gen_libcall("SPSub","Math");
+			   gen("move.l","d0","(a0)");
+			   break;
 		    }
  		   }
  		  }

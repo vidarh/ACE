@@ -651,15 +651,13 @@ BOOL offset_on_stack;
 			   gen_pop_addr(0); /* instr */
 			   make_temp_string();
 			   gen("lea",tempstrname,"a1"); /* outstr */
-			   gen("movea.l","a0","a2");
+			   gen_move32aa(0,2);
 			   gen_jsr("_strlen"); /* inlen in d0 */
 			   sprintf(srcbuf,"#%d",MAXSTRLEN); /* #MAXSTRLEN */
 			   gen("move.l",srcbuf,"d1"); /* outlen = MAXSTRLEN */
-			   gen_load32a("_TransBase",6);
-			   gen_jsr("_LVOTranslate(a6)");
+			   gen_libbase("Trans");
+			   gen_libcall("Translate","Trans");
 			   gen("pea",tempstrname,"  "); /* outstr on stack */
-			   enter_XREF("_TransBase");
-			   enter_XREF("_LVOTranslate");
 			   enter_XREF("_strlen");
 			   sftype=stringtype;
 			  }
@@ -703,28 +701,21 @@ BOOL offset_on_stack;
 }
 
 /* numeric functions */
-int gen_single_func(funcname,nftype)
-char *funcname;
-int  nftype;
+int gen_single_func(char * funcname,int nftype)
 {
-char func[80];
-
+  
   if (nftype != stringtype)
-  {
-   if (nftype != singletype) gen_Flt(nftype);  
-   gen_pop32d(0);
-   gen_load32a("_MathTransBase",6);
-   strcpy(func,funcname);
-   strcat(func,"(a6)");
-   gen_jsr(func);
-   gen_push32d(0);
-   enter_XREF(funcname);
-   enter_XREF("_MathTransBase");
-   enter_XREF("_MathBase");
-   nftype=singletype;
-  }
+	{
+	  if (nftype != singletype) gen_Flt(nftype);  
+	  gen_pop32d(0);
+	  gen_libbase("MathTrans");
+	  gen_libcall(funcname,"MathTrans");
+	  gen_push32d(0);
+	  enter_XREF("_MathBase");
+	  nftype=singletype;
+	}
   else { _error(4); nftype=undefined; }
- return(nftype);
+  return(nftype);
 }
 
 BOOL numfunc()
@@ -860,7 +851,7 @@ char varptr_obj_name[MAXIDSIZE];
 			break;
   	 
 	 /* ATN */
-         case atnsym  : nftype = gen_single_func("_LVOSPAtan",nftype);
+         case atnsym  : nftype = gen_single_func("SPAtan",nftype);
 		        break;
 
 	 /* CINT */
@@ -894,7 +885,7 @@ char varptr_obj_name[MAXIDSIZE];
 			break;
 
 	 /* COS */
-         case cossym  : nftype = gen_single_func("_LVOSPCos",nftype);
+         case cossym  : nftype = gen_single_func("SPCos",nftype);
 		        break;
 
 	 /* CSNG */
@@ -926,18 +917,16 @@ char varptr_obj_name[MAXIDSIZE];
 		  	break;
 
 	 /* EXP */
-         case expsym  : nftype = gen_single_func("_LVOSPExp",nftype);
+         case expsym  : nftype = gen_single_func("SPExp",nftype);
 		        break;
 
 	 /* FIX */
 	 case fixsym  : if (nftype == singletype)
 			{
 			 gen_pop32d(0);
-			 gen_load32a("_MathBase",6);
-			 gen_jsr("_LVOSPFix(a6)");
+			 gen_libbase("Math");
+			 gen_libcall("SPFix","Math");
 			 gen_push32d(0);
-			 enter_XREF("_MathBase");
-			 enter_XREF("_LVOSPFix");
 			 nftype=longtype;
 			}
 			else
@@ -1019,13 +1008,10 @@ char varptr_obj_name[MAXIDSIZE];
 	 case intsym  : if (nftype == singletype)
 			{
 			 gen_pop32d(0);
-			 gen_load32a("_MathBase",6);
-			 gen_jsr("_LVOSPFloor(a6)");
-			 gen_jsr("_LVOSPFix(a6)");
+			 gen_libbase("Math");
+			 gen_libcall("SPFloor","Math");
+			 gen_libcall("SPFix","Math");
 			 gen_push32d(0);
-			 enter_XREF("_MathBase");
-			 enter_XREF("_LVOSPFloor");
-			 enter_XREF("_LVOSPFix");
 			 nftype=longtype;
 			}
 			else
@@ -1069,7 +1055,7 @@ char varptr_obj_name[MAXIDSIZE];
  			break;
 			   
 	 /* LOG */
-         case logsym  : nftype = gen_single_func("_LVOSPLog",nftype);
+         case logsym  : nftype = gen_single_func("SPLog",nftype);
 		        break;
 
 	 /* LONGINT */
@@ -1228,9 +1214,6 @@ char varptr_obj_name[MAXIDSIZE];
 			  gen_pop16d(0);  /* x */
 			  gen_gfxcall("ReadPixel");
 			  gen_push32d(0);
-			  enter_XREF("_LVOReadPixel");
-			  enter_XREF("_GfxBase");
-			  enter_XREF("_RPort");
 			  nftype=longtype;
 			 }
 			}
@@ -1385,11 +1368,11 @@ char varptr_obj_name[MAXIDSIZE];
 			break;
 			
 	 /* SQR */
-         case sqrsym  : nftype = gen_single_func("_LVOSPSqrt",nftype);
+         case sqrsym  : nftype = gen_single_func("SPSqrt",nftype);
 		        break;
 
 	 /* SIN */
-         case sinsym  : nftype = gen_single_func("_LVOSPSin",nftype);
+         case sinsym  : nftype = gen_single_func("SPSin",nftype);
 		        break;
 
 	 /* SIZEOF */
@@ -1414,7 +1397,7 @@ char varptr_obj_name[MAXIDSIZE];
 			 break;
 
 	 /* TAN */
-         case tansym  : nftype = gen_single_func("_LVOSPTan",nftype);
+         case tansym  : nftype = gen_single_func("SPTan",nftype);
 		        break;
 
 	 /* VARPTR */

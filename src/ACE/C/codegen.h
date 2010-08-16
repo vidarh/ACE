@@ -27,7 +27,15 @@ void gen_tst32d(unsigned char reg);
 void gen_tst16d(unsigned char reg);
 void gen_load32a(const char * label, unsigned char reg);
 void gen_load32d(const char * label, unsigned char reg);
+void gen_load16d(const char * label, unsigned char reg);
+void gen_move16dd(unsigned char srcreg, unsigned char destreg);
+void gen_move32dd(unsigned char srcreg, unsigned char destreg);
+void gen_move32aa(unsigned char srcreg, unsigned char destreg);
 
+/* Mid level */
+
+void gen_libbase(const char * base);
+void gen_libcall(const char * lvo, const char * base);
 void gen_gfxcall(const char * lvo);
 
 #endif
