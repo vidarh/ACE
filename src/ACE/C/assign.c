@@ -493,7 +493,7 @@ int  exprtype;
 		      {
 			/* string */
 			gen_pop_addr(1);
-			gen("lea",ext_name,"a0");	
+			gen_load_addr(ext_name,0);
 			gen_jsr("_strcpy");
 			enter_XREF("_strcpy");
 		      }	
@@ -791,7 +791,7 @@ SYM  *storage;
    /* ALL data types need a temporary string */
    make_temp_string();
    if (storage->type != stringtype)
-   	gen("lea",tempstrname,"a1");
+   	gen_load_addr(tempstrname,0);
    else
 	gen("pea",tempstrname,"  ");
 

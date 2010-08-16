@@ -165,6 +165,11 @@ void gen_push_addr(unsigned char reg)
   gen("move.l",areg[reg],"-(sp)");
 }
 
+void gen_load_addr(const char * label,unsigned char reg)
+{
+  gen("lea",label,areg[reg]);
+}
+
 void gen_pop_addr(unsigned char reg)
 {
   gen("move.l","(sp)+",areg[reg]);

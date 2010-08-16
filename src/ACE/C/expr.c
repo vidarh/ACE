@@ -543,11 +543,11 @@ CODE *cx[5];
         		gen_pop_addr(2); /* 2nd */
         		gen_pop_addr(1); /* 1st */
 			make_temp_string();
-        		gen("lea",tempstrname,"a0");
+        		gen_load_addr(tempstrname,0);
         		gen_jsr("_strcpy");
         		/* prepare for strcat */
-        		gen("lea",tempstrname,"a0");
-        		gen("move.l","a2","a1");
+        		gen_load_addr(tempstrname,0);
+        		gen_move32aa(2,1);
         		gen_jsr("_strcat");
         		gen("pea",tempstrname,"  ");
         		enter_XREF("_strcpy");

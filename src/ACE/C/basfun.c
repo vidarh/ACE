@@ -139,7 +139,7 @@ BOOL offset_on_stack;
       			  /* create a string to copy value to */
       			  make_string_store();
       			  strcpy(buf,strstorename);
-      			  gen("lea",buf,"a0");
+      			  gen_load_addr(buf,0);
       			  gen_jsr("_chrstring");
       			  gen("pea",strstorename,"  ");
       			  enter_XREF("_chrstring");
@@ -185,7 +185,7 @@ BOOL offset_on_stack;
 			 if (make_integer(sftype) == shorttype)
 			     make_long(); /* only handle long val */
 			 make_temp_string();
-			 gen("lea",tempstrname,"a0");
+			 gen_load_addr(tempstrname,0);
 			 gen_pop32d(0); /* long argument */
 			 gen_jsr("_binstr");
 			 enter_XREF("_binstr");
@@ -230,7 +230,7 @@ BOOL offset_on_stack;
 			{
 			 sftype = make_integer(sftype);
 			 make_temp_string();
-			 gen("lea",tempstrname,"a0");
+			 gen_load_addr(tempstrname,0);
 			 if (sftype == longtype)
 			 {
 			  gen_pop32d(0);
@@ -419,7 +419,7 @@ BOOL offset_on_stack;
 			  gen_pop16d(0);  /* index */
 			  gen_pop_addr(0);  /* string */
 			  make_temp_string();
-			  gen("lea",tempstrname,"a1");
+			  gen_load_addr(tempstrname,1);
 			  gen_jsr("_leftstr");
 			  gen_push_addr(0);  /* addr of left$ */
 			  enter_XREF("_leftstr");
@@ -448,7 +448,7 @@ BOOL offset_on_stack;
 			 if (make_integer(sftype) == shorttype)
 			     make_long(); /* only handle long val */
 			 make_temp_string();
-			 gen("lea",tempstrname,"a0");
+			 gen_load_addr(tempstrname,0);
 			 gen_pop32d(0); /* long argument */
 			 gen_jsr("_octstr");
 			 enter_XREF("_octstr");
@@ -468,7 +468,7 @@ BOOL offset_on_stack;
 			  gen_pop16d(0);  /* index */
 			  gen_pop_addr(0);  /* string */
 			  make_temp_string();
-			  gen("lea",tempstrname,"a1");
+			  gen_load_addr(tempstrname,1);
 		   	  gen_jsr("_rightstr");
 			  gen_push_addr(0);  /* addr of right$ */
 			  enter_XREF("_rightstr");
@@ -492,7 +492,7 @@ BOOL offset_on_stack;
 			 make_sure_short(sftype);
 			 gen_pop16d(0);
 			 make_temp_string();
-			 gen("lea",tempstrname,"a0");
+			 gen_load_addr(tempstrname,0);
 			 if (func == spacestrsym)
 			   	gen_jsr("_spacestring");
 			 else
@@ -511,7 +511,7 @@ BOOL offset_on_stack;
     case strstrsym :	if (sftype != stringtype)
 			{
 			 make_temp_string();
-			 gen("lea",tempstrname,"a0");
+			 gen_load_addr(tempstrname,0);
 			 if (sftype == longtype)
 			 {
 			  gen_pop32d(0);
@@ -570,7 +570,7 @@ BOOL offset_on_stack;
 
 			  /* call STRING$ */
 			  make_temp_string();
-			  gen("lea",tempstrname,"a0");
+			  gen_load_addr(tempstrname,0);
 			  gen_jsr("_stringstr");
 			  gen_push32d(0);	/* push string result */
 			  enter_XREF("_stringstr");
@@ -605,8 +605,8 @@ BOOL offset_on_stack;
 			   gen_pop16d(0);  /* start posn */
 			   gen_pop_addr(0);  /* string */
 			   make_temp_string();
-			   gen("lea",tempstrname,"a1");
-		           gen_jsr("_midstr");
+			   gen_load_addr(tempstrname,1);
+			   gen_jsr("_midstr");
 			   gen_push_addr(0);  /* addr of mid$ */
 			   enter_XREF("_midstr");
 			   sftype=stringtype;
@@ -650,7 +650,7 @@ BOOL offset_on_stack;
 			  {
 			   gen_pop_addr(0); /* instr */
 			   make_temp_string();
-			   gen("lea",tempstrname,"a1"); /* outstr */
+			   gen_load_addr(tempstrname,1); /* outstr */
 			   gen_move32aa(0,2);
 			   gen_jsr("_strlen"); /* inlen in d0 */
 			   sprintf(srcbuf,"#%d",MAXSTRLEN); /* #MAXSTRLEN */
@@ -669,7 +669,7 @@ BOOL offset_on_stack;
 			{
 			 gen_pop_addr(1);
 		   	 make_temp_string();
-			 gen("lea",tempstrname,"a0"); /* result buffer */
+			 gen_load_addr(tempstrname,0); /* result buffer */
 			 gen_jsr("_ucase");
 			 gen_push_addr(0);
 			 enter_XREF("_ucase");	

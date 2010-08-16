@@ -438,7 +438,7 @@ SYM  *storage;
   
     /* ALL data types need a temporary string pointer in a1 */
     make_temp_string();
-    gen("lea",tempstrname,"a0");  /* unique temp holder */
+    gen_load_addr(tempstrname,0);  /* unique temp holder */
 
     /* when storing an input value into an array element, must save
        value (d0) first, since array index calculation may be corrupted

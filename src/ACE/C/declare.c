@@ -827,8 +827,8 @@ char bss_size[20];
 				 	{
 			 			/* initialise with the NULL string */
 			 			enter_DATA("_nullstring:","dc.b 0");
-			 			gen("lea",extvarid,"a0");
-			 			gen("lea","_nullstring","a1");
+			 			gen_load_addr(extvarid,0);
+			 			gen_load_addr("_nullstring",1);
 			 			gen_jsr("_strcpy");
 						enter_XREF("_strcpy");
 				 	}

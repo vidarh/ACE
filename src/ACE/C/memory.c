@@ -229,7 +229,7 @@ void swap()
 
       /* copy first to temp */
       gen("movea.l","d1","a1");    /* source */ 
-      gen("lea",tempstrname,"a0"); /* dest */ 
+      gen_load_addr(tempstrname,0); /* dest */ 
       gen_jsr("_strcpy");   /* temp = first */
 
       /* copy second to first */
@@ -238,7 +238,7 @@ void swap()
       gen_jsr("_strcpy");   /* first = second */ 
 
       /* copy temp to second */
-      gen("lea",tempstrname,"a1"); /* source */ 
+      gen_load_addr(tempstrname,1); /* source */ 
       gen("movea.l","d2","a0");    /* dest */
       gen_jsr("_strcpy");   /* second = temp */
 
