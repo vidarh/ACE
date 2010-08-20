@@ -112,8 +112,7 @@ void open_serial()
       insymbol();
       if (sym != comma)
       {
-         if (make_integer(expr()) == shorttype) 
-	    make_long(); 			/* Read buffer size */ 
+         if (make_integer(expr()) == shorttype) make_long(); 			/* Read buffer size */ 
       }
       else
 	 gen_push32_val(512);		/* defaults to 512 bytes */	

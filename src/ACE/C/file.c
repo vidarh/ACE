@@ -72,8 +72,7 @@ void open_a_file()
   {
    insymbol();
    if (sym == hash) insymbol(); /* # filenumber */
-   if (make_integer(expr()) == shorttype) 
-      make_long(); /* 1..255 */
+   if (make_integer(expr()) == shorttype) make_long();
    if (sym != comma) _error(16);
    else
    {
@@ -103,8 +102,7 @@ void close_a_file()
  {
   insymbol();
   if (sym == hash) insymbol(); 
-  if (make_integer(expr()) == shorttype) 
-     make_long(); /* filenumber = 1..255 */
+  if (make_integer(expr()) == shorttype) make_long();
  
   gen_pop32d(0);
   gen_jsr("_closefile");
@@ -132,8 +130,7 @@ SYM  *storage;
  {
   insymbol();
 
-  if (make_integer(expr()) == shorttype) 
-     make_long();  /* filenumber = 1..255 */
+  if (make_integer(expr()) == shorttype) make_long();
 
   if (sym != comma) _error(16);
   else
@@ -202,8 +199,7 @@ int wtype;
  {
   insymbol();
 
-  if (make_integer(expr()) == shorttype) 
-     make_long();  /* filenumber = 1..255 */
+  if (make_integer(expr()) == shorttype) make_long();
 
   gen_pop32_var("_seq_filenumber");
   
@@ -302,8 +298,7 @@ int exprtype,arguments=0;
 
  insymbol();
 
- if (make_integer(expr()) == shorttype)
-    make_long();	/* filenumber 1..255 */
+ if (make_integer(expr()) == shorttype) make_long();
 
  gen_pop32_var("_seq_filenumber");
  enter_BSS("_seq_filenumber:","ds.l 1");
@@ -394,8 +389,7 @@ SYM  *storage;
 
  insymbol();
 
- if (make_integer(expr()) == shorttype)
-    make_long();	/* filenumber 1..255 */
+ if (make_integer(expr()) == shorttype) make_long();
 
  gen_pop32_var("_seq_filenumber");
  enter_BSS("_seq_filenumber:","ds.l 1");
@@ -669,8 +663,7 @@ SYM *structVar;
 	/*
 	** Get the file number.
 	*/
- 	if (make_integer(expr()) == shorttype)
-    		make_long();	/* filenumber 1..255 */
+ 	if (make_integer(expr()) == shorttype) make_long();
 
  	if (sym != comma) _error(16);
  	else
@@ -692,8 +685,7 @@ SYM *structVar;
 				** Optional record number.
 				*/
 				insymbol();
- 				if (make_integer(expr()) == shorttype)
-    					make_long();	/* record number >= 1 */
+ 				if (make_integer(expr()) == shorttype) make_long();
 			}
 			else
 				/*
@@ -732,8 +724,7 @@ SYM *structVar;
 	/*
 	** Get the file number.
 	*/
- 	if (make_integer(expr()) == shorttype)
-    		make_long();	/* filenumber 1..255 */
+ 	if (make_integer(expr()) == shorttype) make_long();
 
  	if (sym != comma) _error(16);
  	else
@@ -755,8 +746,7 @@ SYM *structVar;
 				** Optional record number.
 				*/
 				insymbol();
- 				if (make_integer(expr()) == shorttype)
-    					make_long();	/* record number >= 1 */
+ 				if (make_integer(expr()) == shorttype) make_long();
 			}
 			else
 				/*

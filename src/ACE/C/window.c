@@ -120,8 +120,7 @@ int wtype;
 		insymbol();
 		if (sym != comma)
 		{
-			if (make_integer(expr()) == shorttype) 
-		   	   make_long();  /* type */
+			if (make_integer(expr()) == shorttype)  make_long();
 		}
 		else
 			gen("move.l","#-1","-(sp)");
@@ -135,8 +134,7 @@ int wtype;
 		insymbol();
 		if (sym != comma)
 		{
-			if (make_integer(expr()) == shorttype) 
-		   	   make_long();  /* scrn-id */
+			if (make_integer(expr()) == shorttype) make_long();
 		}
 		else
 			gen_push32_val(0);

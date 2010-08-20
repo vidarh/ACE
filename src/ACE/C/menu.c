@@ -69,22 +69,19 @@ int  mtype;
 		wait_menu();
 	else
 	{
-	 	if (make_integer(expr()) == shorttype) 
-			make_long();  /* menu-id */
+	 	if (make_integer(expr()) == shorttype) make_long();  /* menu-id */
 	
 	 	if (sym != comma) _error(16);
 	 	else
 	 	{
 	 		insymbol();
-	  		if (make_integer(expr()) == shorttype) 
-		    		make_long();  /* item-id */
+	  		if (make_integer(expr()) == shorttype) make_long();  /* item-id */
  	 
 			if (sym != comma) _error(16);
 			else
 			{
 				insymbol();
-	  			if (make_integer(expr()) == shorttype) 
-		    			make_long();  /* state */
+	  			if (make_integer(expr()) == shorttype) make_long();  /* state */
 
 				if (sym != comma)
 				{ 

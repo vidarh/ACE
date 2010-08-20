@@ -152,7 +152,7 @@ BOOL offset_on_stack;
     case argstrsym  :	if (sftype != stringtype)
 			{
 			 /* argument number */
-			 if (make_integer(sftype)==shorttype) make_long();	
+			  make_sure_long(sftype);
 			 /* destination buffer */
 			 make_temp_string();  	
 			 gen("pea",tempstrname,"  ");
@@ -179,8 +179,7 @@ BOOL offset_on_stack;
     /* BIN$ */
     case binstrsym  :	if (sftype != stringtype)
 			{
-			 if (make_integer(sftype) == shorttype)
-			     make_long(); /* only handle long val */
+			  make_sure_long(sftype);
 			 make_temp_string();
 			 gen_load_addr(tempstrname,0);
 			 gen_pop32d(0); /* long argument */
@@ -268,22 +267,14 @@ BOOL offset_on_stack;
 				{
 					if (expr() != stringtype) _error(4);
 				}
-				else
-					gen_push32_val(0);
-			   }
-			   else 
-				gen_push32_val(0);
+				else gen_push32_val(0);
+			   } else gen_push32_val(0);
 
 			   if (sym == comma)		/* xpos */
 			   {
 				insymbol();
-				if (sym != comma)
-				{
-			   		if (make_integer(expr()) == shorttype)
-						make_long();
-				}
-				else
-					gen_push32_val(0);
+				if (sym != comma) make_sure_long(expr());
+				else gen_push32_val(0);
 			   }
 			   else 
 				gen_push32_val(0);
@@ -291,13 +282,8 @@ BOOL offset_on_stack;
 			   if (sym == comma)		/* ypos */
 			   {
 				insymbol();
-				if (sym != comma)
-				{
-			   		if (make_integer(expr()) == shorttype)
-						make_long();
-				}
-				else
-					gen_push32_val(0);
+				if (sym != comma) make_sure_long(expr());
+				else gen_push32_val(0);
 			   }
 			   else 
 				gen_push32_val(0);
@@ -325,19 +311,18 @@ BOOL offset_on_stack;
 			  break;
 			 
     /* INPUT$(X,[#]filenumber) */
-    case inputstrsym : if (sftype != stringtype)
-		       { 
-			check_for_event();
+    case inputstrsym : 
+	  if (sftype != stringtype)
+		{ 
+		  check_for_event();
 
-			if (make_integer(sftype) == shorttype)
-			   make_long(); 	/* no. of characters */
+		  make_sure_long(sftype);
 
 			if (sym == comma)
 			{
 			 insymbol();
 			 if (sym == hash) insymbol();
-			 if (make_integer(expr()) == shorttype)
-			    make_long();  	/* filenumber */
+			 make_sure_long(expr());
 			}
 			else { _error(16); sftype=undefined; }
 
@@ -354,7 +339,7 @@ BOOL offset_on_stack;
     /* INSTR$([I,]X$,Y$) */
     case instrsym  :	if (sftype != stringtype)
 			{
-			 if (make_integer(sftype) == shorttype) make_long();
+			  make_sure_long(sftype);
  
 			 if (sym == comma) 
 			 { 
@@ -426,10 +411,9 @@ BOOL offset_on_stack;
    			break;
 
     /* OCT$ */
-    case octstrsym  :	if (sftype != stringtype)
-			{
-			 if (make_integer(sftype) == shorttype)
-			     make_long(); /* only handle long val */
+    case octstrsym:if (sftype != stringtype)
+	  {
+			  make_sure_long(sftype);
 			 make_temp_string();
 			 gen_load_addr(tempstrname,0);
 			 gen_pop32d(0); /* long argument */
@@ -535,8 +519,7 @@ BOOL offset_on_stack;
 			  }
 			  else
 			  {
-			   if (make_integer(ntype) == shorttype) 
-			      make_long();
+				make_sure_long(ntype);
 			   gen_pop32d(1);	/* J */			
 			  }
 
@@ -664,6 +647,27 @@ BOOL offset_on_stack;
  return(sftype);
 }
 
+/* Generate a simple function with one argument. Return type
+   is assumed to be the same as the arg type if not specified */
+int gen_sfunc(const char * funcname, int nftype, int srctype,int rettype)
+{
+  if (nftype == stringtype) {
+	_error(4); 
+	return undefined;
+  }
+  if (srctype == shorttype) {
+	make_sure_short(nftype);
+	gen_pop16d(0);
+  } else {
+	make_sure_long(nftype);
+	gen_pop32d(0);
+  }
+  gen_jsr(funcname);
+  if (rettype == shorttype) gen_push16d(0);
+  else gen_push32d(0);
+  return shorttype;
+}
+
 /* numeric functions */
 int gen_single_func(char * funcname,int nftype)
 {
@@ -777,26 +781,23 @@ char varptr_obj_name[MAXIDSIZE];
          	     break;
 
 	 /* ALLOC */ 
-	 case allocsym :if (nftype != stringtype)
-			{
-			 /* minimum number of bytes to reserve */
-			 if (make_integer(nftype) == shorttype) make_long();
+	 case allocsym :
+	   if (nftype != stringtype)
+		 {
+		   /* minimum number of bytes to reserve */
+		   make_sure_long(nftype);
 		
-			 if (sym != comma)
-			 {
-			    gen_push32_val(9);	/* 9 = default type */
-			    nftype=longtype;
-			 }
-			 else 
-			 {
+		   if (sym != comma) {
+			 gen_push32_val(9);	/* 9 = default type */
+			 nftype=longtype;
+		   } else {
 			  /* memory type specification */
 			  insymbol();
 			  nftype=expr();
 			  if (nftype != stringtype)
 			  {
-			    	if (make_integer(nftype) == shorttype) 
-			       	   make_long(); 
-			    	nftype=longtype;
+				make_sure_long(nftype);
+				nftype=longtype;
 			  }
 			  else { _error(4); nftype=undefined; }
 			 }
@@ -810,19 +811,12 @@ char varptr_obj_name[MAXIDSIZE];
 			break;
   	 
 	 /* ATN */
-         case atnsym  : nftype = gen_single_func("SPAtan",nftype);
-		        break;
+	  case atnsym  : nftype = gen_single_func("SPAtan",nftype); break;
 
 	 /* CINT */
-	 case cintsym : nftype = make_integer(nftype);
-			if (nftype == longtype)
-                        { 
-                           make_short();
-			   nftype=shorttype;
- 			}
-			if (nftype == notype) 
-			   { _error(4); nftype=undefined; }
-			break;
+	 case cintsym :
+	   nftype = make_sure_short(nftype);
+	   break;
 
 	 /* CLNG */
 	 case clngsym : if (nftype == singletype)
@@ -862,20 +856,13 @@ char varptr_obj_name[MAXIDSIZE];
     	case eofsym   : if (nftype != stringtype)
 		  	{ 
 			 check_for_event();
-
-		   	 if (make_integer(nftype) == shorttype)
-		      	    make_long();	
-		   	 gen_pop32d(0); /* pop filenumber */
-		   	 gen_jsr("_eoftest");
-		   	 gen_push32d(0);
-			 nftype=longtype;
+			 nftype = gen_sfunc("_eoftest",nftype, longtype, longtype);
 		  	}
 		  	else { _error(4); nftype=undefined; }
 		  	break;
 
 	 /* EXP */
-         case expsym  : nftype = gen_single_func("SPExp",nftype);
-		        break;
+	  case expsym  : nftype = gen_single_func("SPExp",nftype); break;
 
 	 /* FIX */
 	 case fixsym  : if (nftype == singletype)
@@ -894,21 +881,17 @@ char varptr_obj_name[MAXIDSIZE];
 			   and let nftype remain the same! */
 			break;
 
-    	 /* FRE */
-      	 case fresym : if (nftype != stringtype)
-		       {
-		        make_sure_short(nftype);
-		        gen_pop16d(0); /* pop argument */
-		        gen_jsr("_fre");
-		        gen_push32d(0);
-		        nftype=longtype;
-		       }
-		       else { _error(4); nftype=undefined; }
-		       break;
+			/* FRE */
+	  case fresym : if (nftype != stringtype)
+		{
+		  nftype = gen_sfunc("_fre",nftype, shorttype,longtype);
+		}
+	  else { _error(4); nftype=undefined; }
+		break;
 
 	 /* GADGET */
-	 case gadgetsym : nftype = make_integer(nftype);
-			  if (nftype == shorttype) make_long();
+	 case gadgetsym :
+			  make_sure_long(nftype);
 			  gen_jsr("_GadFunc");
 			  gen_pop_ignore(4);
 			  gen_push32d(0);
@@ -919,13 +902,7 @@ char varptr_obj_name[MAXIDSIZE];
 	 case handlesym : if (nftype != stringtype)
 			  {
 			   check_for_event();
-
-			   if (make_integer(nftype) == shorttype)
-			      make_long();
-			   gen_pop32d(0);
-			   gen_jsr("_handle");
-			   gen_push32d(0);
-			   nftype=longtype;
+			   nftype = gen_sfunc("_handle", nftype, longtype,longtype);
 			  }
 			  else { _error(4); nftype=undefined; }
 			  break;
@@ -936,16 +913,13 @@ char varptr_obj_name[MAXIDSIZE];
 			   check_for_event();
 
 			   /* channel */
-			   if (make_integer(nftype) == shorttype)
-			      make_long();
+			   make_sure_long(nftype);
 
 			   /* function number */
 			   if (sym == comma) 
 			   {
 			    insymbol();
-			    if (make_integer(expr()) == shorttype)
-			       make_long();
-
+			    make_sure_long(expr());
 			    gen_jsr("_iff_func");
 			    gen_pop_ignore(8);
 			    gen_push32d(0);	/* push return value */
@@ -980,8 +954,7 @@ char varptr_obj_name[MAXIDSIZE];
 			{
 			 check_for_event();
 
-			 if (make_integer(nftype) == shorttype)
-			    make_long();
+			 make_sure_long(nftype);
 			 gen_jsr("_FilePosition");
 			 gen_pop_ignore(4);
 			 gen_push32d(0);
@@ -994,13 +967,7 @@ char varptr_obj_name[MAXIDSIZE];
 	 case lofsym  : if (nftype != stringtype)
 			{
 			 check_for_event();
-
-			 if (make_integer(nftype) == shorttype)
-			    make_long();
-			 gen_pop32d(0);
-			 gen_jsr("_lof");
-			 gen_push32d(0);
-			 nftype=longtype;
+			 nftype = gen_sfunc("_lof",nftype,longtype,longtype);
 			}
 			else { _error(4); nftype=undefined; } 
  			break;
@@ -1023,8 +990,7 @@ char varptr_obj_name[MAXIDSIZE];
 	 /* MENU */		
 	 case menusym : if (nftype != stringtype)
 			{
-				nftype = make_integer(nftype);
-				if (nftype == shorttype) make_long();
+			  make_sure_long(nftype);
 				gen_jsr("_MenuFunc");
 				gen_pop_ignore(4);
 				gen_push32d(0);
@@ -1165,29 +1131,8 @@ char varptr_obj_name[MAXIDSIZE];
 			else { _error(4); nftype=undefined; }
 			break;
 			
-	 /* POTX */
-	 case potxsym : if (nftype != stringtype)
-			{
-			 make_sure_short(nftype);
-			 gen_pop16d(0); /* pop argument */
-			 gen_jsr("_potx");
-			 gen_push16d(0);
-			 nftype=shorttype;
-			}
-			else { _error(4); nftype=undefined; }
-			break;
-
-	 /* POTY */
-	 case potysym : if (nftype != stringtype)
-			{
-			 make_sure_short(nftype);
-			 gen_pop16d(0); /* pop argument */
-			 gen_jsr("_poty");
-			 gen_push16d(0);
-			 nftype=shorttype;
-			}
-			else { _error(4); nftype=undefined; }
-			break;
+	  case potxsym : nftype = gen_sfunc("_potx",nftype,shorttype, shorttype); break;
+	  case potysym : nftype = gen_sfunc("_poty",nftype,shorttype, shorttype); break;
 
 	 /* SERIAL */
 	 case serialsym : if (nftype != stringtype)
@@ -1195,15 +1140,13 @@ char varptr_obj_name[MAXIDSIZE];
 			   check_for_event();
 
 			   /* channel */
-			   if (make_integer(nftype) == shorttype)
-			      make_long();
+			   make_sure_long(nftype);
 
 			   /* function number */
 			   if (sym == comma) 
 			   {
 			    insymbol();
-			    if (make_integer(expr()) == shorttype)
-			       make_long();
+			    make_sure_long(expr());
 
 			    gen_jsr("_serial_func");
 			    gen_pop_ignore(8);
@@ -1217,41 +1160,25 @@ char varptr_obj_name[MAXIDSIZE];
 			  break;
 
 	 /* SGN */
-	 case sgnsym  : if (nftype == shorttype)
-			{
-			 gen_pop16d(0);
-			 gen_jsr("_sgnw");
-			 gen_push32d(0);
-			 nftype=longtype;
-			}
-			else
-			if (nftype == longtype)
-			{
-			 gen_pop32d(0);
-			 gen_jsr("_sgnl");
-			 gen_push32d(0);
-			 nftype=longtype;
-			}
-			else
-			if (nftype == singletype)
-			{
-			 gen_pop32d(1);
-			 gen_jsr("_sgnf");
-			 gen_push32d(0);
-			 enter_XREF("_MathBase");
-			 nftype=longtype;
-			}
-			else
-			    { _error(4); nftype=undefined; }
-			break; 
-			 
+	 case sgnsym  : 
+	   if (nftype == shorttype) nftype = gen_sfunc("_sgnw", nftype, shorttype, longtype);
+	   else if (nftype == longtype) gen_sfunc("_sgnl",nftype, longtype,longtype);
+	   else if (nftype == singletype) {
+		 gen_pop32d(1);
+		 gen_jsr("_sgnf");
+		 gen_push32d(0);
+		 enter_XREF("_MathBase");
+		 nftype=longtype;
+	   } else { 
+		 _error(4); nftype=undefined;
+	   }
+	   break; 
  
 	 /* SHL */
 	 case shlsym  : if (nftype != stringtype)
 			{
 			 /* value to be shifted */
-			 if (make_integer(nftype) == shorttype)
-			    make_long();
+			  make_sure_long(nftype);
 			 
 			 if (sym == comma)
 			 {
@@ -1259,8 +1186,7 @@ char varptr_obj_name[MAXIDSIZE];
 			  /* shifted by how many bits? */
 			  if ((nftype=expr()) != stringtype)
 			  {
-			   if (make_integer(nftype) == shorttype)
-			      make_long();
+				make_sure_long(nftype);
 			   
 			   gen_pop32d(0); /* pop shift factor */
 			   gen_pop32d(1); /* pop value */
@@ -1279,8 +1205,7 @@ char varptr_obj_name[MAXIDSIZE];
 	 case shrsym  : if (nftype != stringtype)
 			{
 			 /* value to be shifted */
-			 if (make_integer(nftype) == shorttype)
-			    make_long();
+			  make_sure_long(nftype);
 			 
 			 if (sym == comma)
 			 {
@@ -1288,8 +1213,7 @@ char varptr_obj_name[MAXIDSIZE];
 			  /* shifted by how many bits? */
 			  if ((nftype=expr()) != stringtype)
 			  {
-			   if (make_integer(nftype) == shorttype)
-			      make_long();
+				make_sure_long(nftype);
 			   
 			   gen_pop32d(0); /* pop shift factor */
 			   gen_pop32d(1); /* pop value */
@@ -1304,36 +1228,12 @@ char varptr_obj_name[MAXIDSIZE];
 			else { _error(4); nftype=undefined; }
 			break;
 			
-	 /* SQR */
-         case sqrsym  : nftype = gen_single_func("SPSqrt",nftype);
-		        break;
-
-	 /* SIN */
-         case sinsym  : nftype = gen_single_func("SPSin",nftype);
-		        break;
-
-	 /* SIZEOF */
-	 case sizeofsym : nftype = find_object_size();
-			  break;
-
-	 /* STICK */
-	 case sticksym : make_sure_short(nftype);
-			 gen_pop16d(0);
-			 gen_jsr("_stick");
-			 gen_push16d(0);
-			 nftype=shorttype;
-			 break;
-	 /* STRIG */
-	 case strigsym : make_sure_short(nftype);
-			 gen_pop16d(0);
-			 gen_jsr("_strig");
-			 gen_push16d(0);
-			 nftype=shorttype;
-			 break;
-
-	 /* TAN */
-         case tansym  : nftype = gen_single_func("SPTan",nftype);
-		        break;
+	  case sqrsym:    nftype = gen_single_func("SPSqrt",nftype); break;
+	  case sinsym:    nftype = gen_single_func("SPSin",nftype); break;
+	  case sizeofsym: nftype = find_object_size(); break;
+	  case sticksym:  nftype = gen_sfunc("_stick",nftype, shorttype,shorttype); break;
+	  case strigsym:  nftype = gen_sfunc("_strig",nftype, shorttype,shorttype); break;
+	  case tansym:    nftype = gen_single_func("SPTan",nftype); break;
 
 	 /* VARPTR */
 	 case varptrsym : if (sym == ident) 
@@ -1350,22 +1250,16 @@ char varptr_obj_name[MAXIDSIZE];
 			  break;
 
 	 /* WINDOW */
-	 case windowsym : make_sure_short(nftype);
-		  	  gen_pop16d(0);
-			  gen_jsr("_windowfunc");
-			  gen_push32d(0);
-			  nftype=longtype;
-			  break;
+	  case windowsym : nftype = gen_sfunc("_windowfunc",nftype, shorttype,longtype); break;
 
 	 /* SAY */
 	 case saysym	: if (nftype != stringtype)
 			  {
-			   nftype=make_integer(nftype);
-			   if (nftype == shorttype) make_long();
-			   gen_jsr("_sayfunc");
-			   gen_pop_ignore(4);
-			   gen_push32d(0);
-			   nftype=longtype;
+				make_sure_long(nftype);
+				gen_jsr("_sayfunc");
+				gen_pop_ignore(4);
+				gen_push32d(0);
+				nftype=longtype;
 			  }
 			  else { _error(4); nftype=undefined; }
 			  break;
@@ -1373,8 +1267,7 @@ char varptr_obj_name[MAXIDSIZE];
 	 /* SCREEN */
 	 case screensym : if (nftype != stringtype)
 			  {
-			   nftype = make_integer(nftype);
-			   if (nftype == shorttype) make_long();
+				make_sure_long(nftype);
 			   gen_jsr("_screenfunc");
 			   gen_pop_ignore(4);
 			   gen_push32d(0);
@@ -1382,9 +1275,9 @@ char varptr_obj_name[MAXIDSIZE];
 			  }
 			  else { _error(4); nftype=undefined; }
 			  break;
-       }
+	  }
    if (sym != rparen) { _error(9); nftype=undefined; }
-  }  
+  }
   insymbol();
  }
  return(nftype);

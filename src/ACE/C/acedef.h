@@ -671,7 +671,7 @@ void	gen_branch();
 void	on_branch();
 void	block_statement();
 
-void	make_sure_short();
+int     make_sure_short();
 void	make_sure_long();
 
 void	pset();

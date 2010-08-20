@@ -1054,14 +1054,15 @@ int oldtyp;
  return(oldtyp);  /* already an integer */
 }
 
-void make_sure_short(type)
+int make_sure_short(type)
 int type;
 {
  if (type == longtype) make_short();
  else
  if (type == singletype) { make_integer(type); make_short(); }
  else
- if (type == stringtype) _error(4);
+   if (type == stringtype) { _error(4); return undefined; }
+ return shorttype;
 }
 
 void make_sure_long(type)

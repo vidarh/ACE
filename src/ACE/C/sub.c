@@ -197,8 +197,7 @@ int   formaltype[MAXPARAMS];
      case shorttype: make_sure_short(formal_type);
 		     break;
 
-     case longtype: if ((formal_type = make_integer(formal_type)) == shorttype) 
-		       make_long();
+     case longtype: if ((formal_type = make_integer(formal_type)) == shorttype) make_long();
 		    else 
                        if (formal_type == notype) _error(4); /* string */ 
 		    break;
