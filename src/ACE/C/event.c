@@ -411,8 +411,6 @@ char lab[80],lablabel[80];
    gen_beq(lab);
    gen_jmp("_EXIT_PROG");
    gen_label(lablabel);
-
-   enter_XREF("_ctrl_c_test");
 }
 
 void break_event_test()
@@ -438,8 +436,6 @@ char lab[80],lablabel[80];
       gen_branch("jmp",break_event_label);
 
    gen_label(lablabel);
-
-   enter_XREF("_ctrl_c_test");
 }
 
 void menu_event_test()
@@ -463,7 +459,6 @@ char lab[80],lablabel[80];
  else
    gen_branch("jmp",menu_event_label);
  gen_label(lablabel);
- enter_XREF("_menu_test");
 }
 
 void mouse_event_test()
@@ -488,7 +483,6 @@ char lab[80],lablabel[80];
  else
     gen_branch("jmp",mouse_event_label);
  gen_label(lablabel);
- enter_XREF("_mouse");
 }
 
 void timer_event_test()
@@ -513,7 +507,6 @@ char lab[80],lablabel[80];
  else
    gen_branch("jmp",timer_event_label);
  gen_label(lablabel);
- enter_XREF("_ontimer");
  enter_XREF("_MathBase");  /* timer routines need mathffp.library */
 }
 
@@ -539,7 +532,6 @@ char lab[80],lablabel[80];
    else
 	 gen_branch("jmp",error_event_label);
  gen_label(lablabel);
- enter_XREF("_testerror");
 }
 
 void wdw_close_test()
@@ -562,8 +554,6 @@ char lab[80],lablabel[80];
    gen_beq(lab);
    gen_jmp("_EXIT_PROG");
    gen_label(lablabel);
-
-   enter_XREF("_wdw_close_test");
 }
 
 void wdw_event_test()
@@ -595,8 +585,6 @@ char lab[80],lablabel[80];
 	 else
 	   gen_branch("jmp",wdw_event_label);
    gen_label(lablabel);
-
-   enter_XREF("_wdw_close_test");
 }
 
 void gad_event_test()
@@ -624,6 +612,4 @@ char lab[80],lablabel[80];
 	 else
 	   gen_branch("jmp",gad_event_label);
    gen_label(lablabel);
-
-   enter_XREF("_gadget_event_test");
 }

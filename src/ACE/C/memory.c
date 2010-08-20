@@ -241,8 +241,6 @@ void swap()
       gen_load_addr(tempstrname,1); /* source */ 
       gen("movea.l","d2","a0");    /* dest */
       gen_jsr("_strcpy");   /* second = temp */
-
-      enter_XREF("_strcpy");
      }
      else
      if (typ1 == shorttype)

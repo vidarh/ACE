@@ -830,7 +830,6 @@ char bss_size[20];
 			 			gen_load_addr(extvarid,0);
 			 			gen_load_addr("_nullstring",1);
 			 			gen_jsr("_strcpy");
-						enter_XREF("_strcpy");
 				 	}
 			
 					break;       

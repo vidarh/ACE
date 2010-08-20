@@ -73,7 +73,6 @@ int code;
  /* call function */
  gen_jsr("_Ucodeprint");
  gen_pop_ignore(4);
- enter_XREF("_Ucodeprint");
 }
 
 void print_statement()
@@ -124,22 +123,18 @@ do
    case shorttype :  make_long();
 		     gen_jsr("_Ushortprint");
 		     gen_pop_ignore(4);	
-		     enter_XREF("_Ushortprint");
 		     break;
 
    case longtype :   gen_jsr("_Ulongprint");
 		     gen_pop_ignore(4);	
-		     enter_XREF("_Ulongprint");
 		     break;
 
    case singletype : gen_jsr("_Usingleprint");
 		     gen_pop_ignore(4);	
-		     enter_XREF("_Usingleprint");
 		     break;
 
    case stringtype : gen_jsr("_Ustringprint");
 		     gen_pop_ignore(4);	
-		     enter_XREF("_Ustringprint");
 		     break;
   }
 
@@ -169,15 +164,12 @@ int code;
  {
   /* LF */
   case LF_CODE : 	gen_jsr("_printsLF");
- 		 	enter_XREF("_printsLF");
 		 	break;
   /* TAB */
   case TAB_CODE :  	gen_jsr("_printsTAB");
- 			enter_XREF("_printsTAB");
 			break;
   /* SPACE */
   case SPACE_CODE :	gen_jsr("_printsSPC");
- 			enter_XREF("_printsSPC");
 			break;
  }
 }
@@ -225,23 +217,19 @@ do
   {
    case shorttype :  gen_pop16d(0);
 		     gen_jsr("_shortprints");
-		     enter_XREF("_shortprints");
 		     break;
 
    case longtype :   gen_pop32d(0);  
 		     gen_jsr("_longprints");
-		     enter_XREF("_longprints");
 		     break;
 
    case singletype : gen_pop32d(0);
 		     gen_jsr("_singleprints");
-		     enter_XREF("_singleprints");
 		     enter_XREF("_MathBase");
 		     break;
 
    case stringtype : gen_pop_addr(0);
 		     gen_jsr("_stringprints");
-		     enter_XREF("_stringprints");
 		     break;
   }
 

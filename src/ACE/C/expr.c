@@ -211,7 +211,6 @@ CODE *cx[5];
    gen_pop_ignore(8);	/* - Remove parameters from stack. */
    gen_push32d(0);  /* - Push the result. */
 				
-   enter_XREF("_power");
    enter_XREF("_MathTransBase"); /* opens FFP+IEEE SP transcendental libraries */
 
    localtype=singletype;  /* MUST always return a single-precision value
@@ -324,7 +323,6 @@ CODE *cx[5];
 		     case longtype   :	/* args on stack */
 					gen_jsr("lmul"); 
 					gen_pop_ignore(8);
-					enter_XREF("lmul");
 					localtype=longtype;
 					break;
 
@@ -398,7 +396,6 @@ CODE *cx[5];
    gen_jsr("ace_ldiv");
    gen_pop_ignore(8);
    gen_push32d(0);
-   enter_XREF("ace_ldiv");
   }
   else _error(4); /* notype -> type mismatch */
   firsttype=localtype;  /* moving record of last sub-expression type */
@@ -467,7 +464,6 @@ CODE *cx[5];
     gen_jsr("ace_lrem");
     gen_pop_ignore(8);
     gen_push32d(0);
-    enter_XREF("ace_lrem");
    }
    else
    {
@@ -476,7 +472,6 @@ CODE *cx[5];
     gen_pop32d(0);   /* dividend */
     gen_jsr("_modffp");
     gen_push32d(0);
-    enter_XREF("_modffp");
     enter_XREF("_MathBase");
     localtype=singletype;
    }
@@ -550,8 +545,6 @@ CODE *cx[5];
         		gen_move32aa(2,1);
         		gen_jsr("_strcat");
         		gen("pea",tempstrname,"  ");
-        		enter_XREF("_strcpy");
-        		enter_XREF("_strcat");
         		break;
    }
   
@@ -696,22 +689,16 @@ CODE *cx[5];
 			switch(op)
 			{
 			 case equal     : gen_jsr("_streq");
-				 	  enter_XREF("_streq");
 					  break;
 			 case notequal  : gen_jsr("_strne");
-				 	  enter_XREF("_strne");
 					  break;
 			 case lessthan  : gen_jsr("_strlt");
-				 	  enter_XREF("_strlt");
 					  break;
 			 case gtrthan   : gen_jsr("_strgt");
-				 	  enter_XREF("_strgt");
 					  break;
 			 case ltorequal : gen_jsr("_strle");
-				 	  enter_XREF("_strle");
 					  break;
 			 case gtorequal : gen_jsr("_strge");
-				 	  enter_XREF("_strge");
 					  break;
 			}
 			gen_push32d(0); /* push boolean result */
@@ -901,14 +888,12 @@ CODE *cx[5];
     {
      pop_operands(ortype);
      if (ortype == shorttype) 
-     {
+	   {
          gen_jsr("_eqvw");
-         enter_XREF("_eqvw");
-     }
+	   }
      else 
        {
          gen_jsr("_eqvl");
-         enter_XREF("_eqvl");
        }
       push_result(ortype);
     } else _error(4);
@@ -957,12 +942,10 @@ CODE *cx[5];
      if (eqvtype == shorttype) 
      {
          gen_jsr("_impw");
-         enter_XREF("_impw");
      }
      else 
        {
          gen_jsr("_impl");
-         enter_XREF("_impl");
        }
      push_result(eqvtype);
     } else _error(4);
@@ -1007,7 +990,6 @@ int type;
   gen_pop32d(0);
   gen_jsr("_round");
   gen_push32d(0);
-  enter_XREF("_round");
   enter_XREF("_MathBase");
 
   /*

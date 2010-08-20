@@ -78,6 +78,7 @@ void gen_nop()
 void gen_jsr(const char * label)
 {
   gen("jsr",label,"  ");
+  enter_XREF(label);
 }
 
 void gen_jmp(const char * label)
@@ -230,7 +231,7 @@ void gen_libcall(const char * lvo, const char * base)
   strncat(buf,lvo,sizeof(buf)-4);
   enter_XREF(buf);
   strncat(buf,"(a6)",sizeof(buf)-strlen(buf));
-  gen_jsr(buf);
+  gen("jsr",buf,"  ");
 }
 
 void gen_gfxcall(const char * lvo)

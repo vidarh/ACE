@@ -87,7 +87,6 @@ void open_a_file()
      gen_pop_addr(0);  /* address of mode string */
 
      gen_jsr("_openfile");
-     enter_XREF("_openfile");
      enter_XREF("_DOSBase");
     }
    }
@@ -113,7 +112,6 @@ void close_a_file()
  }
  while (sym == comma);
 
- enter_XREF("_closefile");
  enter_XREF("_DOSBase");
 }
 
@@ -181,7 +179,6 @@ SYM  *storage;
 
      /* call _line_input */
      gen_jsr("_line_input");
-     enter_XREF("_line_input"); 
 
      insymbol();
      if (sym == lparen && storage->object != array) 
@@ -230,19 +227,16 @@ int wtype;
      case shorttype : 	gen_pop16d(1);
  		      	gen_load32d("_seq_filenumber",0);
 		      	gen_jsr("_writeshort");
-		      	enter_XREF("_writeshort");
 		      	break;
 
      case longtype : 	gen_pop32d(1);
 		     	gen_load32d("_seq_filenumber",0);
 		     	gen_jsr("_writelong");
-		     	enter_XREF("_writelong");
 		     	break;
 
      case singletype : 	gen_pop32d(1);
 		       	gen_load32d("_seq_filenumber",0);
 		       	gen_jsr("_writesingle");
-		       	enter_XREF("_writesingle");
 			enter_XREF("_MathBase");
 		       	break;
 
@@ -253,8 +247,6 @@ int wtype;
 		       	gen_jsr("_writestring");
 				gen_load32d("_seq_filenumber",0);
 		       	gen_jsr("_writequote");
-		       	enter_XREF("_writequote");	
-		       	enter_XREF("_writestring");		
 		       	break;
     }
     
@@ -263,7 +255,6 @@ int wtype;
     { 
 	  gen_load32d("_seq_filenumber",0);
      gen_jsr("_writecomma"); 
-     enter_XREF("_writecomma"); 
     }
 
    }
@@ -272,7 +263,6 @@ int wtype;
    /* write LF to mark EOLN */
    gen_load32d("_seq_filenumber",0);
    gen_jsr("_write_eoln");
-   enter_XREF("_write_eoln");
    
    enter_XREF("_DOSBase");
    enter_BSS("_seq_filenumber:","ds.l 1");
@@ -290,19 +280,19 @@ int code;
  gen_load32d("_seq_filenumber",0);
 
  switch(code)
- {
-  /* LF */
-  case LF_CODE : 	gen_jsr("_write_eoln");
- 		 	enter_XREF("_write_eoln");
-		 	break;
-  /* TAB */
-  case TAB_CODE :  	gen_jsr("_writeTAB");
- 			enter_XREF("_writeTAB");
-			break;
-  /* SPACE */
-  case SPACE_CODE :	gen_jsr("_writeSPC");
- 			enter_XREF("_writeSPC");
-			break;
+   {
+	 /* LF */
+   case LF_CODE:
+	 gen_jsr("_write_eoln");
+	 break;
+	 /* TAB */
+   case TAB_CODE :  	
+	 gen_jsr("_writeTAB");
+	 break;
+	 /* SPACE */
+   case SPACE_CODE :
+	 gen_jsr("_writeSPC");
+	 break;
  }
 }
 
@@ -355,33 +345,30 @@ int exprtype,arguments=0;
       if (exprtype == undefined) { _error(0); return; } /* illegal syms? */
 
       /* pass filenumber to write routine */
-      if (exprtype == stringtype) 
-		gen_load32d("_seq_filenumber",0);
-      else
-		gen_load32d("_seq_filenumber",1);
+	  gen_load32d("_seq_filenumber", exprtype == stringtype ? 0 : 1);
 
       switch(exprtype)
       {
-       	case shorttype : 	gen_pop16d(0);
-		     		gen_jsr("_fprintshort");
-		      		enter_XREF("_fprintshort");
-		     		break;
-
-    	case longtype :		gen_pop32d(0);  
-		     		gen_jsr("_fprintlong");
-		     		enter_XREF("_fprintlong");
-		     		break;
-
-  	case singletype : 	gen_pop32d(0);
-		     		gen_jsr("_fprintsingle");
-		     		enter_XREF("_fprintsingle");
-		     		enter_XREF("_MathBase");
-		     		break;
-
-   	case stringtype : 	gen_pop_addr(0);
-		     		gen_jsr("_writestring");
-		     		enter_XREF("_writestring");
-		     		break;
+	  case shorttype :
+		gen_pop16d(0);
+		gen_jsr("_fprintshort");
+		break;
+		
+	  case longtype :
+		gen_pop32d(0);  
+		gen_jsr("_fprintlong");
+		break;
+		
+	  case singletype :
+		gen_pop32d(0);
+		gen_jsr("_fprintsingle");
+		enter_XREF("_MathBase");
+		break;
+		
+	  case stringtype :
+		gen_pop_addr(0);
+		gen_jsr("_writestring");
+		break;
       }
 
       if (exprtype != stringtype) 
@@ -471,7 +458,6 @@ SYM  *storage;
 			  enter_BSS("_short_input_temp:","ds.w 1");
 			 }
 
- 		      enter_XREF("_finputshort");
 		      break;
 
     case longtype   : gen_jsr("_finputlong");
@@ -496,7 +482,6 @@ SYM  *storage;
 			  enter_BSS("_long_input_temp:","ds.l 1");
 			 }
 
-		      enter_XREF("_finputlong");
 		      break;
 
     case singletype : gen_jsr("_finputsingle");
@@ -521,7 +506,6 @@ SYM  *storage;
 			  enter_BSS("_long_input_temp:","ds.l 1");
 			 }
 
-		      enter_XREF("_finputsingle");
 		      enter_XREF("_MathBase"); /* need math libs */
 		      enter_XREF("_MathTransBase");
 		      break;
@@ -539,7 +523,6 @@ SYM  *storage;
 			  assign_to_string_array(addrbuf);
 			 }
 
-		      enter_XREF("_finputstring");
 		      break;
     }
    } else _error(19);
@@ -564,7 +547,6 @@ void kill()
  {
   gen_pop32d(1);
   gen_jsr("_kill");
-  enter_XREF("_kill");
  }
 }
 
@@ -588,7 +570,6 @@ void ace_rename()
     gen_pop32d(2);  /* <filespec2> */
     gen_pop32d(1);  /* <filespec1> */
     gen_jsr("_rename");
-    enter_XREF("_rename");
    }
   }
  }
@@ -608,7 +589,6 @@ void chdir()
   /* call code to change directory */
   gen_pop32d(1);  /* dirname */
   gen_jsr("_chdir");
-  enter_XREF("_chdir");
  }
 }
 
@@ -641,7 +621,6 @@ void files()
  /* call _files routine */
  gen_jsr("_files");
  gen_pop_ignore(4);
- enter_XREF("_files");
 }
 
 void push_struct_var_info(SYM * structVar)
@@ -733,7 +712,6 @@ SYM *structVar;
 			*/
 			gen_jsr("_GetRecord");
  			gen_pop_ignore(16);
-			enter_XREF("_GetRecord");
 		}
 	}	
 }
@@ -797,7 +775,6 @@ SYM *structVar;
 			*/
 			gen_jsr("_PutRecord");
  			gen_pop_ignore(16);
-			enter_XREF("_PutRecord");
 		}
 	}	
 }

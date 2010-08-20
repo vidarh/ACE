@@ -39,7 +39,6 @@ void clear_menu()
 	insymbol();
 	
 	gen_jsr("_ClearMenu");
-	enter_XREF("_ClearMenu");
  	enter_XREF("_IntuitionBase");
 }
 
@@ -50,7 +49,6 @@ void wait_menu()
 	insymbol();
 
 	gen_jsr("_WaitMenu");
-	enter_XREF("_WaitMenu");
 }
 
 void menu()
@@ -95,8 +93,6 @@ int  mtype;
 				{ 
 					gen_jsr("_ChangeMenuState");
 					gen_pop_ignore(12);
-
-					enter_XREF("_ChangeMenuState");	
 					return;	
 				}
 			}
@@ -124,8 +120,6 @@ int  mtype;
 	 /* call function */
 	 gen_jsr("_ModifyMenu");
 	 gen_pop_ignore(20);
-
-	 enter_XREF("_ModifyMenu");
  	 enter_XREF("_IntuitionBase");
  	 enter_XREF("_GfxBase");
 	}

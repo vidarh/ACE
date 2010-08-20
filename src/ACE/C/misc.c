@@ -271,9 +271,6 @@ char mulbuf[40],srcbuf[40];
  else
     /* long or single */
     gen("lsl.l","#2","d7");  /* d7*4 */
-
- /* unsigned multiplication XREF */
- enter_XREF("lmulu");
 }
 
 void push_num_constant(typ,item)
@@ -580,7 +577,6 @@ void MsgBox()
 	    			/* call the function */
 	    			gen_jsr("_sysrequest");
 	    			gen_pop_ignore(12);
-	    			enter_XREF("_sysrequest");
 	    			enter_XREF("_IntuitionBase");
 	   		}
 	  	}

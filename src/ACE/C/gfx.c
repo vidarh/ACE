@@ -200,7 +200,6 @@ BOOL bordercolor=FALSE;
    
    /* call paint routine */
    gen_jsr("_paint");
-   enter_XREF("_paint");
    enter_XREF("_GfxBase");
   }
  }
@@ -338,7 +337,6 @@ BOOL aspect=FALSE;
      if (!aspect) gen("move.l","#$e147af3f","d5");  /* default is .44 */
 
      gen_jsr("_ellipse");
-     enter_XREF("_ellipse");
      enter_XREF("_GfxBase");
      enter_XREF("_MathTransBase");  /* need these 3 libs for _ellipse */
 
@@ -587,7 +585,6 @@ void color()
  gen_load16d("_fg",0);
  gen_load16d("_bg",0);
  gen_jsr("_changetextcolor");
- enter_XREF("_changetextcolor");
  enter_XREF("_DOSBase");
 }
 
@@ -638,10 +635,7 @@ BOOL relative;
      }
 
      gen_jsr("_area");
-
-     enter_XREF("_area");
      enter_XREF("_GfxBase");
-
 }
 
 void areafill()
@@ -663,8 +657,6 @@ void areafill()
      gen("move.w","#0","d0");
   
  gen_jsr("_areafill");
-
- enter_XREF("_areafill");
  enter_XREF("_GfxBase");
 }
 
@@ -683,10 +675,8 @@ BOOL linepatterncalled;
   /* restore default pattern */
   gen("move.l","#1","d1");	/* RESTORE flag */
   gen_jsr("_linepattern");
-  enter_XREF("_linepattern");
   gen("move.l","#1","d1");	/* RESTORE flag */
   gen_jsr("_areapattern");
-  enter_XREF("_areapattern");
   insymbol();
  }
  else
@@ -698,7 +688,6 @@ BOOL linepatterncalled;
    gen_pop16d(0);	/* line-pattern */
    gen("move.l","#0","d1");	/* RESTORE flag */
    gen_jsr("_linepattern");
-   enter_XREF("_linepattern");
    linepatterncalled=TRUE;
   }
   else
@@ -722,7 +711,6 @@ BOOL linepatterncalled;
 	 */
          gen("move.l","#1","d1");	/* set line-pattern to $FFFF */
          gen_jsr("_linepattern");
-         enter_XREF("_linepattern");
 	}
 
        	/* get address of array */
@@ -736,7 +724,6 @@ BOOL linepatterncalled;
 
         gen("move.l","#0","d1");	/* RESTORE flag */
         gen_jsr("_areapattern");
-        enter_XREF("_areapattern");
 	enter_XREF("_MathBase");
 	enter_XREF("_MathTransBase");	/* need to find Log2(size) */
       }
@@ -836,7 +823,6 @@ int stype;
   	if (make_integer(stype) == shorttype) make_long(); 
 	gen_jsr("_change_text_style");
 	gen_pop_ignore(4);
-	enter_XREF("_change_text_style");
 	enter_XREF("_GfxBase");
   }
 }
@@ -867,7 +853,6 @@ int ftype;
 
 			gen_jsr("_change_text_font");
 			gen_pop_ignore(8);
-			enter_XREF("_change_text_font");
 			enter_XREF("_GfxBase");
   		}
 	}		

@@ -135,7 +135,6 @@ BOOL volume=FALSE;
  gen_pop16d(0);  /* pop period */
 
  gen_jsr("_sound");
- enter_XREF("_sound");
  enter_XREF("_DOSBase");
  enter_XREF("_MathBase");
 }   
@@ -352,8 +351,6 @@ SHORT popcount;
   gen_Flt(expr());
   gen_pop32d(0);
   gen_jsr("_back");
-  enter_XREF("_back");
-  enter_XREF("_MathBase");
   enter_XREF("_MathTransBase");
   enter_XREF("_GfxBase"); 
  }
@@ -362,7 +359,6 @@ SHORT popcount;
  if (sym == beepsym) 
  { 
   gen_jsr("_beep");
-  enter_XREF("_beep");
   enter_XREF("_MathBase");  /* _sound needs mathffp.library */
   insymbol();
  }  
@@ -501,7 +497,7 @@ SHORT popcount;
  { 
 	insymbol(); 
 	if (sym == allocsym) 
-	   { gen_jsr("_clear_alloc"); enter_XREF("_clear_alloc"); }
+	   { gen_jsr("_clear_alloc"); }
 	insymbol();
  }
  else
@@ -512,7 +508,6 @@ SHORT popcount;
  if (sym == clssym) 
  { 
   gen_jsr("_cls"); 
-  enter_XREF("_cls");
   enter_XREF("_DOSBase"); /* need dos library */
   insymbol(); 
  }
@@ -596,7 +591,6 @@ SHORT popcount;
   if (make_integer(expr()) != longtype) make_long();
   gen_pop32d(0);
   gen_jsr("_fix");
-  enter_XREF("_fix");
  }
  else
  /* font */
@@ -612,8 +606,6 @@ SHORT popcount;
   gen_Flt(expr());
   gen_pop32d(0);
   gen_jsr("_forward");
-  enter_XREF("_forward");
-  enter_XREF("_MathBase");
   enter_XREF("_MathTransBase");
   enter_XREF("_GfxBase"); 
  }  
@@ -672,7 +664,6 @@ SHORT popcount;
  if (sym == homesym)
  {
   gen_jsr("_home");
-  enter_XREF("_home");
   enter_XREF("_GfxBase");
   insymbol();
  }
@@ -721,7 +712,6 @@ SHORT popcount;
   gen_pop16d(0);  /* pop ROW */  
 
   gen_jsr("_locate");
-  enter_XREF("_locate");
   enter_XREF("_DOSBase");
  }
  else
@@ -797,9 +787,7 @@ SHORT popcount;
 
        /* open the screen */
        gen_jsr("_palette");
-       enter_XREF("_palette");
        enter_XREF("_GfxBase");
-       enter_XREF("_MathBase"); /* must convert 0-1 values to bytes: 0-15 */
      }
     }
    }
@@ -812,7 +800,6 @@ SHORT popcount;
  if (sym == pendownsym)
  {
   gen_jsr("_pendown");
-  enter_XREF("_pendown");
   insymbol();
  }
  else
@@ -820,7 +807,6 @@ SHORT popcount;
  if (sym == penupsym)
  {
   gen_jsr("_penup");
-  enter_XREF("_penup");
   insymbol();
  }
  else
@@ -883,7 +869,6 @@ SHORT popcount;
   if (statetype == shorttype) make_long();
   gen_pop32d(0);
   gen_jsr("_randomise");
-  enter_XREF("_randomise");
   enter_XREF("_MathBase");
  }
  else
@@ -931,7 +916,6 @@ SHORT popcount;
 
   gen_jsr("_say");
   gen_pop_ignore(8);  /* pop two parameters */
-  enter_XREF("_say");
   enter_XREF("_cleanup_async_speech");
   narratorused=TRUE;
  }
@@ -951,7 +935,6 @@ SHORT popcount;
   make_sure_short(expr());
   gen_pop16d(0);
   gen_jsr("_setheading");
-  enter_XREF("_setheading");
  }
  else
  /* setxy */
@@ -968,7 +951,6 @@ SHORT popcount;
    gen_pop16d(1); /* y */
    gen_pop16d(0); /* x */
    gen_jsr("_setxy");
-   enter_XREF("_setxy");
    enter_XREF("_GfxBase");
   }
  }
@@ -990,7 +972,7 @@ SHORT popcount;
     if (sym != forsym)
     { 
 	  /* SLEEP */
-	  gen_jsr("_sleep"); enter_XREF("_sleep");
+	  gen_jsr("_sleep"); 
     }
     else
     { 
@@ -1002,7 +984,6 @@ SHORT popcount;
 	  {
 		gen_Flt(stype); 
 	  	gen_jsr("_sleep_for_secs"); gen_pop_ignore(4);
-	  	enter_XREF("_sleep_for_secs"); enter_XREF("_MathBase");
 	  }
     }
  }
@@ -1033,14 +1014,12 @@ SHORT popcount;
      if (stype == shorttype) make_long()  ; /* get short integer exit value */
      gen_pop32_var("_returncode");
      gen_jmp("_EXIT_PROG");
-     enter_XREF("_returncode");
   }
   else
   {
      /* SYSTEM command-string */
      gen_jsr("_system_call");
      gen_pop_ignore(4);
-     enter_XREF("_system_call");
   }
  }
  else
@@ -1051,7 +1030,6 @@ SHORT popcount;
   make_sure_short(expr());
   gen_pop16d(0);
   gen_jsr("_turn");
-  enter_XREF("_turn");
  }	
  else
  /* turnleft */
@@ -1061,7 +1039,6 @@ SHORT popcount;
   make_sure_short(expr());
   gen_pop16d(0);
   gen_jsr("_turnleft");
-  enter_XREF("_turnleft");
  }	
  else
  /* turnright */
@@ -1071,7 +1048,6 @@ SHORT popcount;
   make_sure_short(expr());
   gen_pop16d(0);
   gen_jsr("_turnright");
-  enter_XREF("_turnright");
  }	
  else
  /* until */
@@ -1119,7 +1095,6 @@ SHORT popcount;
   }
   gen_pop16d(0);  /* pop voice */
   gen_jsr("_wave"); 
-  enter_XREF("_wave");
  }
  else
  /* while.. */

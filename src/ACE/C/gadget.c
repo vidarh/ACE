@@ -90,7 +90,6 @@ void close_gadget()
 
 	gen_jsr("_CloseGadget");
 	gen_pop_ignore(4);
-	enter_XREF("_CloseGadget");
 }
 
 void gadget_output()
@@ -110,7 +109,6 @@ void gadget_output()
 
 	gen_jsr("_SetCurrentGadget");
 	gen_pop_ignore(4);
-	enter_XREF("_SetCurrentGadget");
 }
 
 void wait_gadget()
@@ -122,7 +120,6 @@ void wait_gadget()
 	
 	gen_jsr("_WaitGadget");
 	gen_pop_ignore(4);
-	enter_XREF("_WaitGadget");
 }
 
 void modify_gadget()
@@ -154,8 +151,6 @@ void modify_gadget()
 		/* call function */
 		gen_jsr("_modify_gad");
 		gen_pop_ignore(12);
-		
-		enter_XREF("_modify_gad");
 		enter_XREF("_GfxBase");
 	}
 }
@@ -215,8 +210,6 @@ int  gtype;
 			{
 				gen_jsr("_ChangeGadgetStatus");
 				gen_pop_ignore(8);
-
-				enter_XREF("_ChangeGadgetStatus");
 				enter_XREF("_GfxBase");	
 				return;	
 			}
@@ -338,8 +331,6 @@ int  gtype;
 	 /* call function */
 	 gen_jsr("_CreateGadget");
 	 gen_pop_ignore(48);
-
-	 enter_XREF("_CreateGadget");
 	 enter_XREF("_GfxBase");
 	}
 }
@@ -361,8 +352,6 @@ void	bevel_box()
 	 	/* call function */
 		gen_jsr("_BevelBox");
 		gen_pop_ignore(20);
-
-		enter_XREF("_BevelBox");
 		enter_XREF("_GfxBase");
 	}
 }
