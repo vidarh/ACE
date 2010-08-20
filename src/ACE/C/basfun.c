@@ -213,7 +213,6 @@ BOOL offset_on_stack;
 				gen_jsr("_filerequest");
 				gen_pop_ignore(8);
 				gen_push32d(0);
-				enter_XREF("_GfxBase");
 				sftype=stringtype;
 			 }
 			 else 
@@ -321,8 +320,6 @@ BOOL offset_on_stack;
 				sftype = stringtype;
 			   }
 
-			   /* both functions need graphics and intuition libraries! */
-			   enter_XREF("_GfxBase");	
 			  }
 			  else { _error(4); sftype=undefined; }
 			  break;
@@ -349,7 +346,6 @@ BOOL offset_on_stack;
 		       	gen_jsr("_inputstrfromfile");
 		       	gen_push32d(0);  /* push string result */
 
-		       	enter_XREF("_DOSBase");
 		       	sftype=stringtype;
 		       }
 		       else { _error(4); sftype=undefined; }
@@ -599,7 +595,6 @@ BOOL offset_on_stack;
 			 gen_pop16d(0);  /* x coordinate */
 			 gen_jsr("_ptab");
 			 gen_push_addr(0);  /* NULL ptab string */
-			 enter_XREF("_GfxBase");
 			 sftype=stringtype;
 			}
 			else sftype=undefined; 
@@ -612,8 +607,6 @@ BOOL offset_on_stack;
 			 gen_pop16d(0);  /* # of columns */
 			 gen_jsr("_horiz_tab");
 			 gen_push_addr(0);  /* addr of tab string */
-			 enter_XREF("_DOSBase");
-			 enter_XREF("_GfxBase");
 			 sftype=stringtype;
 			}
 			else sftype=undefined; 
@@ -812,7 +805,6 @@ char varptr_obj_name[MAXIDSIZE];
 			 gen_jsr("_ACEalloc");
 			 gen_pop_ignore(8);
 			 gen_push32d(0);  /* push result */
-			 enter_XREF("_IntuitionBase");
 			}
 			else { _error(4); nftype=undefined; }
 			break;
@@ -876,8 +868,7 @@ char varptr_obj_name[MAXIDSIZE];
 		   	 gen_pop32d(0); /* pop filenumber */
 		   	 gen_jsr("_eoftest");
 		   	 gen_push32d(0);
-		   	 enter_XREF("_DOSBase");
-		     	 nftype=longtype;
+			 nftype=longtype;
 		  	}
 		  	else { _error(4); nftype=undefined; }
 		  	break;
@@ -1049,7 +1040,6 @@ char varptr_obj_name[MAXIDSIZE];
 			  gen_pop16d(0);
 			  gen_jsr("_mouse");
 			  gen_push16d(0);
-			  enter_XREF("_IntuitionBase");
 			  nftype=shorttype;
 			 }
 			 else nftype=undefined;
@@ -1078,7 +1068,6 @@ char varptr_obj_name[MAXIDSIZE];
 			     gen_jsr("_sysrequest");
 			     gen_pop_ignore(12);
 			     gen_push16d(0);
-			     enter_XREF("_IntuitionBase");
 			     nftype=shorttype;
 			    }
 			    else { _error(4); nftype=undefined; }
@@ -1183,7 +1172,6 @@ char varptr_obj_name[MAXIDSIZE];
 			 gen_pop16d(0); /* pop argument */
 			 gen_jsr("_potx");
 			 gen_push16d(0);
-			 enter_XREF("_DOSBase");
 			 nftype=shorttype;
 			}
 			else { _error(4); nftype=undefined; }
@@ -1196,7 +1184,6 @@ char varptr_obj_name[MAXIDSIZE];
 			 gen_pop16d(0); /* pop argument */
 			 gen_jsr("_poty");
 			 gen_push16d(0);
-			 enter_XREF("_DOSBase");
 			 nftype=shorttype;
 			}
 			else { _error(4); nftype=undefined; }
@@ -1367,7 +1354,6 @@ char varptr_obj_name[MAXIDSIZE];
 		  	  gen_pop16d(0);
 			  gen_jsr("_windowfunc");
 			  gen_push32d(0);
-			  enter_XREF("_IntuitionBase");
 			  nftype=longtype;
 			  break;
 
@@ -1392,7 +1378,6 @@ char varptr_obj_name[MAXIDSIZE];
 			   gen_jsr("_screenfunc");
 			   gen_pop_ignore(4);
 			   gen_push32d(0);
-			   enter_XREF("_IntuitionBase");
 			   nftype=longtype;
 			  }
 			  else { _error(4); nftype=undefined; }

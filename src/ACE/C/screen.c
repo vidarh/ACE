@@ -47,7 +47,6 @@ int	rword,stype;
    make_sure_short(expr()); /* screen-id */
    gen_pop16d(0);
    gen_jsr("_closescreen");
-   enter_XREF("_IntuitionBase");
   }
   else
   /* SCREEN FORWARD|BACK screen-id */
@@ -73,7 +72,6 @@ int	rword,stype;
 		}
 
 		gen_jsr("_change_screen_depth");
-		enter_XREF("_IntuitionBase");
 	}
   }
   else
@@ -111,7 +109,6 @@ int	rword,stype;
 
        /* open the screen */
        gen_jsr("_openscreen");
-       enter_XREF("_GfxBase");
       }
      }
     }

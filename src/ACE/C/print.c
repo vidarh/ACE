@@ -85,8 +85,6 @@ void print_statement()
 */  
 int exprtype,arguments=0;
 
-enter_XREF("_GfxBase"); 
-
 do
 {
  if (sym != ident && !strfunc() && !numfunc() && !factorfunc() &&
@@ -182,8 +180,6 @@ void prints_statement()
      have the same effect as in the PRINT statement.
 */  
 int exprtype,arguments=0;
-
-enter_XREF("_GfxBase"); 
 
 do
 {

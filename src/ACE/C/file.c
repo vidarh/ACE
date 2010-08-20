@@ -87,7 +87,6 @@ void open_a_file()
      gen_pop_addr(0);  /* address of mode string */
 
      gen_jsr("_openfile");
-     enter_XREF("_DOSBase");
     }
    }
   }
@@ -111,8 +110,6 @@ void close_a_file()
   gen_jsr("_closefile");
  }
  while (sym == comma);
-
- enter_XREF("_DOSBase");
 }
 
 void line_input()
@@ -264,7 +261,6 @@ int wtype;
    gen_load32d("_seq_filenumber",0);
    gen_jsr("_write_eoln");
    
-   enter_XREF("_DOSBase");
    enter_BSS("_seq_filenumber:","ds.l 1");
   }
  }

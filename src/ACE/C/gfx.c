@@ -200,7 +200,6 @@ BOOL bordercolor=FALSE;
    
    /* call paint routine */
    gen_jsr("_paint");
-   enter_XREF("_GfxBase");
   }
  }
 }
@@ -337,7 +336,6 @@ BOOL aspect=FALSE;
      if (!aspect) gen("move.l","#$e147af3f","d5");  /* default is .44 */
 
      gen_jsr("_ellipse");
-     enter_XREF("_GfxBase");
      enter_XREF("_MathTransBase");  /* need these 3 libs for _ellipse */
 
      enter_BSS("_shortx","ds.w 1");
@@ -585,7 +583,6 @@ void color()
  gen_load16d("_fg",0);
  gen_load16d("_bg",0);
  gen_jsr("_changetextcolor");
- enter_XREF("_DOSBase");
 }
 
 void area()
@@ -635,7 +632,6 @@ BOOL relative;
      }
 
      gen_jsr("_area");
-     enter_XREF("_GfxBase");
 }
 
 void areafill()
@@ -657,7 +653,6 @@ void areafill()
      gen("move.w","#0","d0");
   
  gen_jsr("_areafill");
- enter_XREF("_GfxBase");
 }
 
 void pattern()
@@ -823,7 +818,6 @@ int stype;
   	if (make_integer(stype) == shorttype) make_long(); 
 	gen_jsr("_change_text_style");
 	gen_pop_ignore(4);
-	enter_XREF("_GfxBase");
   }
 }
 
@@ -853,7 +847,6 @@ int ftype;
 
 			gen_jsr("_change_text_font");
 			gen_pop_ignore(8);
-			enter_XREF("_GfxBase");
   		}
 	}		
   }

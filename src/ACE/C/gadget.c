@@ -151,7 +151,6 @@ void modify_gadget()
 		/* call function */
 		gen_jsr("_modify_gad");
 		gen_pop_ignore(12);
-		enter_XREF("_GfxBase");
 	}
 }
 
@@ -210,7 +209,6 @@ int  gtype;
 			{
 				gen_jsr("_ChangeGadgetStatus");
 				gen_pop_ignore(8);
-				enter_XREF("_GfxBase");	
 				return;	
 			}
 	 	}
@@ -331,7 +329,6 @@ int  gtype;
 	 /* call function */
 	 gen_jsr("_CreateGadget");
 	 gen_pop_ignore(48);
-	 enter_XREF("_GfxBase");
 	}
 }
 
@@ -352,6 +349,5 @@ void	bevel_box()
 	 	/* call function */
 		gen_jsr("_BevelBox");
 		gen_pop_ignore(20);
-		enter_XREF("_GfxBase");
 	}
 }

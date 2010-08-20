@@ -577,7 +577,6 @@ void MsgBox()
 	    			/* call the function */
 	    			gen_jsr("_sysrequest");
 	    			gen_pop_ignore(12);
-	    			enter_XREF("_IntuitionBase");
 	   		}
 	  	}
 	 }

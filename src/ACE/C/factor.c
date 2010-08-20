@@ -417,7 +417,6 @@ BOOL need_symbol;
  
   case datestrsym : gen_jsr("_date");
 		    gen_push32d(0);
-		    enter_XREF("_DOSBase"); /* DateStamp() needs dos.library */
 		    ftype=stringtype;
 		    insymbol();
 		    return(ftype);
@@ -439,7 +438,6 @@ BOOL need_symbol;
 
   case headingsym : gen_jsr("_heading");
 		    gen_push16d(0);
-		    enter_XREF("_IntuitionBase");
 		    ftype=shorttype;
 		    insymbol();
 		    return(ftype);
@@ -447,7 +445,6 @@ BOOL need_symbol;
 
   case inkeysym : gen_jsr("_inkey");
 		  gen_push32d(0);
-		  enter_XREF("_DOSBase");
 		  ftype=stringtype;
 	 	  insymbol();
 		  return(ftype);
@@ -496,7 +493,6 @@ BOOL need_symbol;
 
   case timersym : gen_jsr("_timer");
 		  gen_push32d(0);
-		  enter_XREF("_DOSBase"); /* DateStamp() needs dos.library */
 		  enter_XREF("_MathBase"); /* _timer needs basic ffp funcs */
 		  ftype=singletype;
 		  insymbol();
@@ -505,7 +501,6 @@ BOOL need_symbol;
 
   case timestrsym : gen_jsr("_timeofday");
 		    gen_push32d(0);
-		    enter_XREF("_DOSBase"); /* DateStamp() needs dos.library */
 		    ftype=stringtype;
 		    insymbol();
 		    return(ftype);
@@ -513,7 +508,6 @@ BOOL need_symbol;
 
   case xcorsym	: gen_jsr("_xcor");
 		  gen_push16d(0);
-		  enter_XREF("_GfxBase");
 		  ftype=shorttype;
 		  insymbol();
 		  return(ftype);
@@ -521,7 +515,6 @@ BOOL need_symbol;
 
   case ycorsym	: gen_jsr("_ycor");
 		  gen_push16d(0);
-		  enter_XREF("_GfxBase");
 		  ftype=shorttype;
 		  insymbol();
 		  return(ftype);

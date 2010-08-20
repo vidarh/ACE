@@ -154,11 +154,6 @@ void iff()
 		case closesym : iff_close(); break;
 	}
 
-	/* 
-	** All three require intuition.library.
-	*/
-	enter_XREF("_IntuitionBase");
-
 	/*
 	** We need to tell ACE to create/delete ILBM.library.
 	*/

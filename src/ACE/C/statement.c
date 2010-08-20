@@ -135,7 +135,6 @@ BOOL volume=FALSE;
  gen_pop16d(0);  /* pop period */
 
  gen_jsr("_sound");
- enter_XREF("_DOSBase");
  enter_XREF("_MathBase");
 }   
 
@@ -352,7 +351,6 @@ SHORT popcount;
   gen_pop32d(0);
   gen_jsr("_back");
   enter_XREF("_MathTransBase");
-  enter_XREF("_GfxBase"); 
  }
  else
  /* beep */
@@ -508,7 +506,6 @@ SHORT popcount;
  if (sym == clssym) 
  { 
   gen_jsr("_cls"); 
-  enter_XREF("_DOSBase"); /* need dos library */
   insymbol(); 
  }
  else
@@ -607,7 +604,6 @@ SHORT popcount;
   gen_pop32d(0);
   gen_jsr("_forward");
   enter_XREF("_MathTransBase");
-  enter_XREF("_GfxBase"); 
  }  
  else
  /* gadget */
@@ -664,7 +660,6 @@ SHORT popcount;
  if (sym == homesym)
  {
   gen_jsr("_home");
-  enter_XREF("_GfxBase");
   insymbol();
  }
  else
@@ -712,7 +707,6 @@ SHORT popcount;
   gen_pop16d(0);  /* pop ROW */  
 
   gen_jsr("_locate");
-  enter_XREF("_DOSBase");
  }
  else
  /* longint */
@@ -787,7 +781,6 @@ SHORT popcount;
 
        /* open the screen */
        gen_jsr("_palette");
-       enter_XREF("_GfxBase");
      }
     }
    }
@@ -951,7 +944,6 @@ SHORT popcount;
    gen_pop16d(1); /* y */
    gen_pop16d(0); /* x */
    gen_jsr("_setxy");
-   enter_XREF("_GfxBase");
   }
  }
  else

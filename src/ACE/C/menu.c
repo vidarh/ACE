@@ -37,9 +37,7 @@ void clear_menu()
 /* MENU CLEAR */
 
 	insymbol();
-	
 	gen_jsr("_ClearMenu");
- 	enter_XREF("_IntuitionBase");
 }
 
 void wait_menu()
@@ -47,7 +45,6 @@ void wait_menu()
 /* MENU WAIT */
 	
 	insymbol();
-
 	gen_jsr("_WaitMenu");
 }
 
@@ -120,7 +117,5 @@ int  mtype;
 	 /* call function */
 	 gen_jsr("_ModifyMenu");
 	 gen_pop_ignore(20);
- 	 enter_XREF("_IntuitionBase");
- 	 enter_XREF("_GfxBase");
 	}
 }

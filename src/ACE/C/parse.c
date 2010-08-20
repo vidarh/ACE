@@ -323,19 +323,14 @@ int  cc;
     enter_XREF("_closemathtrans");
    }
 
-   if (gfxused)
-   {
-    enter_XREF("_opengfx");
-    enter_XREF("_closegfx");
-    enter_XREF("_openintuition");
-    enter_XREF("_closeintuition");
-   }
-
-   if (intuitionused)
-   {
-    enter_XREF("_openintuition");
-    enter_XREF("_closeintuition");
-   }
+   /* Always use these, since they're in the kernel/kickstart anyway. Saves lots of enter_XREF elsewhere */
+   enter_XREF("_GfxBase");
+   enter_XREF("_IntuitionBase");
+   enter_XREF("_DosBase");
+   enter_XREF("_opengfx");
+   enter_XREF("_closegfx");
+   enter_XREF("_openintuition");
+   enter_XREF("_closeintuition");
 
    if (iffused)
    {
