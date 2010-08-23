@@ -400,7 +400,7 @@ BOOL offset_on_stack;
 			break;
 
     /* LEN */
-    case lensym  :	if (sftype == stringtype) 
+    case lensym  : if (sftype == stringtype) 
 			{
 			 gen_pop_addr(2);
 			 gen_jsr("_strlen");
@@ -571,29 +571,10 @@ BOOL offset_on_stack;
 			else { _error(4); sftype=undefined; }
 			break;
 
-    /* PTAB */
-    case ptabsym :	if (sftype != stringtype)
-			{
-			 make_sure_short(sftype);
-			 gen_pop16d(0);  /* x coordinate */
-			 gen_jsr("_ptab");
-			 gen_push_addr(0);  /* NULL ptab string */
-			 sftype=stringtype;
-			}
-			else sftype=undefined; 
-			break;
-	
-    /* TAB */
-    case tabsym :	if (sftype != stringtype)
-			{
-			 make_sure_short(sftype);
-			 gen_pop16d(0);  /* # of columns */
-			 gen_jsr("_horiz_tab");
-			 gen_push_addr(0);  /* addr of tab string */
-			 sftype=stringtype;
-			}
-			else sftype=undefined; 
-			break;
+			/* PTAB */
+	  case ptabsym: sftype = gen_sfunc("_ptab", sftype, shorttype, stringtype); break;
+		/* TAB */
+	  case tabsym: sftype =gen_sfunc("_horiz_tab",sftype,shorttype,stringtype); break;
 	
     /* TRANSLATE$ */
     case translatestrsym :if (sftype == stringtype)
@@ -664,8 +645,9 @@ int gen_sfunc(const char * funcname, int nftype, int srctype,int rettype)
   }
   gen_jsr(funcname);
   if (rettype == shorttype) gen_push16d(0);
-  else gen_push32d(0);
-  return shorttype;
+  else if (rettype == longtype) gen_push32d(0);
+  else if (rettype == stringtype) gen_push_addr(0);
+  return rettype;
 }
 
 /* numeric functions */
@@ -1000,16 +982,11 @@ char varptr_obj_name[MAXIDSIZE];
 			break;
 			
 	 /* MOUSE */
-	 case mousesym : if (nftype != stringtype)
-			 {
-			  make_sure_short(nftype);
-			  gen_pop16d(0);
-			  gen_jsr("_mouse");
-			  gen_push16d(0);
-			  nftype=shorttype;
-			 }
-			 else nftype=undefined;
-			 break;
+	 case mousesym : 
+	   if (nftype != stringtype) {
+		 nftype = gen_sfunc("_mouse",nftype,shorttype,shorttype);
+	   } else nftype=undefined; /* FIXME: Is it intentional that there's no _error(4) here? */
+	   break;
 
 	 /* MSGBOX */
 	 case msgboxsym : if (nftype == stringtype)     /* message */
