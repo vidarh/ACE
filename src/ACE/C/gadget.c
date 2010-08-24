@@ -132,8 +132,6 @@ void modify_gadget() {
 		insymbol();
 		make_sure_long(expr());	/* max-position */
 	  }
-
-	  /* call function */
 	  gen_call_void("_modify_gad",12);
 	}
 }

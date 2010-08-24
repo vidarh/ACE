@@ -131,10 +131,7 @@ BOOL volume=FALSE;
  if (voice)  gen_pop16d(3);  /* pop voice */
  if (volume) gen_pop16d(2);  /* pop volume */
 
- gen_pop32d(1);  /* pop duration */
- gen_pop16d(0);  /* pop period */
-
- gen_jsr("_sound");
+ gen_call_args("_sound","d1,d0.w",0);
  enter_XREF("_MathBase");
 }   
 
@@ -348,8 +345,7 @@ SHORT popcount;
  {
   insymbol();
   gen_Flt(expr());
-  gen_pop32d(0);
-  gen_jsr("_back");
+  gen_call_args("_back","d0",0);
   enter_XREF("_MathTransBase");
  }
  else
@@ -582,14 +578,11 @@ SHORT popcount;
  if (sym == filessym) files();
  else
  /* fix */
- if (sym == fixsym) 
- {
-  insymbol();
-  if (make_integer(expr()) != longtype) make_long();
-  gen_pop32d(0);
-  gen_jsr("_fix");
- }
- else
+   if (sym == fixsym) {
+	 insymbol();
+	 make_sure_long(expr());
+	 gen_call_args("_fix","d0",0);
+   } else 
  /* font */
  if (sym == fontsym) text_font();
  else
@@ -599,11 +592,10 @@ SHORT popcount;
  /* forward */
  if (sym == forwardsym)
  {
-  insymbol();
-  gen_Flt(expr());
-  gen_pop32d(0);
-  gen_jsr("_forward");
-  enter_XREF("_MathTransBase");
+   insymbol();
+   gen_Flt(expr());
+   gen_call_args("_forward","d0",0);
+   enter_XREF("_MathTransBase");
  }  
  else
  /* gadget */
@@ -696,65 +688,35 @@ SHORT popcount;
   insymbol();
   make_sure_short(expr());  /* ROW */
 
-  if (sym == comma)
-  {
-   insymbol();
-   make_sure_short(expr());
-  }
-  else gen("move.w","#1","-(sp)");  /* COLUMN */
-
-  gen_pop16d(1);  /* pop COLUMN */
-  gen_pop16d(0);  /* pop ROW */  
-
-  gen_jsr("_locate");
+  if (sym == comma) {
+	insymbol();
+	make_sure_short(expr());
+  } else gen("move.w","#1","-(sp)");  /* COLUMN */
+  gen_call_args("_locate","d1.w,d0.w",0);
  }
  else
  /* longint */
  if (sym == longintsym || sym == addresssym) declare_variable(longtype);
- else
- /* menu */
- if (sym == menusym) menu();
- else
- /* message */
- if (sym == messagesym) message();
- else
- /* msgbox */
- if (sym == msgboxsym) MsgBox();
- else
- /* name */
- if (sym == namesym) ace_rename();
- else
- /* next */
- if ((sym == nextsym) && (lastsym == colon)) 
- {
-  lastsym=undefined;
-  return;  /* eg: for i=1 to 10:next */
- }
- else
- /* on <event> | <integer-expression> */
- if (sym == onsym) 
- {
-  insymbol();
-  if (sym==breaksym || sym==mousesym || sym==menusym || 
-      sym==timersym || sym==errorsym || sym==windowsym || 
-      sym==gadgetsym)
+ else if (sym == menusym) menu();
+ else if (sym == messagesym) message();
+ else if (sym == msgboxsym) MsgBox();
+ else if (sym == namesym) ace_rename();
+ else if ((sym == nextsym) && (lastsym == colon))  /* next */ {
+   lastsym=undefined;
+   return;  /* eg: for i=1 to 10:next */
+ } else  if (sym == onsym) {
+   /* on <event> | <integer-expression> */
+   insymbol();
+   if (sym==breaksym || sym==mousesym || sym==menusym || 
+	   sym==timersym || sym==errorsym || sym==windowsym || 
+	   sym==gadgetsym)
      get_event_trap_label();
-  else
+   else
      on_branch();    
- }
- else
- /* open */
- if (sym == opensym) open_a_file();
- else
- /* option */
- if (sym == optionsym) parse_option_list();
- else
- /* paint */
- if (sym == paintsym) paint();
- else
- /* palette */
- if (sym == palettesym)
- {
+ } else if (sym == opensym) open_a_file();
+ else if (sym == optionsym) parse_option_list();
+ else if (sym == paintsym) paint();
+ else if (sym == palettesym) {
    insymbol();
    make_sure_short(expr()); /* color-id */
    if (sym != comma) _error(16);
@@ -768,93 +730,46 @@ SHORT popcount;
      insymbol();
      gen_Flt(expr()); /* green */
      if (sym != comma) _error(16);
-     else
-     {
+     else {
        insymbol();
        gen_Flt(expr()); /* blue */
-       
-       /* pop parameters */
-       gen_pop32d(3); /* blue */
-       gen_pop32d(2); /* green */
-       gen_pop32d(1); /* red */
-       gen_pop16d(0); /* color-id  (0-31) */
-
-       /* open the screen */
-       gen_jsr("_palette");
+       gen_call_args("_palette","d3,d2,d1,d0.w",0);
      }
     }
    }
  }
- else
- /* pattern */
- if (sym == patternsym) pattern();
- else
- /* pendown */
- if (sym == pendownsym)
- {
+ else if (sym == patternsym) pattern();
+ else if (sym == pendownsym) {
   gen_jsr("_pendown");
   insymbol();
- }
- else
- /* penup */
- if (sym == penupsym)
- {
+ } else if (sym == penupsym) {
   gen_jsr("_penup");
   insymbol();
- }
- else
- /* poke */
- if (sym == pokesym) poke();
- else
- /* pokew */
- if (sym == pokewsym) pokew();
- else
- /* pokel */
- if (sym == pokelsym) pokel();
- else
- /* print */
- if ((sym == printsym) || (sym == question)) 
+ } else if (sym == pokesym) poke();
+ else if (sym == pokewsym) pokew();
+ else if (sym == pokelsym) pokel();
+ else if ((sym == printsym) || (sym == question)) 
  { 
   check_for_event(); 
   print_statement(); 
   if (sym == hash && (lastsym == printsym || lastsym == question)) 
      print_to_file();
  }
- else
- /* prints */
- if (sym == printssym)
-    { check_for_event(); prints_statement(); }    
- else
- /* pset */
- if (sym == psetsym) pset(); 
- else
- /* put */
- if (sym == putsym)
- {
+ else if (sym == printssym) { check_for_event(); prints_statement(); }    
+ else if (sym == psetsym) pset(); 
+ else if (sym == putsym) {
  	insymbol();
-	if (sym == stepsym || sym == lparen) 
-	{
+	if (sym == stepsym || sym == lparen)  {
 		/* Graphics PUT */
+	} else {
+	  /* Random File PUT */
+	  random_file_put();
 	}
-	else
-	{
-		/* Random File PUT */
-		random_file_put();
-	}
- }	
- else
- /* read */
- if (sym == readsym) { check_for_event(); read_data(); }
- else
- /* rem */
- if (sym == remsym)
- {
+ } else if (sym == readsym) { check_for_event(); read_data(); }
+ else if (sym == remsym) {
   while ((sym != endofline) && (!end_of_source)) nextch();
   insymbol();
- }
- else
- /* randomize */
- if (sym == randomizesym)
+ } else if (sym == randomizesym)
  {
   insymbol();
   statetype = expr();
@@ -864,32 +779,19 @@ SHORT popcount;
   gen_jsr("_randomise");
   enter_XREF("_MathBase");
  }
- else
- /* repeat */
- if (sym == repeatsym) repeat_statement();
- else
- /* restore */
- if (sym == restoresym) { gen("move.l","#_BASICdata","_dataptr"); insymbol(); }
- else
- /* return */
- if (sym == returnsym)
- {
-  check_for_event();
-  gen("rts","  ","  ");
-  insymbol();
- }
- else
- /* say */
- if (sym == saysym)
- {
+ else if (sym == repeatsym) repeat_statement();
+ else if (sym == restoresym) { gen("move.l","#_BASICdata","_dataptr"); insymbol(); }
+ else if (sym == returnsym) {
+   check_for_event();
+   gen("rts","  ","  ");
+   insymbol();
+ } else if (sym == saysym) {
   insymbol();
   if (expr() != stringtype) _error(4);  /* phoneme string on stack */
 
-  if (sym == comma)
-  {
+  if (sym == comma) {
    insymbol();
-   if ((sym == ident) && (obj == variable)) 
-   {
+   if ((sym == ident) && (obj == variable)) {
     if (!exist(id,array)) _error(28); 
     else
         if (curr_item->type != shorttype) _error(28); 
@@ -907,361 +809,231 @@ SHORT popcount;
   }
   else gen_push32_val(0);  /* no mode-array -> push NULL */
 
-  gen_call_void("_say",8);
+  gen_call_args("_say","",8);
   enter_XREF("_cleanup_async_speech");
   narratorused=TRUE;
- }
- else
- /* screen */
- if (sym == screensym) { screen(); check_for_event(); }
- else
- if (sym == scrollsym) scroll();
- else
- /* serial command */
- if (sym == serialsym) { check_for_event(); serial_command(); }
- else
- /* setheading */
- if (sym == setheadingsym)
- {
-  insymbol();
-  gen_pop_as_short(expr(),0);
-  gen_jsr("_setheading");
- }
- else
- /* setxy */
- if (sym == setxysym)
- {
-  insymbol();
-  make_sure_short(expr()); /* x */
-  if (sym != comma) _error(16);
-  else {
+ } else if (sym == screensym) { screen(); check_for_event(); }
+ else if (sym == scrollsym) scroll();
+ else if (sym == serialsym) { check_for_event(); serial_command(); }
+ else if (sym == setheadingsym) {
    insymbol();
-   gen_pop_as_short(expr(),1); /* y */
-   gen_pop16d(0); /* x */
-   gen_jsr("_setxy");
-  }
+   gen_pop_as_short(expr(),0);
+   gen_jsr("_setheading");
+ } else if (sym == setxysym) {
+   insymbol();
+   make_sure_short(expr()); /* x */
+   if (sym != comma) _error(16);
+   else {
+	 insymbol();
+	 make_sure_short(expr()); /* y */
+	 gen_call_args("_setxy","d1.w,d0.w",0);
+   }
  }
- else
- /* shared */
- if (sym == sharedsym && lev == ZERO) { _error(69); insymbol(); }
- else
- /* shortint */
- if (sym == shortintsym) declare_variable(shorttype);
- else
- /* single */
- if (sym == singlesym) declare_variable(singletype);
- else
- /* sleep */
- if (sym == sleepsym) 
- {
+ else if (sym == sharedsym && lev == ZERO) { _error(69); insymbol(); } /* shared */
+ else if (sym == shortintsym) declare_variable(shorttype);
+ else if (sym == singlesym) declare_variable(singletype);
+ else if (sym == sleepsym)  {
     insymbol();
-
-    if (sym != forsym)
-    { 
-	  /* SLEEP */
-	  gen_jsr("_sleep"); 
-    }
-    else
-    { 
+    if (sym != forsym) gen_jsr("_sleep"); 
+    else { 
 	  /* SLEEP FOR <seconds> */ 
 	  insymbol();
 	  stype = expr();
 	  if (stype == stringtype) _error(4);
-	  else
-	  {
+	  else {
 		gen_Flt(stype); 
-	  	gen_call_void("_sleep_for_secs",4);
+	  	gen_call_args("_sleep_for_secs","",4);
 	  }
     }
  }
- else
- /* string */
- if (sym == stringsym) declare_variable(stringtype);
- else
- /* sound */
- if (sym == soundsym) sound();
- else
- /* struct */
- if (sym == structsym) define_structure();
- else
- /* style */
- if (sym == stylesym) text_style();
- else
- /* swap */
- if (sym == swapsym) swap();
- else
- /* system */
- if (sym == systemsym)
- {
-  insymbol();
-  stype = make_integer(expr());
-  if (stype == shorttype || stype == longtype)
-  {
+ else if (sym == stringsym) declare_variable(stringtype);
+ else if (sym == soundsym) sound();
+ else if (sym == structsym) define_structure();
+ else if (sym == stylesym) text_style();
+ else if (sym == swapsym) swap();
+ else if (sym == systemsym) {
+   insymbol();
+   stype = make_integer(expr());
+   if (stype == shorttype || stype == longtype) {
      /* SYSTEM returncode */
      if (stype == shorttype) make_long()  ; /* get short integer exit value */
      gen_pop32_var("_returncode");
      gen_jmp("_EXIT_PROG");
-  }
-  else
-  {
+   } else {
      /* SYSTEM command-string */
      gen_call_void("_system_call",4);
-  }
- }
- else
- /* turn */
- if (sym == turnsym)
- {
-  insymbol();
-  gen_pop_as_short(expr(),0);
-  gen_jsr("_turn");
- }	
- else
- /* turnleft */
- if (sym == turnleftsym)
- {
-  insymbol();
-  gen_pop_as_short(expr(),0);
-  gen_jsr("_turnleft");
- }	
- else
- /* turnright */
- if (sym == turnrightsym)
- {
-  insymbol();
-  gen_pop_as_short(expr(),0);
-  gen_jsr("_turnright");
- }	
- else
- /* until */
- if ((sym == untilsym) && (lastsym == colon)) 
- {
-  lastsym=undefined;
-  return; /* eg: repeat:..:until i>10 */
- }
- else
- /* wave */
- if (sym == wavesym) 
- {
-  /* voice */
-  insymbol();
-  make_sure_short(expr());  /* voice (short) 0..3 */
-
-  /* wave definition */
-  if (sym != comma) _error(16);
-  else
-  {
-   insymbol();
-   if (sym == sinsym) 
-   {
-    gen("move.l","#0","a0");  /* SIN wave = 0 -> flag for _wave */
-    insymbol();
    }
-   else
-   {
-    /* now expect an address -> pointer to a block of bytes */
-    if (expr() != longtype) _error(4);
-    
-    /* number of bytes? */
-    if (sym != comma) _error(16);
-    else
-    {
-     insymbol();
-     if ((statetype=make_integer(expr())) == shorttype) make_long();  
-
-     if (statetype == notype) _error(4); /* string -> type mismatch */
-    }   
-
-    gen_pop32d(1);  /* pop # of bytes of waveform data */
-    gen_pop_addr(0);  /* pop address of waveform data */
-   }
-  }
-  gen_pop16d(0);  /* pop voice */
-  gen_jsr("_wave"); 
- }
- else
- /* while.. */
- if (sym == whilesym) while_statement();
- else
- /* wend */
- if ((sym == wendsym) && (lastsym == colon)) 
- {
-  lastsym=undefined;
-  return; /* eg: while i>2:wend */
- }
- else
- /* window */
- if (sym == windowsym) { window(); check_for_event(); }
- else
- /* write */
- if (sym == writesym) { check_for_event(); write_to_file(); }
- else
- /* ++ */
- if (sym == increment)
- { 
+ } else if (sym == turnsym) {
    insymbol();
-                if (sym != ident)
-     		   _error(7);
-  	        else
-  		{
-		  /* it may be an external variable */
-		  strcpy(buf,ut_id);
-		  remove_qualifier(buf);
-		  if (buf[0] != '_')
-		  {
-			sprintf(ext_name,"_%s",buf);
-		  }
-		  else
-		    	strcpy(ext_name,buf);
+   gen_pop_as_short(expr(),0);
+   gen_jsr("_turn");
+ } else if (sym == turnleftsym) {
+   insymbol();
+   gen_pop_as_short(expr(),0);
+   gen_jsr("_turnleft");
+ } else if (sym == turnrightsym) {
+   gen_pop_as_short(expr(),0);
+   gen_jsr("_turnright");
+ } else if ((sym == untilsym) && (lastsym == colon)) {
+   lastsym=undefined;
+   return; /* eg: repeat:..:until i>10 */
+ } else if (sym == wavesym) {
+   /* voice */
+   insymbol();
+   make_sure_short(expr());  /* voice (short) 0..3 */
+   
+   /* wave definition */
+   if (sym != comma) _error(16);
+   else {
+	 insymbol();
+	 if (sym == sinsym) {
+	   gen("move.l","#0","a0");  /* SIN wave = 0 -> flag for _wave */
+	   insymbol();
+	 } else {
+	   /* now expect an address -> pointer to a block of bytes */
+	   if (expr() != longtype) _error(4);
+	   
+	   /* number of bytes? */
+	   if (sym != comma) _error(16);
+	   else {
+		 insymbol();
+		 make_sure_long(expr());
+		 if (statetype == notype) _error(4); /* string -> type mismatch */
+	   }   
 
-		  if ((!exist(id,variable)) && (!exist(ext_name,extvar)))
-		     _error(19); /* simple variable expected */
-		  else
-		  {
-		   inc_item=curr_item;
-		   if (inc_item->type == stringtype)
-		      _error(4);
-		   else
-		   {
-		    /* get address of variable */
-		    address_of_object();
-		    gen_pop_addr(0);
+	   gen_pop32d(1);  /* pop # of bytes of waveform data */
+	   gen_pop_addr(0);  /* pop address of waveform data */
+	 }
+   }
+   gen_call_args("_wave","d0.w",0); 
+ } else if (sym == whilesym) while_statement();
+ else if ((sym == wendsym) && (lastsym == colon)) {
+   lastsym=undefined;
+   return; /* eg: while i>2:wend */
+ } else if (sym == windowsym) { window(); check_for_event(); }
+ else if (sym == writesym) { check_for_event(); write_to_file(); }
+ else if (sym == increment) /* ++ */ {
+   insymbol();
+   if (sym != ident) _error(7);
+   else {
+	 /* it may be an external variable */
+	 strcpy(buf,ut_id);
+	 remove_qualifier(buf);
+	 if (buf[0] != '_') {
+	   sprintf(ext_name,"_%s",buf);
+	 } else 
+	   strcpy(ext_name,buf);
 
-		    /* increment it by 1 */
-		    switch(inc_item->type)
-		    {
-		     case shorttype  : gen("add.w","#1","(a0)");
-		     		       break;
+	 if ((!exist(id,variable)) && (!exist(ext_name,extvar))) _error(19); /* simple variable expected */
+	 else {
+	   inc_item=curr_item;
+	   if (inc_item->type == stringtype) _error(4);
+	   else {
+		 /* get address of variable */
+		 address_of_object();
+		 gen_pop_addr(0);
 
-		     case longtype   : gen("add.l","#1","(a0)");
-		     		       break;
-
-		     case singletype : 
+		 /* increment it by 1 */
+		 switch(inc_item->type) {
+		 case shorttype  : gen("add.w","#1","(a0)"); break;
+		 case longtype   : gen("add.l","#1","(a0)"); break;
+		 case singletype : 
 			   gen_libbase("Math");
 			   gen("move.l","(a0)","d0");
 			   gen("move.l","#$80000041","d1");
 			   gen_libcall("SPAdd","Math");
 			   gen("move.l","d0","(a0)");
 			   break;
-		    }
- 		   }
- 		  }
-		 insymbol();
-		} 
- }		 
- else
- /* -- */
- if (sym == decrement)
- { 
+		 }
+	   }
+	 }
+	 insymbol();
+   } 
+ } else if (sym == decrement) {
    insymbol();
-                if (sym != ident)
-     		   _error(7);
-  	        else
-  		{
-		  /* it may be an external variable */
-		  strcpy(buf,ut_id);
-		  remove_qualifier(buf);
-		  if (buf[0] != '_')
-		  {
-			sprintf(ext_name,"_%s",buf);
-		  }
-		  else
-		    	strcpy(ext_name,buf);
+   if (sym != ident) _error(7);
+   else {
+	 /* it may be an external variable */
+	 strcpy(buf,ut_id);
+	 remove_qualifier(buf);
+	 if (buf[0] != '_') {
+	   sprintf(ext_name,"_%s",buf);
+	 } else strcpy(ext_name,buf);
 
-		  if ((!exist(id,variable)) && (!exist(ext_name,extvar)))
-		     _error(19); /* simple variable expected */
-		  else
-		  {
-		   dec_item=curr_item;
-		   if (dec_item->type == stringtype)
-		      _error(4);
-		   else
+	 if ((!exist(id,variable)) && (!exist(ext_name,extvar)))
+	   _error(19); /* simple variable expected */
+	 else {
+	   dec_item=curr_item;
+	   if (dec_item->type == stringtype)
+		 _error(4);
+	   else {
+		 /* get address of variable */
+		 address_of_object();
+		 gen_pop_addr(0);
+		 
+		 /* increment it by 1 */
+		 switch(dec_item->type)
 		   {
-		    /* get address of variable */
-		    address_of_object();
-		    gen_pop_addr(0);
-
-		    /* increment it by 1 */
-		    switch(dec_item->type)
-		    {
-		     case shorttype: 
-			   gen("sub.w","#1","(a0)");
-			   break;
-
-		     case longtype: 
-			   gen("sub.l","#1","(a0)");
-			   break;
-
-		     case singletype : 
+		   case shorttype: gen("sub.w","#1","(a0)"); break;
+		   case longtype:  gen("sub.l","#1","(a0)"); break;
+		   case singletype : 
 			   gen_libbase("Math");
 			   gen("move.l","(a0)","d0");
 			   gen("move.l","#$80000041","d1");
 			   gen_libcall("SPSub","Math");
 			   gen("move.l","d0","(a0)");
 			   break;
-		    }
- 		   }
- 		  }
- 		 insymbol();
-		} 
- }		 
- else
- /* *%<address> = <expr> */
- if (sym == shortpointer) 
- { 
-  insymbol();
-  if (expr() != longtype)  /* address */
-     _error(4);
-  else {
-   if (sym != becomes) _error(5);
+		   }
+	   }
+	 }
+	 insymbol();
+   } 
+ } else if (sym == shortpointer) { /* *%<address> = <expr> */
+   insymbol();
+   if (expr() != longtype)  /* address */
+	 _error(4);
    else {
-    insymbol();
-    gen_pop_as_short(expr(),0); /* expression */
-    gen_pop_addr(0);  /* pop address */
-    gen("move.w","d0","(a0)");   /* store expression */
+	 if (sym != becomes) _error(5);
+	 else {
+	   insymbol();
+	   gen_pop_as_short(expr(),0); /* expression */
+	   gen_pop_addr(0);  /* pop address */
+	   gen("move.w","d0","(a0)");   /* store expression */
+	 }
    }
-  }
+ } else if (sym == longpointer) { /* *&<address> = <expr> */
+   insymbol();
+   if (expr() != longtype)  /* address */
+	 _error(4);
+   else {
+	 if (sym != becomes) _error(5);
+	 else {
+	   insymbol();
+	   make_sure_long(expr());
+	   gen_pop32d(0);  /* pop expression */ 
+	   gen_pop_addr(0);  /* pop address */
+	   gen("move.l","d0","(a0)");   /* store expression */
+	 }
+   }
+ } else if (sym == singlepointer) { /* *!<address> = <expr> */
+   insymbol();
+   if (expr() != longtype)  /* address */
+	 _error(4);
+   else {
+	 if (sym != becomes) _error(5);
+	 else {
+	   insymbol();
+	   gen_Flt(expr());
+	   gen_pop32d(0);  /* pop expression */ 
+	   gen_pop_addr(0);  /* pop address */
+	   gen("move.l","d0","(a0)");   /* store expression */
+	 }
+   }
  }
  else
- /* *&<address> = <expr> */
- if (sym == longpointer) 
- { 
-  insymbol();
-  if (expr() != longtype)  /* address */
-     _error(4);
-  else {
-	if (sym != becomes) _error(5);
-	else {
-	  insymbol();
-	  make_sure_long(expr());
-	  gen_pop32d(0);  /* pop expression */ 
-	  gen_pop_addr(0);  /* pop address */
-	  gen("move.l","d0","(a0)");   /* store expression */
-	}
-  }
- }
- else
-   /* *!<address> = <expr> */
-   if (sym == singlepointer) 
- { 
-  insymbol();
-  if (expr() != longtype)  /* address */
-     _error(4);
-  else {
-	if (sym != becomes) _error(5);
-	else {
-	  insymbol();
-	  gen_Flt(expr());
-	  gen_pop32d(0);  /* pop expression */ 
-	  gen_pop_addr(0);  /* pop address */
-	  gen("move.l","d0","(a0)");   /* store expression */
-	}
-  }
- }
- else
- /* feature not implemented? */  
- if (obj == rsvd_word) { _error(68); insymbol(); }
- else
- /* unknown */
- insymbol();
+   /* feature not implemented? */  
+   if (obj == rsvd_word) { _error(68); insymbol(); }
+   else
+	 /* unknown */
+	 insymbol();
 }

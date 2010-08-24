@@ -78,14 +78,8 @@ void open_a_file()
    {
     insymbol();
     if (expr() != stringtype) _error(4);  /* filespec */
-    else
-    {
-     /* pop arguments */
-     gen_pop_addr(1);  /* address of filespec */
-     gen_pop32d(0);  /* filenumber */
-     gen_pop_addr(0);  /* address of mode string */
-
-     gen_jsr("_openfile");
+    else {
+	  gen_call_args("_openfile","a1,d0,a0",0);
     }
    }
   }
@@ -95,25 +89,16 @@ void open_a_file()
 void close_a_file()
 {
  /* CLOSE [#]filenumber[,[#]filenumber..] */
-
  check_for_event();
-
- do
- {
-  insymbol();
-  if (sym == hash) insymbol(); 
-  if (make_integer(expr()) == shorttype) make_long();
- 
-  gen_pop32d(0);
-  gen_jsr("_closefile");
- }
- while (sym == comma);
+ do {
+   parse_channel();
+   gen_call_args("_closefile","d0",0);
+ } while (sym == comma);
 }
 
-void line_input()
-{
-char addrbuf[40];
-SYM  *storage;
+void line_input() {
+  char addrbuf[40];
+  SYM  *storage;
 
  /* LINE INPUT  [;][prompt-string;]string-variable
     LINE INPUT# filenumber;string-variable
@@ -126,140 +111,118 @@ SYM  *storage;
  insymbol();
  
  if (sym != hash) _error(44);
- else
- {
-  insymbol();
-
-  if (make_integer(expr()) == shorttype) make_long();
-
-  if (sym != comma) _error(16);
-  else
-  {
+ else {
    insymbol();
+   make_sure_long(expr());
+   if (sym != comma) _error(16);
+   else {
+	 insymbol();
 
-   if (sym == ident && obj == variable)
-   {
-    /* if string variable/array doesn't exist, create a simple variable */
-    if (!exist(id,variable) && !exist(id,array)) 
-    {
-     /* allocate a simple string variable */
-     enter(id,typ,obj,0);
-     enter_DATA("_nullstring:","dc.b 0");
-     gen("pea","_nullstring","  ");
-     assign_to_string_variable(curr_item,MAXSTRLEN);
-    }
+	 if (sym == ident && obj == variable) {
+	   /* if string variable/array doesn't exist, create a simple variable */
+	   if (!exist(id,variable) && !exist(id,array)) {
+		 /* allocate a simple string variable */
+		 enter(id,typ,obj,0);
+		 enter_DATA("_nullstring:","dc.b 0");
+		 gen("pea","_nullstring","  ");
+		 assign_to_string_variable(curr_item,MAXSTRLEN);
+	   }
 
-    storage=curr_item;
+	   storage=curr_item;
 
-    /* is it a string variable or array? */
-    if (storage->type != stringtype) _error(4);
-    else    
-    {
-     /* get address of string pointed to by variable/array element */
-     itoa(-1*storage->address,addrbuf,10);
-     strcat(addrbuf,frame_ptr[lev]);
-
-     /* pass filenumber (d0) and string address (a0) to function */
-     if (storage->object == array)
-     {
-      point_to_array(storage,addrbuf);
-      gen_load32a(addrbuf,0);
-      gen("adda.l","d7","a0");
-     }
-     else
-      	 gen_load32a(addrbuf,0);	/* string address */
-      
-     gen_pop32d(0);	/* filenumber */
-
-     /* call _line_input */
-     gen_jsr("_line_input");
-
-     insymbol();
-     if (sym == lparen && storage->object != array) 
-	_error(71);  /* undeclared array */
-    }
+	   /* is it a string variable or array? */
+	   if (storage->type != stringtype) _error(4);
+	   else {
+		 /* get address of string pointed to by variable/array element */
+		 itoa(-1*storage->address,addrbuf,10);
+		 strcat(addrbuf,frame_ptr[lev]);
+		 
+		 /* pass filenumber (d0) and string address (a0) to function */
+		 if (storage->object == array) {
+		   point_to_array(storage,addrbuf);
+		   gen_load32a(addrbuf,0);
+		   gen("adda.l","d7","a0");
+		 }
+		 else gen_load32a(addrbuf,0);	/* string address */
+		 
+		 gen_call_args("_line_input","d0",0);
+		 
+		 insymbol();
+		 if (sym == lparen && storage->object != array) 
+		   _error(71);  /* undeclared array */
+	   }
+	 }
+	 else _error(19); /* variable (or array) expected */
    }
-   else _error(19); /* variable (or array) expected */
-  }
  }
 }
 
-void write_to_file()
-{
-int wtype;
+void write_to_file() {
+  int wtype;
 
- /* WRITE #filenumber,expression-list */
-
- check_for_event();
-
- insymbol();
-
- if (sym != hash) _error(44);
- else
- {
+  /* WRITE #filenumber,expression-list */
+  
+  check_for_event();
   insymbol();
-
-  if (make_integer(expr()) == shorttype) make_long();
+  
+  if (sym != hash) _error(44);
+  else {
+	insymbol();
+	make_sure_long(expr());
 
   gen_pop32_var("_seq_filenumber");
   
   if (sym != comma) _error(16);
-  else
-  {
+  else {
    /* get expressions */
-   do
-   {
-    insymbol();
-    wtype=expr(); 
+	do {
+	  insymbol();
+	  wtype=expr(); 
+	  
+	  switch(wtype) {
+	  case undefined : _error(0);  break; /* expression expected */ 
+	  case shorttype : 	gen_pop16d(1);
+		gen_load32d("_seq_filenumber",0);
+		gen_jsr("_writeshort");
+		break;
 
-    switch(wtype)
-    {
-     case undefined : _error(0);  /* expression expected */ 
-		      break;
-
-     case shorttype : 	gen_pop16d(1);
- 		      	gen_load32d("_seq_filenumber",0);
-		      	gen_jsr("_writeshort");
-		      	break;
-
-     case longtype : 	gen_pop32d(1);
-		     	gen_load32d("_seq_filenumber",0);
-		     	gen_jsr("_writelong");
-		     	break;
+	  case longtype : 	gen_pop32d(1);
+		gen_load32d("_seq_filenumber",0);
+		gen_jsr("_writelong");
+		break;
 
      case singletype : 	gen_pop32d(1);
-		       	gen_load32d("_seq_filenumber",0);
-		       	gen_jsr("_writesingle");
-			enter_XREF("_MathBase");
-		       	break;
+	   gen_load32d("_seq_filenumber",0);
+	   gen_jsr("_writesingle");
+	   enter_XREF("_MathBase");
+	   break;
 
      case stringtype :  gen_load32d("_seq_filenumber",0);
-			gen_jsr("_writequote");	
-		       	gen_pop_addr(0);
-				gen_load32d("_seq_filenumber",0);
-		       	gen_jsr("_writestring");
-				gen_load32d("_seq_filenumber",0);
-		       	gen_jsr("_writequote");
-		       	break;
+	   gen_jsr("_writequote");	
+	   gen_pop_addr(0);
+	   gen_load32d("_seq_filenumber",0);
+	   gen_jsr("_writestring");
+	   gen_load32d("_seq_filenumber",0);
+	   gen_jsr("_writequote");
+	   break;
     }
-    
-    /* need a delimiter? */
-    if (sym == comma) 
-    { 
-	  gen_load32d("_seq_filenumber",0);
-     gen_jsr("_writecomma"); 
-    }
-
-   }
-   while (sym == comma);  
-
+	  
+	  /* need a delimiter? */
+	  if (sym == comma) {
+		gen_load32d("_seq_filenumber",0);
+		gen_jsr("_writecomma"); 
+	  }
+	  
+	}
+	while (sym == comma);  
+	
    /* write LF to mark EOLN */
-   gen_load32d("_seq_filenumber",0);
-   gen_jsr("_write_eoln");
-   
-   enter_BSS("_seq_filenumber:","ds.l 1");
+	gen_load32d("_seq_filenumber",0);
+	gen_jsr("_write_eoln");
+	
+	enter_BSS("_seq_filenumber:","ds.l 1");
   }
- }
+  }
 }
 
 void gen_writecode(code)
@@ -271,34 +234,21 @@ int code;
 
  gen_load32d("_seq_filenumber",0);
 
- switch(code)
-   {
-	 /* LF */
-   case LF_CODE:
-	 gen_jsr("_write_eoln");
-	 break;
-	 /* TAB */
-   case TAB_CODE :  	
-	 gen_jsr("_writeTAB");
-	 break;
-	 /* SPACE */
-   case SPACE_CODE :
-	 gen_jsr("_writeSPC");
-	 break;
+ switch(code) {
+ case LF_CODE:  gen_jsr("_write_eoln"); break;
+ case TAB_CODE: gen_jsr("_writeTAB"); break;
+ case SPACE_CODE: gen_jsr("_writeSPC"); break;
  }
 }
 
-void print_to_file()
-{
-int exprtype,arguments=0;
+void print_to_file() {
+  int exprtype,arguments=0;
 
  /* PRINT #filenumber,expression-list */
 
  check_for_event();
-
  insymbol();
-
- if (make_integer(expr()) == shorttype) make_long();
+ make_sure_long(expr());
 
  gen_pop32_var("_seq_filenumber");
  enter_BSS("_seq_filenumber:","ds.l 1");
@@ -564,25 +514,16 @@ void ace_rename()
  }
 }
 
-void chdir()
-{
-/* CHDIR <dirname> */
+void chdir() {
+  /* CHDIR <dirname> */
 
  check_for_event();
-
  insymbol();
-
  if (expr() != stringtype) _error(4);
- else
- {
-  /* call code to change directory */
-  gen_pop32d(1);  /* dirname */
-  gen_jsr("_chdir");
- }
+ else gen_call_args("_chdir","d1",0);
 }
 
-void files()
-{
+void files() {
 /* FILES [TO <storefile>] [,<target>] */
  
  check_for_event();

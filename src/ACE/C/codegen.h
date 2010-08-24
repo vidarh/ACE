@@ -38,7 +38,7 @@ void gen_move32aa(unsigned char srcreg, unsigned char destreg);
 void gen_libbase(const char * base);
 void gen_libcall(const char * lvo, const char * base);
 void gen_gfxcall(const char * lvo);
-void gen_call_void(const char * label, unsigned int stack_adjust);
-void gen_call(const char * label, unsigned int stack_adjust);
-
+void gen_call_args(const char * label, const char * args, unsigned int stack);
+static inline void gen_call_void(const char * label, unsigned int stack) { gen_call_args(label,"",stack); }
+static inline void gen_call(const char * label, unsigned int stack) { gen_call_args(label,":d0",stack); }
 #endif

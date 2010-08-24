@@ -81,15 +81,8 @@ void	screen() {
 		  if (sym != comma) _error(16);
 		  else {
 			insymbol();
-			gen_pop_as_short(expr(),4); /* mode */
-			gen_pop16d(4); /* mode */
-			gen_pop16d(3); /* depth */
-			gen_pop16d(2); /* height */
-			gen_pop16d(1); /* width */
-			gen_pop16d(0); /* screen-id (1-9) */
-
-			/* open the screen */
-			gen_jsr("_openscreen");
+			make_sure_short(expr()); /* mode */
+			gen_call_args("_openscreen","d4.w,d3.w,d2.w,d1.w,d0.w",0);
 		  }
 		}
 	  }

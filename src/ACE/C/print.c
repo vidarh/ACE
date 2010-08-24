@@ -195,22 +195,13 @@ do
 
   switch(exprtype)
   {
-   case shorttype :  gen_pop16d(0);
-		     gen_jsr("_shortprints");
-		     break;
-
-   case longtype :   gen_pop32d(0);  
-		     gen_jsr("_longprints");
-		     break;
-
-   case singletype : gen_pop32d(0);
-		     gen_jsr("_singleprints");
-		     enter_XREF("_MathBase");
-		     break;
-
-   case stringtype : gen_pop_addr(0);
-		     gen_jsr("_stringprints");
-		     break;
+  case shorttype : gen_call_args("_shortprints","d0.w",0); break;
+  case longtype :  gen_call_args("_longprints","d0",0); break;
+  case singletype :
+	gen_call_args("_singleprints","d0",0);
+	enter_XREF("_MathBase");
+	break;
+  case stringtype : gen_call_args("_stringprints","a0",0); break;
   }
 
   if (exprtype != stringtype) gen_printscode(SPACE_CODE); /* trailing space

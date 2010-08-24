@@ -524,10 +524,7 @@ CODE *cx[5];
 
     case stringtype : 	/* copy source to temp string */
         		gen_pop_addr(2); /* 2nd */
-        		gen_pop_addr(1); /* 1st */
-			make_temp_string();
-        		gen_load_addr(tempstrname,0);
-        		gen_jsr("_strcpy");
+        		gen_call_args("_strcpy","a1,t0",0);
         		/* prepare for strcat */
         		gen_load_addr(tempstrname,0);
         		gen_move32aa(2,1);
@@ -672,25 +669,16 @@ CODE *cx[5];
 	  gen_libcall("SPCmp","Math");
 	  break;
 
-    case stringtype : 	gen_pop_addr(1);  /* addr of 2nd string */
-			gen_pop_addr(0);  /* addr of 1st string */
-			switch(op)
-			{
-			 case equal     : gen_jsr("_streq");
-					  break;
-			 case notequal  : gen_jsr("_strne");
-					  break;
-			 case lessthan  : gen_jsr("_strlt");
-					  break;
-			 case gtrthan   : gen_jsr("_strgt");
-					  break;
-			 case ltorequal : gen_jsr("_strle");
-					  break;
-			 case gtorequal : gen_jsr("_strge");
-					  break;
-			}
-			gen_push32d(0); /* push boolean result */
-			break;
+    case stringtype :
+	  switch(op) {
+	  case equal     : gen_call_args("_streq","a1,a0:d0",0); break;
+	  case notequal  : gen_call_args("_strne","a1,a0:d0",0); break;
+	  case lessthan  : gen_call_args("_strlt","a1,a0:d0",0); break;
+	  case gtrthan   : gen_call_args("_strgt","a1,a0:d0",0); break;
+	  case ltorequal : gen_call_args("_strle","a1,a0:d0",0); break;
+	  case gtorequal : gen_call_args("_strge","a1,a0:d0",0); break;
+	  }
+	  break;
     }
 
     /* leave result on stack according to operator (-1 = true, 0 = false) */
@@ -875,15 +863,9 @@ CODE *cx[5];
     if (ortype != notype)
     {
      pop_operands(ortype);
-     if (ortype == shorttype) 
-	   {
-         gen_jsr("_eqvw");
-	   }
-     else 
-       {
-         gen_jsr("_eqvl");
-       }
-      push_result(ortype);
+     if (ortype == shorttype) gen_jsr("_eqvw");
+     else gen_jsr("_eqvl");
+	 push_result(ortype);
     } else _error(4);
    }
   } else _error(4);
@@ -927,14 +909,8 @@ CODE *cx[5];
     if (eqvtype != notype)
     {
      pop_operands(eqvtype);
-     if (eqvtype == shorttype) 
-     {
-         gen_jsr("_impw");
-     }
-     else 
-       {
-         gen_jsr("_impl");
-       }
+     if (eqvtype == shorttype) gen_jsr("_impw");
+     else gen_jsr("_impl");
      push_result(eqvtype);
     } else _error(4);
    }
@@ -944,68 +920,46 @@ CODE *cx[5];
  return(localtype);
 }
 
-void pop_operands(typ)
-int typ;
-{
-     if (typ == shorttype)
-     {
-      gen_pop16d(0);  /* 2nd operand */
-      gen_pop16d(1);  /* 1st operand -> d0 = d1 op d0 */
-     }
-     else
-     {  
-      gen_pop32d(0);  /* 2nd operand */
-      gen_pop32d(1);  /* 1st operand -> d0 = d1 op d0 */
-     } 
+void pop_operands(int typ) {
+  if (typ == shorttype) {
+	gen_pop16d(0);  /* 2nd operand */
+	gen_pop16d(1);  /* 1st operand -> d0 = d1 op d0 */
+  } else {
+	gen_pop32d(0);  /* 2nd operand */
+	gen_pop32d(1);  /* 1st operand -> d0 = d1 op d0 */
+  } 
 }
 
-void push_result(typ)
-int typ;
-{
- if (typ == shorttype)
-    gen_push16d(0);
- else
-    gen_push32d(0);
+void push_result(int typ) {
+ if (typ == shorttype) gen_push16d(0);
+ else gen_push32d(0);
 }
 
-void gen_round(type)
-int type;
-{  
+void gen_round(int type) {  
 /*
 ** Convert float to integer
 ** with rounding.
 */
-  gen_pop32d(0);
-  gen_jsr("_round");
-  gen_push32d(0);
+  gen_call_args("_round","d0:d0",0);
   enter_XREF("_MathBase");
 
   /*
   ** Only relevant when called from
   ** assign_coerce() and STOREType=shorttype.
   */
-  if (type == shorttype)
-  {
+  if (type == shorttype) {
    gen_pop32d(0);
    gen_push16d(0);
   }
 }  
  
-void gen_Flt(typ)
-int typ;
-{
+void gen_Flt(int typ) {
 /* convert an integer to a single-precision float */
   if (typ == singletype) return;  /* already a float! */
-
   if (typ == stringtype) _error(4); /* can't do it */
-
-  if (typ == shorttype)
-     gen_pop16d(0);
-  else
-     gen_pop32d(0);
-
+  if (typ == shorttype) gen_pop16d(0);
+  else gen_pop32d(0);
   if (typ == shorttype) gen("ext.l","d0","  "); /* extend sign */
-
   gen_libbase("Math");
   gen_libcall("SPFlt","Math");
   gen_push32d(0);
@@ -1028,33 +982,23 @@ CODE *cx[];
   enter_XREF("_MathBase");
 }
 
-int make_integer(oldtyp)
-int oldtyp;
-{
+int make_integer(int oldtyp) {
  if (oldtyp == stringtype) return(notype); /* can't do it! */
- else
- if (oldtyp == singletype) 
- { 
+ else if (oldtyp == singletype) { 
   gen_round(oldtyp);
   return(longtype); 
  }
- else
  return(oldtyp);  /* already an integer */
 }
 
-int make_sure_short(type)
-int type;
-{
+int make_sure_short(int type) {
  if (type == longtype) make_short();
- else
- if (type == singletype) { make_integer(type); make_short(); }
- else
-   if (type == stringtype) { _error(4); return undefined; }
+ else if (type == singletype) { make_integer(type); make_short(); }
+ else if (type == stringtype) { _error(4); return undefined; }
  return shorttype;
 }
 
-int gen_pop_as_short(int type, unsigned char reg)
-{
+int gen_pop_as_short(int type, unsigned char reg) {
   if (type == singletype) type = make_integer(type);
   if (type == longtype) gen_pop32d(reg);
   else if (type == shorttype) { gen_pop16d(reg); }
@@ -1062,12 +1006,8 @@ int gen_pop_as_short(int type, unsigned char reg)
   return shorttype;
 }
 
-void make_sure_long(type)
-int type;
-{
- if (type == shorttype) make_long();
- else
- if (type == singletype) make_integer(type);
- else
- if (type == stringtype) _error(4);
+void make_sure_long(int type) {
+ if      (type == shorttype) make_long();
+ else if (type == singletype) make_integer(type);
+ else if (type == stringtype) _error(4);
 }

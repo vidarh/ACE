@@ -242,15 +242,55 @@ void gen_gfxcall(const char * lvo)
   gen_libcall(lvo,"Gfx");
 }
 
-void gen_call(const char * label, unsigned int stack_adjust)
+/* Pop an argument off the statck.
+ * d[0-7] => data registers
+ * a[0-7] => address registers
+ * t[0-7] => Create a temporary string, load into address register
+ */
+static char * gen_pop_arg(char * args)
 {
-  gen_jsr(label);
-  if (stack_adjust > 0) gen_pop_ignore(stack_adjust);
-  gen_push32d(0);
+  if (*args == 'd') {
+	if (args[2] == '.') {
+	  if (args[3] == 'w') gen_pop16d(args[1] - '0');
+	  args += 4;
+	} else {
+	  gen_pop32d(args[1] - '0');
+	  args += 2;
+	}
+  } else if (*args == 'a') {
+	gen_pop_addr(args[1] - '0');
+	args += 2;
+  } else if (*args == 't') {
+	load_temp_string(args[1] - '0');
+	args += 2;
+  } else args += 1;
+  return args;
 }
 
-void gen_call_void(const char * label, unsigned int stack_adjust)
+static char * gen_push_ret(char * args)
 {
+  if (*args != ':') return;
+  args += 1;
+  if (*args == 'd') {
+	if (args[2] == '.') {
+	  if (args[3] == 'w') gen_push16d(args[1] - '0');
+	} else {
+	  gen_push32d(args[1] - '0');
+	}
+  } else if (*args == 'a') {
+	gen_push_addr(args[1] - '0');
+  }
+  return args;
+}
+
+/* Note: Arguments are listed in the order to be popped off the stack,
+ * which is generally the opposite of the normal order */
+void gen_call_args(const char * label, const char * args, unsigned int stack)
+{
+  while (*args && args[0] != ':') {
+	args = gen_pop_arg(args);
+  }
   gen_jsr(label);
-  if (stack_adjust > 0) gen_pop_ignore(stack_adjust);
+  if (stack > 0) gen_pop_ignore(stack);
+  gen_push_ret(args);
 }

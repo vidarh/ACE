@@ -322,58 +322,48 @@ BOOL need_symbol;
     		 strcat(func_address,"(a6)");
     		 gen_jsr(func_address);
 
-		 if (fact_item->type == shorttype)
-		    gen_push16d(0);
-		 else
-		    gen_push32d(0); /* push return value */
+			 if (fact_item->type == shorttype) gen_push16d(0);
+			 else gen_push32d(0); /* push return value */
 
-                 if (restore_a4) 
-                    { gen_load32a("_a4_temp",4); restore_a4=FALSE; }
-                 if (restore_a5) 
-                    { gen_load32a("_a5_temp",5); restore_a5=FALSE; }
+			 if (restore_a4) { gen_load32a("_a4_temp",4); restore_a4=FALSE; }
+			 if (restore_a5) { gen_load32a("_a5_temp",5); restore_a5=FALSE; }
 
   		 ftype=fact_item->type;
    		 insymbol();
    		 return(ftype);
 	        }		 
   		else
-	        if (obj == extfunc)
-                {
-		 /* external function call */
-		 insymbol();
-	         call_external_function(ext_name,&need_symbol);
-		 /* push return value */
-		 if (fact_item->type == shorttype)
-		    gen_push16d(0);
-		 else
-		    gen_push32d(0);
-		 ftype=fact_item->type;
-		 if (need_symbol) insymbol();
-		 return(ftype);
-		}
- 		else
-                if (obj == array)
-                {
-		 push_indices(fact_item);
-	  	 get_abs_ndx(fact_item);
-		 gen("move.l",srcbuf,"a0");
+		  if (obj == extfunc) {
+			/* external function call */
+			insymbol();
+			call_external_function(ext_name,&need_symbol);
+			/* push return value */
+			if (fact_item->type == shorttype) gen_push16d(0);
+			else gen_push32d(0);
+			ftype=fact_item->type;
+			if (need_symbol) insymbol();
+			return(ftype);
+		  } else
+			if (obj == array) {
+			  push_indices(fact_item);
+			  get_abs_ndx(fact_item);
+			  gen("move.l",srcbuf,"a0");
 
-		 if (arraytype == stringtype)
-		 {
-		  /* push start address of string within BSS object */
-		  gen("adda.l","d7","a0");
-		  gen_push_addr(0);
-		 }   
- 		 else
-		 if (arraytype == shorttype)
-		    gen("move.w","0(a0,d7.L)","-(sp)");
-		 else
-		    gen("move.l","0(a0,d7.L)","-(sp)");
+			  if (arraytype == stringtype) {
+				/* push start address of string within BSS object */
+				gen("adda.l","d7","a0");
+				gen_push_addr(0);
+			  }   
+			  else
+				if (arraytype == shorttype)
+				  gen("move.w","0(a0,d7.L)","-(sp)");
+				else
+				  gen("move.l","0(a0,d7.L)","-(sp)");
 
-   		 ftype=arraytype;  /* typ killed by push_indices()! */
-   		 insymbol();
-   		 return(ftype);
-		}
+			  ftype=arraytype;  /* typ killed by push_indices()! */
+			  insymbol();
+			  return(ftype);
+			}
   		break;
 
   case lparen : insymbol();
@@ -400,23 +390,20 @@ BOOL need_symbol;
 
   /* parameterless functions */
 
-  case argcountsym : gen_jsr("_argcount");
-		     gen_push32d(0);
-		     ftype=longtype;
-		     cli_args=TRUE;
-		     insymbol();
-		     return(ftype);
-		     break;
+  case argcountsym : gen_call_args("_argcount",":d0",0);
+	ftype=longtype;
+	cli_args=TRUE;
+	insymbol();
+	return(ftype);
+	break;
 
-  case csrlinsym  : gen_jsr("_csrlin");
-		    gen_push16d(0);
-		    ftype=shorttype;
-		    insymbol();
-		    return(ftype);
-		    break;
+  case csrlinsym  : gen_call_args("_csrlin",":d0.w",0);
+	ftype=shorttype;
+	insymbol();
+	return(ftype);
+	break;
  
-  case datestrsym : gen_jsr("_date");
-		    gen_push32d(0);
+  case datestrsym : gen_call_args("_date",":d0",0);
 		    ftype=stringtype;
 		    insymbol();
 		    return(ftype);
@@ -477,8 +464,7 @@ BOOL need_symbol;
 		  else
 		      insymbol();
 		}
-		gen_jsr("_rnd");
-		gen_push32d(0);
+		gen_call_args("_rnd",":d0",0);
 		enter_XREF("_MathBase"); /* make sure mathffp lib is open */
 		ftype=singletype;
 		return(ftype);

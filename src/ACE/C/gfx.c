@@ -141,64 +141,49 @@ BOOL colorset=FALSE;
      }
 }
 
-void paint()
-{
-BOOL paintcolor=FALSE;
-BOOL bordercolor=FALSE;
+void paint() {
+  BOOL paintcolor=FALSE;
+  BOOL bordercolor=FALSE;
 
  /* PAINT (X,Y)[,paintcolor-id[,bordercolor-id]] */
 
  insymbol();
  if (sym != lparen) _error(14);
- else
- {
+ else {
   insymbol();
   make_sure_short(expr()); /* X */
 
   if (sym != comma) _error(16);
-  else
-  {
+  else {
    insymbol();
    make_sure_short(expr()); /* Y */
    
    if (sym != rparen) _error(9);
-   else
-   {
+   else {
     insymbol();
-    if (sym == comma) 
-    {
-     insymbol();
-
-     if (sym != comma)
-     {
-      make_sure_short(expr()); /* paintcolor-id */
-      paintcolor=TRUE;
-     }
+    if (sym == comma) {
+	  insymbol();
+	  
+	  if (sym != comma) {
+		make_sure_short(expr()); /* paintcolor-id */
+		paintcolor=TRUE;
+	  }
      
-     if (sym == comma)
-     {
-      insymbol();
-      make_sure_short(expr()); /* bordercolor-id */
-      bordercolor=TRUE;
+	  if (sym == comma) {
+		insymbol();
+		make_sure_short(expr()); /* bordercolor-id */
+		bordercolor=TRUE;
      }
     }
    }
    /* pop parameters */
-   if (bordercolor)
-      gen_pop16d(3);
-   else
-      gen("moveq","#-1","d3");  /* flag no border color-id */
+   if (bordercolor) gen_pop16d(3);
+   else gen("moveq","#-1","d3");  /* flag no border color-id */
 
-   if (paintcolor)
-      gen_pop16d(2);
-   else
-      gen("moveq","#-1","d2");  /* flag no paint color-id */
+   if (paintcolor) gen_pop16d(2);
+   else gen("moveq","#-1","d2");  /* flag no paint color-id */
 
-   gen_pop16d(1);  /* Y */
-   gen_pop16d(0);  /* X */
-   
-   /* call paint routine */
-   gen_jsr("_paint");
+   gen_call_args("_paint","d1.w,d0.w",0);
   }
  }
 }

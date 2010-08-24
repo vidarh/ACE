@@ -563,9 +563,7 @@ void MsgBox()
 	  else {
 		/* no second button! (pass NULL) */
 		gen_push32_val(0);
-		
-		/* call the function */
-		gen_call_void("_sysrequest",12);
+		gen_call_args("_sysrequest",":d0.w",12);
 	  }
 	}
   }
