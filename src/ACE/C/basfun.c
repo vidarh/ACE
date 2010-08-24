@@ -103,6 +103,19 @@ BOOL strfunc()
  return(FALSE);
 }
 
+void load_temp_string(unsigned char reg)
+{
+  make_temp_string();
+  gen_load_addr(tempstrname,reg);
+}
+
+void gen_call(const char * label, unsigned int stack_adjust)
+{
+  gen_jsr(label);
+  if (stack_adjust > 0) gen_pop_ignore(stack_adjust);
+  gen_push32d(0);
+}
+
 int stringfunction()
 {
 int  func;
@@ -156,9 +169,7 @@ BOOL offset_on_stack;
 			 /* destination buffer */
 			 make_temp_string();  	
 			 gen("pea",tempstrname,"  ");
-			 gen_jsr("_arg");
-			 gen_pop_ignore(8);
-			 gen_push32d(0);
+			 gen_call("_arg",8);
 			 cli_args=TRUE;
 			 sftype=stringtype;
 			}
@@ -180,8 +191,7 @@ BOOL offset_on_stack;
     case binstrsym  :	if (sftype != stringtype)
 			{
 			  make_sure_long(sftype);
-			 make_temp_string();
-			 gen_load_addr(tempstrname,0);
+			 load_temp_string(0);
 			 gen_pop32d(0); /* long argument */
 			 gen_jsr("_binstr");
 			 gen_push_addr(0); /* push string result */
@@ -208,10 +218,8 @@ BOOL offset_on_stack;
 				}
 				else
 					gen_push32_val(0);
-	
-				gen_jsr("_filerequest");
-				gen_pop_ignore(8);
-				gen_push32d(0);
+				
+				gen_call("_filerequest",8);
 				sftype=stringtype;
 			 }
 			 else 
@@ -222,24 +230,23 @@ BOOL offset_on_stack;
     case hexsym  :	if (sftype != stringtype)
 			{
 			 sftype = make_integer(sftype);
-			 make_temp_string();
-			 gen_load_addr(tempstrname,0);
+			 load_temp_string(0);
 			 if (sftype == longtype)
-			 {
-			  gen_pop32d(0);
-			  gen_jsr("_hexstrlong");
-			 }
+			   {
+				 gen_pop32d(0);
+				 gen_jsr("_hexstrlong");
+			   }
 			 else
-			  /* shorttype */
-			  {
-			   gen_pop16d(0);
-			   gen_jsr("_hexstrshort");
-			  }
-			  gen_push_addr(0);  /* push string result */
-			  sftype=stringtype;
-			 }
-			 else { _error(4); sftype=undefined; }
-			 break;
+			   /* shorttype */
+			   {
+				 gen_pop16d(0);
+				 gen_jsr("_hexstrshort");
+			   }
+			 gen_push_addr(0);  /* push string result */
+			 sftype=stringtype;
+			}
+	       else { _error(4); sftype=undefined; }
+	       break;
 			  
     /* INPUTBOX and INPUTBOX$ */
     case inputboxsym :
@@ -292,17 +299,13 @@ BOOL offset_on_stack;
 			   if (func == inputboxsym)
 			   {
 				/* INPUTBOX */
-				gen_jsr("_longint_input_box");
-				gen_pop_ignore(20);
-				gen_push32d(0);
+				gen_call("_longint_input_box",20);
 				sftype = longtype;
 			   }
 			   else
 			   {
 				/* INPUTBOX$ */
-				gen_jsr("_string_input_box");
-				gen_pop_ignore(20);
-				gen_push32d(0);
+				gen_call("_string_input_box",20);
 				sftype = stringtype;
 			   }
 
@@ -328,9 +331,7 @@ BOOL offset_on_stack;
 
 		       	gen_pop32d(0);  /* pop filenumber */
 		        gen_pop32d(1);  /* pop no. of characters */
-		       	gen_jsr("_inputstrfromfile");
-		       	gen_push32d(0);  /* push string result */
-
+		       	gen_call("_inputstrfromfile",0);
 		       	sftype=stringtype;
 		       }
 		       else { _error(4); sftype=undefined; }
@@ -360,16 +361,15 @@ BOOL offset_on_stack;
 			  insymbol();			 
 			  if (expr() == stringtype)
 			  {
-			   gen_pop_addr(1);		/* Y$ */
-			   gen_pop_addr(0);		/* X$ */
-			   if (offset_on_stack) 
+				gen_pop_addr(1);		/* Y$ */
+				gen_pop_addr(0);		/* X$ */
+				if (offset_on_stack) 
 			      gen_pop32d(0);	/* I */
 			   else
 			      gen("moveq","#1","d0");		/* I=1 */
 			   
 			   /* call INSTR */
-			   gen_jsr("_instr");
-			   gen_push32d(0);	/* posn of Y$ in X$ */
+			   gen_call("_instr",0); /* returns posn of Y$ in X$ */
 			   sftype=longtype;
 			  }
 			  else { _error(4); sftype=undefined; }
@@ -388,8 +388,7 @@ BOOL offset_on_stack;
 			  make_sure_short(expr());
 			  gen_pop16d(0);  /* index */
 			  gen_pop_addr(0);  /* string */
-			  make_temp_string();
-			  gen_load_addr(tempstrname,1);
+			  load_temp_string(1);
 			  gen_jsr("_leftstr");
 			  gen_push_addr(0);  /* addr of left$ */
 			  sftype=stringtype;
@@ -403,8 +402,7 @@ BOOL offset_on_stack;
     case lensym  : if (sftype == stringtype) 
 			{
 			 gen_pop_addr(2);
-			 gen_jsr("_strlen");
-			 gen_push32d(0);
+			 gen_call("_strlen",0);
 			 sftype=longtype;
 			}
 			else { _error(4); sftype=undefined; }	 
@@ -414,12 +412,11 @@ BOOL offset_on_stack;
     case octstrsym:if (sftype != stringtype)
 	  {
 			  make_sure_long(sftype);
-			 make_temp_string();
-			 gen_load_addr(tempstrname,0);
-			 gen_pop32d(0); /* long argument */
-			 gen_jsr("_octstr");
-			 gen_push_addr(0); /* push string result */
-			 sftype=stringtype;
+			  load_temp_string(0);
+			  gen_pop32d(0); /* long argument */
+			  gen_jsr("_octstr");
+			  gen_push_addr(0); /* push string result */
+			  sftype=stringtype;
 			 }
 			 else { _error(4); sftype=undefined; }
 			 break;
@@ -433,8 +430,7 @@ BOOL offset_on_stack;
 			  make_sure_short(expr());
 			  gen_pop16d(0);  /* index */
 			  gen_pop_addr(0);  /* string */
-			  make_temp_string();
-			  gen_load_addr(tempstrname,1);
+			  load_temp_string(1);
 		   	  gen_jsr("_rightstr");
 			  gen_push_addr(0);  /* addr of right$ */
 			  sftype=stringtype;
@@ -456,13 +452,9 @@ BOOL offset_on_stack;
 			{
 			 make_sure_short(sftype);
 			 gen_pop16d(0);
-			 make_temp_string();
-			 gen_load_addr(tempstrname,0);
-			 if (func == spacestrsym)
-			   	gen_jsr("_spacestring");
-			 else
-				gen_jsr("_spc");
-			 gen_push32d(0);
+			 load_temp_string(0);
+			 if (func == spacestrsym) gen_call("_spacestring",0);
+			 else gen_call("_spc",0);
 			 sftype=stringtype;
 			}
 			else { _error(4); sftype=undefined; }
@@ -471,8 +463,7 @@ BOOL offset_on_stack;
     /* STR$ */
     case strstrsym :	if (sftype != stringtype)
 			{
-			 make_temp_string();
-			 gen_load_addr(tempstrname,0);
+			 load_temp_string(0);
 			 if (sftype == longtype)
 			 {
 			  gen_pop32d(0);
@@ -489,10 +480,8 @@ BOOL offset_on_stack;
 			  else
 			   if (sftype == singletype)
 			   {
-			    gen_jsr("_strsingle");
-			    gen_pop_ignore(4);
-			    gen_push32d(0); /* push string result */
-			    enter_XREF("_MathBase");
+				 gen_call("_strsingle",4);
+				 enter_XREF("_MathBase");
 			   }
 			  sftype=stringtype;
 			 }
@@ -520,16 +509,14 @@ BOOL offset_on_stack;
 			  else
 			  {
 				make_sure_long(ntype);
-			   gen_pop32d(1);	/* J */			
+				gen_pop32d(1);	/* J */			
 			  }
-
+			  
 			  gen_pop16d(0);  /* I */
 
 			  /* call STRING$ */
-			  make_temp_string();
-			  gen_load_addr(tempstrname,0);
-			  gen_jsr("_stringstr");
-			  gen_push32d(0);	/* push string result */
+			  load_temp_string(0);
+			  gen_call("_stringstr",0);
 			  sftype=stringtype;
 			 }
 			 else { _error(16); sftype=undefined; }
@@ -560,8 +547,7 @@ BOOL offset_on_stack;
 	   	
 			   gen_pop16d(0);  /* start posn */
 			   gen_pop_addr(0);  /* string */
-			   make_temp_string();
-			   gen_load_addr(tempstrname,1);
+			   load_temp_string(1);
 			   gen_jsr("_midstr");
 			   gen_push_addr(0);  /* addr of mid$ */
 			   sftype=stringtype;
@@ -580,8 +566,7 @@ BOOL offset_on_stack;
     case translatestrsym :if (sftype == stringtype)
 			  {
 			   gen_pop_addr(0); /* instr */
-			   make_temp_string();
-			   gen_load_addr(tempstrname,1); /* outstr */
+			   load_temp_string(1); /* outstr */
 			   gen_move32aa(0,2);
 			   gen_jsr("_strlen"); /* inlen in d0 */
 			   sprintf(srcbuf,"#%d",MAXSTRLEN); /* #MAXSTRLEN */
@@ -598,8 +583,7 @@ BOOL offset_on_stack;
     case ucasestrsym  :	if (sftype == stringtype) 
 			{
 			 gen_pop_addr(1);
-		   	 make_temp_string();
-			 gen_load_addr(tempstrname,0); /* result buffer */
+		   	 load_temp_string(0); /* Result buffer */
 			 gen_jsr("_ucase");
 			 gen_push_addr(0);
 			 sftype=stringtype;
@@ -610,9 +594,7 @@ BOOL offset_on_stack;
     /* VAL */
     case valsym :	if (sftype == stringtype)
 			{
-			 gen_jsr("_val"); /* string is on the stack */
-			 gen_pop_ignore(4);
-			 gen_push32d(0);
+			 gen_call("_val",4); /* string is on the stack */
 			 enter_XREF("_MathBase");  /* _val needs math libs */
 			 enter_XREF("_MathTransBase");
 			 sftype=singletype;
@@ -748,16 +730,14 @@ char varptr_obj_name[MAXIDSIZE];
          	     if (nftype == longtype)
          	     {
            		gen_pop32d(0);
-   	   		gen_jsr("_absl");
-   	   		gen_push32d(0);
+   	   		gen_call("_absl",0);
          	     }
          	     else
          	     if (nftype == singletype)
          	     {
            		gen_pop32d(0);
-   	   		gen_jsr("_absf");
-   	   		gen_push32d(0);
-			enter_XREF("_MathBase");
+				gen_call("_absf",0);
+				enter_XREF("_MathBase");
          	     }
          	     else { _error(4); nftype=undefined; }
          	     break;
@@ -785,9 +765,7 @@ char varptr_obj_name[MAXIDSIZE];
 			 }
 
 			 /* call ACEalloc() function */
-			 gen_jsr("_ACEalloc");
-			 gen_pop_ignore(8);
-			 gen_push32d(0);  /* push result */
+			 gen_call("_ACEalloc",8);
 			}
 			else { _error(4); nftype=undefined; }
 			break;
@@ -874,9 +852,7 @@ char varptr_obj_name[MAXIDSIZE];
 	 /* GADGET */
 	 case gadgetsym :
 			  make_sure_long(nftype);
-			  gen_jsr("_GadFunc");
-			  gen_pop_ignore(4);
-			  gen_push32d(0);
+			  gen_call("_GadFunc",4);
 			  nftype=longtype;
 			  break;
 
@@ -902,10 +878,7 @@ char varptr_obj_name[MAXIDSIZE];
 			   {
 			    insymbol();
 			    make_sure_long(expr());
-			    gen_jsr("_iff_func");
-			    gen_pop_ignore(8);
-			    gen_push32d(0);	/* push return value */
-			
+			    gen_call("_iff_func",8);
 			    nftype = longtype;
 			   }
 			   else { _error(16); nftype=undefined; }
@@ -937,9 +910,7 @@ char varptr_obj_name[MAXIDSIZE];
 			 check_for_event();
 
 			 make_sure_long(nftype);
-			 gen_jsr("_FilePosition");
-			 gen_pop_ignore(4);
-			 gen_push32d(0);
+			 gen_call("_FilePosition",4);
 			 nftype=longtype;
 			}
 			else { _error(4); nftype=undefined; } 
@@ -961,9 +932,7 @@ char varptr_obj_name[MAXIDSIZE];
 	 /* LONGINT */
 	 case longintsym: if (nftype == stringtype)
 			  {	
-				gen_jsr("_long_from_string");
-				gen_pop_ignore(4);
-				gen_push32d(0);
+				gen_call("_long_from_string",4);
 				nftype=longtype;
 			  }
 			  else { _error(4); nftype=undefined; }
@@ -973,10 +942,8 @@ char varptr_obj_name[MAXIDSIZE];
 	 case menusym : if (nftype != stringtype)
 			{
 			  make_sure_long(nftype);
-				gen_jsr("_MenuFunc");
-				gen_pop_ignore(4);
-				gen_push32d(0);
-				nftype=longtype;
+			  gen_call("_MenuFunc",4);
+			  nftype=longtype;
 			}
 			else { _error(4); nftype=undefined; }
 			break;
@@ -1233,9 +1200,7 @@ char varptr_obj_name[MAXIDSIZE];
 	 case saysym	: if (nftype != stringtype)
 			  {
 				make_sure_long(nftype);
-				gen_jsr("_sayfunc");
-				gen_pop_ignore(4);
-				gen_push32d(0);
+				gen_call("_sayfunc",4);
 				nftype=longtype;
 			  }
 			  else { _error(4); nftype=undefined; }
@@ -1245,10 +1210,8 @@ char varptr_obj_name[MAXIDSIZE];
 	 case screensym : if (nftype != stringtype)
 			  {
 				make_sure_long(nftype);
-			   gen_jsr("_screenfunc");
-			   gen_pop_ignore(4);
-			   gen_push32d(0);
-			   nftype=longtype;
+				gen_call("_screenfunc",4);
+				nftype=longtype;
 			  }
 			  else { _error(4); nftype=undefined; }
 			  break;
