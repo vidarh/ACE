@@ -117,9 +117,8 @@ int storetype,exptype;
  return(storetype);  /* could be bytetype (for struct member) */
 }
 
-void make_string_store()
-{
-char numbuf[40];
+void make_string_store() {
+  char numbuf[40];
 
  itoa(strstorecount++,numbuf,10);
  strcpy(strstorename,"_stringstore");

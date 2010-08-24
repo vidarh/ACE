@@ -109,6 +109,16 @@ void load_temp_string(unsigned char reg)
   gen_load_addr(tempstrname,reg);
 }
 
+void opt_arg(int type) {
+  if (sym == comma) {
+	insymbol();
+	if (sym != comma) {
+	  if (type == longtype) make_sure_long(expr());
+	  else if (expr() != type) _error(4);
+	} else gen_push32_val(0);
+  } else gen_push32_val(0);
+}
+
 int stringfunction()
 {
 int  func;
@@ -154,136 +164,79 @@ BOOL offset_on_stack;
         		break;
 
     /* ARG$ */
-    case argstrsym  :	if (sftype != stringtype)
-			{
-			 /* argument number */
-			  make_sure_long(sftype);
-			 /* destination buffer */
-			 make_temp_string();  	
-			 gen("pea",tempstrname,"  ");
-			 gen_call("_arg",8);
-			 cli_args=TRUE;
-			 sftype=stringtype;
-			}
-			else { _error(4); sftype=undefined; }
-			break;
+    case argstrsym  :
+	  make_sure_long(sftype); /* argument number */
+	  make_temp_string();  	/* destination buffer */
+	  gen("pea",tempstrname,"  ");
+	  gen_call("_arg",8);
+	  cli_args=TRUE;
+	  sftype=stringtype;
+	  break;
 
     /* ASC */
-    case ascsym  :	if (sftype == stringtype) 
-			{
-			 gen_call_args("_asc","a2 : d0.w",0);
-			 sftype=shorttype;
-			}
-			else { _error(4); sftype=undefined; }	 
-   			break;
+    case ascsym  :	
+	  if (sftype == stringtype) {
+		gen_call_args("_asc","a2 : d0.w",0);
+		sftype=shorttype;
+	  } else { _error(4); sftype=undefined; }	 
+	  break;
 
     /* BIN$ */
-    case binstrsym  :	if (sftype != stringtype)
-			{
-			  make_sure_long(sftype);
-			 load_temp_string(0);
-			 gen_call_args("_binstr","d0 : a0",0);
-			 sftype=stringtype;
-			 }
-			 else { _error(4); sftype=undefined; }
-			 break;
+    case binstrsym  :	
+	  make_sure_long(sftype);
+	  gen_call_args("_binstr","t0,d0 : a0",0);
+	  sftype=stringtype;
+	  break;
 
     /* CSTR */
-    case cstrsym : if ((sftype == stringtype) || (sftype == longtype))
-		      sftype=stringtype;
-	      	   else
-		      { _error(4); sftype=undefined; }
-		   break;
+    case cstrsym : 
+	  if ((sftype == stringtype) || (sftype == longtype)) sftype=stringtype;
+	  else { _error(4); sftype=undefined; }
+	  break;
 
     /* FILEBOX$ */
-    case fileboxstrsym : if (sftype == stringtype)  /* title */
-			 {
-				/* default directory? */
-			   if (sym == comma) {
-				 insymbol();
-				 if (expr() != stringtype) _error(4);
-			   } else gen_push32_val(0);
-			   gen_call("_filerequest",8);
-			   sftype=stringtype;
-			 } else { _error(4); sftype=undefined; }
-			 break;
+    case fileboxstrsym : 
+	  if (sftype == stringtype) {  /* title */
+		/* default directory? */
+		if (sym == comma) {
+		  insymbol();
+		  if (expr() != stringtype) _error(4);
+		} else gen_push32_val(0);
+		gen_call("_filerequest",8);
+		sftype=stringtype;
+	  } else { _error(4); sftype=undefined; }
+	  break;
 
     /* HEX$ */
-    case hexsym  :	if (sftype != stringtype)
-			{
-			 sftype = make_integer(sftype);
-			 load_temp_string(0);
-			 if (sftype == longtype) gen_call_args("_hexstrlong","d0 : a0",0);
-			 else gen_call_args("_hexstrshort","d0.w : a0",0);
-			 sftype=stringtype;
-			}
-	       else { _error(4); sftype=undefined; }
-	       break;
+    case hexsym  :	
+	  if (sftype != stringtype) {
+		sftype = make_integer(sftype);
+		if (sftype == longtype) gen_call_args("_hexstrlong","t0,d0 : a0",0);
+		else gen_call_args("_hexstrshort","t0,d0.w : a0",0);
+		sftype=stringtype;
+	  }
+	  else { _error(4); sftype=undefined; }
+	  break;
 			  
     /* INPUTBOX and INPUTBOX$ */
     case inputboxsym :
-    case inputboxstrsym : if (sftype == stringtype) 	/* prompt */ 	
-			  {				
-			   /* all other parameters are optional */
+    case inputboxstrsym : 
+	  if (sftype == stringtype) { 	/* prompt */ 	
+		/* all other parameters are optional */
+		opt_arg(stringtype); /* title */
+		opt_arg(stringtype); /* default value */
+		opt_arg(longtype);   /* xpos */
+		opt_arg(longtype);   /* ypos */
 
-			   if (sym == comma) 		/* title */
-			   {
-				insymbol();
-				if (sym != comma)
-				{
-					if (expr() != stringtype) _error(4);
-				}
-				else
-					gen_push32_val(0);
-			   }
-			   else 
-				gen_push32_val(0); 
-
-			   if (sym == comma)		/* default value */
-			   {
-				insymbol();
-				if (sym != comma)
-				{
-					if (expr() != stringtype) _error(4);
-				}
-				else gen_push32_val(0);
-			   } else gen_push32_val(0);
-
-			   if (sym == comma)		/* xpos */
-			   {
-				insymbol();
-				if (sym != comma) make_sure_long(expr());
-				else gen_push32_val(0);
-			   }
-			   else 
-				gen_push32_val(0);
-
-			   if (sym == comma)		/* ypos */
-			   {
-				insymbol();
-				if (sym != comma) make_sure_long(expr());
-				else gen_push32_val(0);
-			   }
-			   else 
-				gen_push32_val(0);
-
-			   /* which function? */
-			   if (func == inputboxsym)
-			   {
-				/* INPUTBOX */
-				gen_call("_longint_input_box",20);
-				sftype = longtype;
-			   }
-			   else
-			   {
-				/* INPUTBOX$ */
-				gen_call("_string_input_box",20);
-				sftype = stringtype;
-			   }
-
-			  }
-			  else { _error(4); sftype=undefined; }
-			  break;
+		if (func == inputboxsym) { /* INPUTBOX */
+		  gen_call("_longint_input_box",20);
+		  sftype = longtype;
+		} else { /* INPUTBOX$ */
+		  gen_call("_string_input_box",20);
+		  sftype = stringtype;
+		}
+	  } else { _error(4); sftype=undefined; }
+	  break;
 			 
     /* INPUT$(X,[#]filenumber) */
     case inputstrsym : 
@@ -653,12 +606,10 @@ char varptr_obj_name[MAXIDSIZE];
 			  /* memory type specification */
 			  insymbol();
 			  nftype=expr();
-			  if (nftype != stringtype)
-			  {
+			  if (nftype != stringtype) {
 				make_sure_long(nftype);
 				nftype=longtype;
-			  }
-			  else { _error(4); nftype=undefined; }
+			  } else { _error(4); nftype=undefined; }
 			 }
 
 			 /* call ACEalloc() function */
@@ -858,16 +809,10 @@ char varptr_obj_name[MAXIDSIZE];
 			   if (sym != comma) { _error(16); nftype=undefined; }
 			   else {
 			    insymbol();
-			    if (expr() == stringtype)   /* response #1 */
-			    {
-				  if (sym == comma) {
-			      insymbol(); 
-			      if (expr() != stringtype) /* response #2 */
-			         { _error(4); nftype=undefined; return 0; }
-			     } else gen_push32_val(0); /* #2 = NULL*/
-			     
-			     gen_call_args("_sysrequest",":d0.w",12);
-			     nftype=shorttype;
+			    if (expr() == stringtype) {  /* response #1 */
+				  opt_arg(stringtype); /* response #2 */
+				  gen_call_args("_sysrequest",":d0.w",12);
+				  nftype=shorttype;
 			    }
 			    else { _error(4); nftype=undefined; }
 			   }
@@ -1268,105 +1213,43 @@ BOOL   found;
 			   else { _error(43); return(undefined); }
 }
 
-int find_object_size()
-{
-/* push the size (in bytes) 
-   of a data object or type 
-   onto the stack. 
-*/
-char numbuf[40];
-int  nftype;
+int find_object_size() {
+  /* push the size (in bytes) 
+	 of a data object or type 
+	 onto the stack. 
+  */
+  char numbuf[40];
+  int   nftype=longtype;
 
- if (sym == ident)
- {
-  /* variable */
-  if (exist(id,variable))
-  {
-   if (curr_item->type == shorttype)
-   {
-    gen_push32_val(2); 
-    nftype=longtype;
+  if (sym == ident) {
+	/* variable */
+	if (exist(id,variable)) {
+	  if (curr_item->type == shorttype)       gen_push32_val(2); 
+	  else if (curr_item->type == longtype)   gen_push32_val(4); 
+	  else if (curr_item->type == singletype) gen_push32_val(4); 
+	  else if (curr_item->type == stringtype) gen_push32_val((long)curr_item->size);
+	} else if (exist(id,array) || exist(id,structdef)) {
+	  /* array variable or structure definition */
+	  gen_push32_val((long)curr_item->size);
+	} else  if (exist(id,structure)) { /* structure variable */
+	  gen_push32_val((long)curr_item->other->size);
+	} else {
+	  _error(43);	 /* undeclared array or variable */
+	  nftype=undefined;
+	}
+  }  else {
+	/* type identifier? */
+   if (sym == bytesym) gen_push32_val(1); 
+   else if (sym == shortintsym) gen_push32_val(2); 
+   else if (sym == longintsym || sym == addresssym) gen_push32_val(4); 
+   else if (sym == singlesym) gen_push32_val(4); 
+   else if (sym == stringsym) gen_push32_val(MAXSTRLEN);
+   else {
+	 /* expected an identifier or type */
+	 _error(60);
+	 nftype=undefined;
    }
-   else
-   if (curr_item->type == longtype)
-   {
-    gen_push32_val(4); 
-    nftype=longtype;
-   }
-   else
-   if (curr_item->type == singletype)
-   {
-    gen_push32_val(4); 
-    nftype=longtype;
-   }
-   else
-   if (curr_item->type == stringtype)
-   {
-    sprintf(numbuf,"#%ld",(long)curr_item->size);
-    gen_push32_var(numbuf); 
-    nftype=longtype;
-   }
-  }
-  else
-  /* array variable or structure definition? */
-  if (exist(id,array) || exist(id,structdef))
-  {
-   sprintf(numbuf,"#%ld",(long)curr_item->size);
-   gen_push32_var(numbuf); 
-   nftype=longtype;
-  }
-  else
-  /* structure variable? */
-  if (exist(id,structure))
-  {  
-   sprintf(numbuf,"#%ld",(long)curr_item->other->size);
-   gen_push32_var(numbuf); 
-   nftype=longtype;
-  }
-  else
-  {
-   _error(43);	 /* undeclared array or variable */
-   nftype=undefined;
-  }
  }
- else
-  /* type identifier? */
-  if (sym == bytesym)
-  {
-   gen_push32_val(1); 
-   nftype=longtype;
-  }
-  else
-  if (sym == shortintsym)
-  {
-   gen_push32_val(2); 
-   nftype=longtype;
-  }
-  else
-  if (sym == longintsym || sym == addresssym)
-  {
-   gen_push32_val(4); 
-   nftype=longtype;
-  }
-  else
-  if (sym == singlesym)
-  {
-   gen_push32_val(4); 
-   nftype=longtype;
-  }
-  else
-  if (sym == stringsym)
-  {
-   sprintf(numbuf,"#%d",MAXSTRLEN);
-   gen_push32_var(numbuf); 
-   nftype=longtype;
-  }
-  else
-  {
-   /* expected an identifier or type */
-   _error(60);
-   nftype=undefined;
-  }
 
  insymbol();
  return(nftype);

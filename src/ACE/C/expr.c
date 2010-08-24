@@ -100,8 +100,7 @@ CODE *cx[];
      return(TRUE); /* both shorttype, longtype or singletype OR notype! */
 }
 
-void make_short()
-{
+void make_short() {
  gen_pop32d(0);
  gen_push16d(0);
 }
