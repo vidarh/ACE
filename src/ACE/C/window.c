@@ -57,116 +57,83 @@ int wtype;
 
  if (sym == onsym || sym == offsym || sym == stopsym)
     change_event_trapping_status(lastsym);
- else
- if (sym == closesym) wdwclose();
- else
- if (sym == outputsym) wdwoutput();
- else
- {
-  /* open a window */
-  if (make_integer(expr()) == shorttype) make_long();      /* Wdw-id */
-  if (sym != comma) _error(16);
-  else
-  {
-   insymbol();
-   if (sym != comma)
-   {
-    wtype=expr();
-    if (wtype != stringtype) _error(4); /* type mismatch */
-   }
-   else
-	gen_push32_val(0);	/* NULL */
-   
+ else if (sym == closesym) wdwclose();
+ else if (sym == outputsym) wdwoutput();
+ else {
+   /* open a window */
+   if (make_integer(expr()) == shorttype) make_long();      /* Wdw-id */
    if (sym != comma) _error(16);
-   else
-   {
-    insymbol();
-    if (sym != lparen) _error(14);
-    else
-    {
-     insymbol();
-     if (make_integer(expr()) == shorttype) make_long();  /* x1 */
-     if (sym != comma) _error(16);
-     else
-     {
-      insymbol();
-      if (make_integer(expr()) == shorttype) make_long();  /* y1 */
-      if (sym != rparen) _error(9);
-      else
-      {
-       insymbol();
-       if (sym != minus) _error(21);
-       else
-       {
-        insymbol();
-        if (sym != lparen) _error(14);
-        else
-        {
-         insymbol(); 
-         if (make_integer(expr()) == shorttype) make_long();  /* x2 */
-         if (sym != comma) _error(16);
-         else
-         {
-          insymbol();
-          if (make_integer(expr()) == shorttype) make_long();  /* y2 */
-          if (sym != rparen) _error(9);
-         }
-
+   else {
 	 insymbol();
+	 if (sym != comma) {
+	   wtype=expr();
+	   if (wtype != stringtype) _error(4); /* type mismatch */
+	 } else gen_push32_val(0);	/* NULL */
 	 
-	 /* optional window type */
-	 if (sym == comma)
-	 {
-		insymbol();
-		if (sym != comma)
-		{
-			if (make_integer(expr()) == shorttype)  make_long();
-		}
-		else
-			gen("move.l","#-1","-(sp)");
+	 if (sym != comma) _error(16);
+	 else {
+	   insymbol();
+	   if (sym != lparen) _error(14);
+	   else {
+		 insymbol();
+		 if (make_integer(expr()) == shorttype) make_long();  /* x1 */
+		 if (sym != comma) _error(16);
+		 else {
+		   insymbol();
+		   make_sure_long(expr()); /* y1 */
+		   if (sym != rparen) _error(9);
+		   else {
+			 insymbol();
+			 if (sym != minus) _error(21);
+			 else {
+			   insymbol();
+			   if (sym != lparen) _error(14);
+			   else {
+				 insymbol(); 
+				 make_sure_long(expr()); /* x2 */
+				 if (sym != comma) _error(16);
+				 else {
+				   insymbol();
+				   make_sure_long(expr()); /* y2 */
+				   if (sym != rparen) _error(9);
+				 }
+				 
+				 insymbol();
+				 
+				 /* optional window type */
+				 if (sym == comma) {
+				   insymbol();
+				   if (sym != comma) make_sure_long(expr());
+				   else gen("move.l","#-1","-(sp)");
+				 } else gen("move.l","#-1","-(sp)");
+				 
+				 /* optional screen-id */
+				 if (sym == comma) {
+				   insymbol();
+				   if (sym != comma) make_sure_long(expr());
+				   else gen_push32_val(0);
+				 } else gen_push32_val(0);		
+				 
+				 /* call open-window routine */
+				 gen_call_void("_OpenWdw",32);
+			   }
+			 }
+		   }
+		 }
+	   }	
 	 }
-	 else
-		gen("move.l","#-1","-(sp)");
-
-	 /* optional screen-id */
-	 if (sym == comma)
-	 {
-		insymbol();
-		if (sym != comma)
-		{
-			if (make_integer(expr()) == shorttype) make_long();
-		}
-		else
-			gen_push32_val(0);
-	 }
-	 else
-		gen_push32_val(0);		
-	 
-	 /* call open-window routine */
-	 gen_jsr("_OpenWdw");
-	 gen_pop_ignore(32);
-        }
-       }
-      }
-     }
-    }	
    }
-  }
  }
 }
 
-void wdwclose()
-{
+void wdwclose() {
  insymbol();
- if (make_integer(expr()) == shorttype) make_long();	/* Wdw-id */
- gen_jsr("_CloseWdw");
- gen_pop_ignore(4);
+ make_sure_long(expr()); /* Wdw-id */
+ gen_call_void("_CloseWdw",4);
 }
 
-void wdwoutput()
-{
+void wdwoutput() {
  insymbol();
- if (make_integer(expr()) == shorttype) make_long();	/* Wdw-id */
- gen_jsr("_ChangeOutputWdw");
- gen_pop_ignore(4);
+ make_sure_long(expr()); /* Wdw-id */
+ gen_call_void("_ChangeOutputWdw",4);
 }

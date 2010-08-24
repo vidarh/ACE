@@ -907,8 +907,7 @@ SHORT popcount;
   }
   else gen_push32_val(0);  /* no mode-array -> push NULL */
 
-  gen_jsr("_say");
-  gen_pop_ignore(8);  /* pop two parameters */
+  gen_call_void("_say",8);
   enter_XREF("_cleanup_async_speech");
   narratorused=TRUE;
  }
@@ -975,7 +974,7 @@ SHORT popcount;
 	  else
 	  {
 		gen_Flt(stype); 
-	  	gen_jsr("_sleep_for_secs"); gen_pop_ignore(4);
+	  	gen_call_void("_sleep_for_secs",4);
 	  }
     }
  }
@@ -1010,8 +1009,7 @@ SHORT popcount;
   else
   {
      /* SYSTEM command-string */
-     gen_jsr("_system_call");
-     gen_pop_ignore(4);
+     gen_call_void("_system_call",4);
   }
  }
  else

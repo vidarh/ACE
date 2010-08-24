@@ -413,9 +413,8 @@ SYM  *storage;
     itoa(-1*storage->address,addrbuf,10);
     strcat(addrbuf,frame_ptr[lev]); 
   
-    /* ALL data types need a temporary string pointer in a1 */
-    make_temp_string();
-    gen_load_addr(tempstrname,0);  /* unique temp holder */
+    /* ALL data types need a temporary string pointer in a0 */
+    load_temp_string(0);
 
     /* when storing an input value into an array element, must save
        value (d0) first, since array index calculation may be corrupted
@@ -587,35 +586,24 @@ void files()
 /* FILES [TO <storefile>] [,<target>] */
  
  check_for_event();
-
  insymbol();
 
  /* storage file specified? */
- if (sym == tosym)
- {
-  insymbol();
-  if (expr() != stringtype) _error(4);
- }
- else
-     gen_push32_val(0);  /* NULL for storage file name */
+ if (sym == tosym) {
+   insymbol();
+   if (expr() != stringtype) _error(4);
+ } else gen_push32_val(0);  /* NULL for storage file name */
       
  /* target file or directory specified? */
- if (sym == comma)
- {
-  insymbol();
-  if (expr() != stringtype) _error(4);
- }
- else
-     gen_push32_val(0);  /* NULL for target name */
-
- /* call _files routine */
- gen_jsr("_files");
- gen_pop_ignore(4);
+ if (sym == comma) {
+   insymbol();
+   if (expr() != stringtype) _error(4);
+ } else  gen_push32_val(0);  /* NULL for target name */
+ gen_call_void("_files",4);
 }
 
-void push_struct_var_info(SYM * structVar)
-{
-char addrbuf[40], sizebuf[10];
+void push_struct_var_info(SYM * structVar) {
+  char addrbuf[40], sizebuf[10];
 
 	/*
 	** Push address held by structure variable.
@@ -698,8 +686,7 @@ SYM *structVar;
 			/*
 			** Call function.
 			*/
-			gen_jsr("_GetRecord");
- 			gen_pop_ignore(16);
+			gen_call_void("_GetRecord",16);
 		}
 	}	
 }
@@ -759,8 +746,7 @@ SYM *structVar;
 			/*
 			** Call function.
 			*/
-			gen_jsr("_PutRecord");
- 			gen_pop_ignore(16);
+			gen_call_void("_PutRecord",16);
 		}
 	}	
 }

@@ -109,13 +109,6 @@ void load_temp_string(unsigned char reg)
   gen_load_addr(tempstrname,reg);
 }
 
-void gen_call(const char * label, unsigned int stack_adjust)
-{
-  gen_jsr(label);
-  if (stack_adjust > 0) gen_pop_ignore(stack_adjust);
-  gen_push32d(0);
-}
-
 int stringfunction()
 {
 int  func;
@@ -975,8 +968,7 @@ char varptr_obj_name[MAXIDSIZE];
 			     	 gen_push32_val(0); /* #2 = NULL*/
 			     
 			     /* call the function */
-			     gen_jsr("_sysrequest");
-			     gen_pop_ignore(12);
+			     gen_call_void("_sysrequest",12);
 			     gen_push16d(0);
 			     nftype=shorttype;
 			    }
@@ -1082,20 +1074,13 @@ char varptr_obj_name[MAXIDSIZE];
 	 case serialsym : if (nftype != stringtype)
 			  {
 			   check_for_event();
-
-			   /* channel */
-			   make_sure_long(nftype);
+			   make_sure_long(nftype); /* channel */
 
 			   /* function number */
-			   if (sym == comma) 
-			   {
+			   if (sym == comma) {
 			    insymbol();
 			    make_sure_long(expr());
-
-			    gen_jsr("_serial_func");
-			    gen_pop_ignore(8);
-			    gen_push32d(0);	/* push return value */
-			
+			    gen_call("_serial_func",8);
 			    nftype = longtype;
 			   }
 			   else { _error(16); nftype=undefined; }

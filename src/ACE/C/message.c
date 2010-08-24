@@ -42,258 +42,125 @@ void	message_open()
 /* 
 ** MESSAGE OPEN [#]channel,port-name,mode
 */
-int	mtype;
-
+  parse_channel();
+  if (sym != comma) _error(16);
+  else {
+	/* port-name */
 	insymbol();
-
-	if (sym == hash) insymbol();
-
-	mtype = expr();
-
-	if (mtype == stringtype)
-		_error(4);
-	else
-	{
-		/* channel */
-		if (make_integer(mtype) == shorttype) make_long();
-		
-		if (sym != comma) 
-			_error(16);
-		else
-		{
-			/* port-name */
-			insymbol();
-			if (expr() != stringtype)
-				_error(4);
-			else
-			{
-				if (sym != comma)
-					_error(16);
-				else
-				{
-					/* mode (r,R,w,W) */
-					insymbol();
-					if (expr() != stringtype)
-						_error(4);
-					else
-					{
-					  /* call function */
-					  gen_jsr("_MessageOpen");
-					  gen_pop_ignore(12);
-					}				
-				}
-			}
-		} 
-			
+	if (expr() != stringtype) _error(4);
+	else {
+	  if (sym != comma) _error(16);
+	  else {
+		/* mode (r,R,w,W) */
+		insymbol();
+		if (expr() != stringtype) _error(4);
+		else gen_call_void("_MessageOpen",12);
+	  }
 	}
+  } 
 }
 
-void	message_read()
-{
 /* 
 ** MESSAGE READ [#]channel,message-string
 */
-int	mtype;
-SYM	*storage;
-char	addrbuf[40];
+void	message_read() {
+  SYM	*storage;
+  char	addrbuf[40];
 
-	insymbol();
+  parse_channel();
+  if (sym != comma) {
+	_error(16);
+	return;
+  }
 
-	if (sym == hash) insymbol();
-
-	mtype = expr();
-
-	if (mtype == stringtype)
-		_error(4);
-	else
-	{
-		/* channel */
-		if (make_integer(mtype) == shorttype) make_long();
-		
-		if (sym != comma) 
-			_error(16);
-		else
-		{
-  			/*
-			** Message string. 
-			*/
-  			insymbol();						
-  			if (sym == ident && obj == variable)
-  			{
-   				/* 
-				** If string variable/array doesn't exist, 
-				** create a simple variable.
-				*/
-   				if (!exist(id,variable) && !exist(id,array)) 
-   				{
-    					/* 
-					** Allocate a simple string variable.
-					*/
-    					enter(id,typ,obj,0);
-    					enter_DATA("_nullstring:","dc.b 0");
-    					gen("pea","_nullstring","  ");
-    					assign_to_string_variable(curr_item,
-								  MAXSTRLEN);
-   				}
-
-   				storage = curr_item;
-
-   				/* 
-				** Is it a string variable or array? 
-				*/
-   				if (storage->type != stringtype) _error(4);
-   				else    
-   				{
-    					/* 
-					** Get address of string pointed to 
-					** by variable/array element.
-					*/
-    					itoa(-1*storage->address,addrbuf,10);
-    					strcat(addrbuf,frame_ptr[lev]);
-
-    					/*
-					** Pass string address to function 
-					** (on stack).
-					*/
-    					if (storage->object == array)
-    					{
-     						point_to_array(storage,addrbuf);
-     						gen("move.l",addrbuf,"d0");
-     						gen("add.l","d7","d0");
-     						gen_push32d(0);
-    					}
-     					else
-      	 					gen_push32_var(addrbuf);
-
-    					insymbol();
-
-					/* call function */
-					gen_jsr("_MessageRead");
-					gen_pop_ignore(8);
-				}
-			}
-			else
-			    _error(19);  /* variable or array expected */
-		}   
-			
+  /*
+  ** Message string. 
+  */
+  insymbol();						
+  if (sym == ident && obj == variable) {
+	/* 
+	** If string variable/array doesn't exist, 
+	** create a simple variable.
+	*/
+	if (!exist(id,variable) && !exist(id,array)) {
+	  /* 
+	  ** Allocate a simple string variable.
+	  */
+	  enter(id,typ,obj,0);
+	  enter_DATA("_nullstring:","dc.b 0");
+	  gen("pea","_nullstring","  ");
+	  assign_to_string_variable(curr_item,
+								MAXSTRLEN);
 	}
+	
+	storage = curr_item;
+	
+	/* 
+	** Is it a string variable or array? 
+	*/
+	if (storage->type != stringtype) _error(4);
+	else {
+	  /* 
+	  ** Get address of string pointed to 
+	  ** by variable/array element.
+	  */
+	  itoa(-1*storage->address,addrbuf,10);
+	  strcat(addrbuf,frame_ptr[lev]);
+	  
+	  /*
+	  ** Pass string address to function 
+	  ** (on stack).
+	  */
+	  if (storage->object == array) {
+		point_to_array(storage,addrbuf);
+		gen("move.l",addrbuf,"d0");
+		gen("add.l","d7","d0");
+		gen_push32d(0);
+	  } else
+		gen_push32_var(addrbuf);
+	  
+	  insymbol();
+	  gen_call_void("_MessageRead",8);
+	}
+  } else _error(19);  /* variable or array expected */
 }
 
-void	message_write()
-{
+void	message_write() {
 /* 
 ** MESSAGE WRITE [#]channel,message-string
 */
-int	mtype;
-
+  parse_channel();
+  if (sym != comma) _error(16);
+  else {
+	/* message-string */
 	insymbol();
-
-	if (sym == hash) insymbol();
-
-	mtype = expr();
-
-	if (mtype == stringtype)
-		_error(4);
-	else
-	{
-		/* channel */
-		if (make_integer(mtype) == shorttype) make_long();
-		
-		if (sym != comma) 
-			_error(16);
-		else
-		{
-			/* message-string */
-			insymbol();
-			if (expr() != stringtype)
-				_error(4);
-			else
-			{
-				/* call function */
-				gen_jsr("_MessageWrite");
-				gen_pop_ignore(8);
-			}
-		} 
-			
-	}
+	if (expr() != stringtype) _error(4);
+	else gen_call_void("_MessageWrite",8);
+  } 
 }
 
-void	message_wait()
-{
+void	message_wait() {
 /* 
 ** MESSAGE WAIT [#]channel
 */
-int	mtype;
-
-	insymbol();
-
-	if (sym == hash) insymbol();
-
-	mtype = expr();
-
-	if (mtype == stringtype)
-		_error(4);
-	else
-	{
-		/* channel */
-		if (make_integer(mtype) == shorttype) make_long();
-
-		/* call function */
-		gen_jsr("_MessageWait");
-		gen_pop_ignore(4);
-	}
+  parse_channel();
+  gen_call_void("_MessageWait",4);
 }
 
-void	message_clear()
-{
-/* 
-** MESSAGE CLEAR [#]channel
-*/
-int	mtype;
-
-	insymbol();
-
-	if (sym == hash) insymbol();
-
-	mtype = expr();
-
-	if (mtype == stringtype)
-		_error(4);
-	else
-	{
-		/* channel */
-		if (make_integer(mtype) == shorttype) make_long();
-
-		/* call function */
-		gen_jsr("_MessageClear");
-		gen_pop_ignore(4);
-	}
+void	message_clear() {
+  /* 
+  ** MESSAGE CLEAR [#]channel
+  */
+  parse_channel();
+  gen_call_void("_MessageClear",4);
 }
 
-void	message_close()
-{
-/* 
-** MESSAGE CLOSE [#]channel
-*/
-int	mtype;
-
-	insymbol();
-
-	if (sym == hash) insymbol();
-
-	mtype = expr();
-
-	if (mtype == stringtype)
-		_error(4);
-	else
-	{
-		/* channel */
-		if (make_integer(mtype) == shorttype) make_long();
-
-		/* call function */
-		gen_jsr("_MessageClose");
-		gen_pop_ignore(4);
-	}
+void	message_close() {
+  /* 
+  ** MESSAGE CLOSE [#]channel
+  */
+  parse_channel();
+  gen_call_void("_MessageClose",4);
 }
 
 void	message()
@@ -301,17 +168,12 @@ void	message()
 /* 
 ** MESSAGE OPEN|CLOSE|READ|WRITE|WAIT|CLEAR
 */
-
 	insymbol();
-
-	switch(sym)
-	{
+	switch(sym) {
 		case opensym	: message_open(); break;
 		case closesym	: message_close(); break;
-
 		case readsym	: message_read(); break;
 		case writesym	: message_write(); break;
-
 		case waitsym	: message_wait(); break;
 		case clearsym	: message_clear(); break;
 

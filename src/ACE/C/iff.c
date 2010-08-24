@@ -28,117 +28,50 @@
 extern	int	sym;
 extern	BOOL	iffused;
 
-/* functions */
-void	iff_open()
-{
+void parse_channel() {
+  insymbol();
+  if (sym == hash) insymbol();
+  make_sure_long(expr()); /* channel */
+}
+
+
 /* 
 ** IFF OPEN [#]channel,file-name
 */
-int	itype;
-
+void	iff_open() {
+  parse_channel();
+  if (sym != comma) _error(16);
+  else {
+	/* picture file name */
 	insymbol();
-
-	if (sym == hash) insymbol();
-
-	itype = expr();
-
-	if (itype == stringtype)
-		_error(4);
-	else
-	{
-		/* channel */
-		if (make_integer(itype) == shorttype) make_long();
-		
-		if (sym != comma) 
-			_error(16);
-		else
-		{
-			/* picture file name */
-			insymbol();
-			if (expr() != stringtype)
-				_error(4);
-			else
-			{
-				/* call function */
-				gen_jsr("_IFFPicOpen");
-				gen_pop_ignore(8);
-			}				
-		} 
-			
-	}
+	if (expr() != stringtype) _error(4);
+	else gen_call_void("_IFFPicOpen",8);
+  } 
 }
 
-void	iff_read()
-{
 /* 
 ** IFF READ [#]channel[,screen-id]
 */
-int	itype;
+void	iff_read() {
+  parse_channel();
+  if (sym != comma)
+	/* no screen-id */
+	gen("move.l","#-1","-(sp)");	
+  else {
+	/* screen-id */
 
 	insymbol();
-
-	if (sym == hash) insymbol();
-
-	itype = expr();
-
-	if (itype == stringtype)
-		_error(4);
-	else
-	{
-		/* channel */
-		if (make_integer(itype) == shorttype) make_long();
-
-		if (sym != comma)
-			/* no screen-id */
-			gen("move.l","#-1","-(sp)");	
-		else
-		{
-			/* screen-id */
-
-			insymbol();
-			
-			itype = expr();
-
-			if (itype == stringtype)
-				_error(4);
-			else
-			{
-				if (make_integer(itype) == shorttype) 
-				   make_long();
-
-			}
-		}
-
-		/* call function */
-		gen_jsr("_IFFPicRead");
-		gen_pop_ignore(8);
-	}
+	make_sure_long();
+	gen_call_void("_IFFPicRead",8);
+  }
 }
 
-void	iff_close()
-{
 /* 
 ** IFF CLOSE [#]channel
 */
-int	itype;
-
-	insymbol();
-
-	if (sym == hash) insymbol();
-
-	itype = expr();
-
-	if (itype == stringtype)
-		_error(4);
-	else
-	{
-		/* channel */
-		if (make_integer(itype) == shorttype) make_long();
-
-		/* call function */
-		gen_jsr("_IFFPicClose");
-		gen_pop_ignore(4);
-	}
+void  iff_close() {
+  parse_channel();
+  gen_call_void("_IFFPicClose",4);
 }
 
 void iff()

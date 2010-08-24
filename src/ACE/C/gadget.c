@@ -81,19 +81,14 @@ void gadget_rectangle()
     }
 }
 
-void close_gadget()
-{
 /* GADGET CLOSE gadget-id */
-
-	insymbol();
-     	make_sure_long(expr());	/* gadget-id */
-
-	gen_jsr("_CloseGadget");
-	gen_pop_ignore(4);
+void close_gadget() {
+  insymbol();
+  make_sure_long(expr());	/* gadget-id */
+  gen_call_void("_CloseGadget",4);
 }
 
-void gadget_output()
-{
+void gadget_output() {
 /*
 ** GADGET OUTPUT id
 **
@@ -105,25 +100,18 @@ void gadget_output()
 ** occurs.
 */
 	insymbol();
-     	make_sure_long(expr());	/* gadget-id */
-
-	gen_jsr("_SetCurrentGadget");
-	gen_pop_ignore(4);
+	make_sure_long(expr());	/* gadget-id */
+	gen_call_void("_SetCurrentGadget",4);
 }
 
-void wait_gadget()
-{
 /* GADGET WAIT gadget-id */
-
+void wait_gadget() {
 	insymbol();
-     	make_sure_long(expr());	/* gadget-id */
-	
-	gen_jsr("_WaitGadget");
-	gen_pop_ignore(4);
+	make_sure_long(expr());	/* gadget-id */
+	gen_call_void("_WaitGadget",4);
 }
 
-void modify_gadget()
-{
+void modify_gadget() {
 /* 
 ** GADGET MOD gadget-id,knob-position[,max-position] 
 **
@@ -131,26 +119,22 @@ void modify_gadget()
 */
 
 	insymbol();
-    	make_sure_long(expr());	/* gadget-id */
+	make_sure_long(expr());	/* gadget-id */
 	
 	if (sym != comma) _error(16);
-	else
-	{
+	else {
+	  insymbol();
+	  make_sure_long(expr());	/* knob-position */
+
+	  /* specify new maximum notches for slider? */
+	  if (sym != comma) gen("move.l","#-1","-(sp)");
+	  else {
 		insymbol();
-    		make_sure_long(expr());	/* knob-position */
+		make_sure_long(expr());	/* max-position */
+	  }
 
-		/* specify new maximum notches for slider? */
-		if (sym != comma) 
-			gen("move.l","#-1","-(sp)");
-		else
-		{
-			insymbol();
-    			make_sure_long(expr());	/* max-position */
-		}
-
-		/* call function */
-		gen_jsr("_modify_gad");
-		gen_pop_ignore(12);
+	  /* call function */
+	  gen_call_void("_modify_gad",12);
 	}
 }
 
@@ -168,167 +152,113 @@ int  gtype;
 	
 	if (sym == onsym || sym == offsym || sym == stopsym)
 		change_event_trapping_status(lastsym);
-	else
-	if (sym == closesym)
-		close_gadget();
-	else
-	if (sym == outputsym)
-		gadget_output();
-	else
-        if (sym == waitsym)
-		wait_gadget();
-	else
-	if (sym == modsym)
-		modify_gadget();
+	else if (sym == closesym)  close_gadget();
+	else if (sym == outputsym) gadget_output();
+	else if (sym == waitsym)   wait_gadget();
+	else if (sym == modsym)    modify_gadget();
 	else
 	{
-    		make_sure_long(expr());	/* gadget-id */
+	  make_sure_long(expr());	/* gadget-id */
 
-	 	if (sym != comma) _error(16);
-	 	else
-	 	{
-	 		insymbol();
-			if (sym == onsym)
-			{
-				gen_push32_val(1);
-				insymbol();
-			}
-			else
-			if (sym == offsym)
-			{
-				gen_push32_val(0);
-				insymbol();
-			}
-			else
-			{
-				/* status */
-				make_sure_long(expr());
-			}
-
-			if (sym != comma)
-			{
-				gen_jsr("_ChangeGadgetStatus");
-				gen_pop_ignore(8);
-				return;	
-			}
-	 	}
-
-		if (sym != comma) _error(16);
-		else
-		{
-			insymbol();
-			gtype = expr();	
-
-			/* string or integer expression for 3rd parameter */
-			if (gtype != stringtype)
-			{
-				make_sure_long(gtype);
-			}
+	  if (sym != comma) _error(16);
+	  else {
+		insymbol();
+		if (sym == onsym) {
+		  gen_push32_val(1);
+		  insymbol();
+		} else if (sym == offsym) {
+		  gen_push32_val(0);
+		  insymbol();
+		} else {
+		  make_sure_long(expr()); /* status */
 		}
 
+		if (sym != comma) {
+		  gen_call_void("_ChangeGadgetStatus",8);
+		  return;	
+		}
+	  }
+
+	  if (sym != comma) _error(16);
+	  else {
+		insymbol();
+		gtype = expr();	
+		
+		/* string or integer expression for 3rd parameter */
+		if (gtype != stringtype) make_sure_long(gtype);
+	  }
+
+	  if (sym != comma) _error(16);
+	  else {
+		insymbol();
+		gadget_rectangle();	/* (x1,y1)-(x2,y2) */
+
 		if (sym != comma) _error(16);
-		else
-		{
+		else {
+		  /* 
+		  ** Gadget Type.
+		  */
+		  insymbol();
+
+		  if (sym == buttonsym) {
+			gen_push32_val(1);
 			insymbol();
-			gadget_rectangle();	/* (x1,y1)-(x2,y2) */
+		  } else if (sym == stringsym) {
+			gen_push32_val(2);
+			insymbol();
+		  } else if (sym == longintsym) {
+			gen_push32_val(3);
+			insymbol();
+		  } else if (sym == potxsym) {
+			gen_push32_val(4);
+			insymbol();
+		  } else if (sym == potysym) {
+			gen_push32_val(5);
+			insymbol();
+		  } else {
+			make_sure_long(expr()); /* type */
+		  }
+		}
+
+		/*
+		** Optional gadget style parameter.
+		*/
+		if (sym != comma) gen_push32_val(0);	/* style = 0 */
+		else {
+		  insymbol();
+		  
+		  if (sym != comma) make_sure_long(expr());	/* style */
+		  else gen_push32_val(0);  /* style = 0 */	
+		}		
+		
+		/*
+		** Optional font and font-size parameters (for button).
+		*/
+		if (sym != comma) {
+		  gen_push32_val(0);  /* font name = NULL */
+		  gen_push32_val(0);  /* font size = 0 */
+		  gen_push32_val(0);  /* font style = 0 */
+		} else {
+		  insymbol();
+		  if (expr() != stringtype)    /* font name */
+			_error(4);
+		  else {
+			if (sym != comma) _error(16);
+			else {
+			  insymbol();
+			  make_sure_long(expr());	/* font size */
+			}
 
 			if (sym != comma) _error(16);
-			else
-			{
-				/* 
-				** Gadget Type.
-				*/
-	 			insymbol();
-
-				if (sym == buttonsym)
-				{
-					gen_push32_val(1);
-					insymbol();
-				}
-				else
-				if (sym == stringsym)
-				{
-					gen_push32_val(2);
-					insymbol();
-				}
-				else
-				if (sym == longintsym)
-				{
-					gen_push32_val(3);
-					insymbol();
-				}
-				else
-				if (sym == potxsym)
-				{
-					gen_push32_val(4);
-					insymbol();
-				}
-				else
-				if (sym == potysym)
-				{
-					gen_push32_val(5);
-					insymbol();
-				}
-				else
-				{
-					/* type */
-					make_sure_long(expr());
-				}
+			else {
+			  insymbol();
+			  make_sure_long(expr());	/* font style */
 			}
+		  }
+		}					
+	  }
 
-			/*
-			** Optional gadget style parameter.
-			*/
-			if (sym != comma)
-				gen_push32_val(0);	/* style = 0 */
-			else
-			{
- 				insymbol();
-
-				if (sym != comma)
-					make_sure_long(expr());	/* style */
-				else
-					gen_push32_val(0);  /* style = 0 */	
-			}			
-		
-			/*
-			** Optional font and font-size parameters (for button).
-			*/
-			if (sym != comma)
-			{
-				gen_push32_val(0);  /* font name = NULL */
-				gen_push32_val(0);  /* font size = 0 */
-				gen_push32_val(0);  /* font style = 0 */
-			}
-			else
-			{
-				insymbol();
-				if (expr() != stringtype)    /* font name */
-					_error(4);
-				else
-				{
-					if (sym != comma) 
-						_error(16);
-					else
-					{
-	 					insymbol();
-						make_sure_long(expr());	/* font size */
-					}
-
-					if (sym != comma) 
-						_error(16);
-					else
-					{
-	 					insymbol();
-						make_sure_long(expr());	/* font style */
-					}
-				}
-			}					
-	 }
-
-	 /* call function */
-	 gen_jsr("_CreateGadget");
-	 gen_pop_ignore(48);
+	 gen_call_void("_CreateGadget",48);
 	}
 }
 
@@ -341,13 +271,9 @@ void	bevel_box()
 
 	gadget_rectangle();
 	if (sym != comma) _error(16);
-	else
-	{
-		insymbol();
-		make_sure_long(expr());	/* type */
-
-	 	/* call function */
-		gen_jsr("_BevelBox");
-		gen_pop_ignore(20);
+	else {
+	  insymbol();
+	  make_sure_long(expr());	/* type */
+	  gen_call_void("_BevelBox",20);
 	}
 }

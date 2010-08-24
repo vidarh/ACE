@@ -548,8 +548,7 @@ char lab[80],lablabel[80];
    make_label(lab,lablabel);
 
    gen_push32_val(1);
-   gen_jsr("_wdw_close_test");
-   gen_pop_ignore(4);
+   gen_call_void("_wdw_close_test",4);
    gen_tst32d(0);
    gen_beq(lab);
    gen_jmp("_EXIT_PROG");
@@ -572,8 +571,7 @@ char lab[80],lablabel[80];
    make_label(lab,lablabel);
 
    gen_push32_val(0);
-   gen_jsr("_wdw_close_test");
-   gen_pop_ignore(4);
+   gen_call_void("_wdw_close_test",4);
    gen_tst32d(0);
    gen_beq(lab);
  
@@ -599,8 +597,7 @@ char lab[80],lablabel[80];
    make_label(lab,lablabel);
 
    gen_push32_val(0);
-   gen_jsr("_gadget_event_test");
-   gen_pop_ignore(4);
+   gen_call_void("_gadget_event_test",4);
    gen_tst32d(0);
    gen_beq(lab);
 

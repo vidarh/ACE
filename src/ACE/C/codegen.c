@@ -241,3 +241,16 @@ void gen_gfxcall(const char * lvo)
   gen_libbase("Gfx");
   gen_libcall(lvo,"Gfx");
 }
+
+void gen_call(const char * label, unsigned int stack_adjust)
+{
+  gen_jsr(label);
+  if (stack_adjust > 0) gen_pop_ignore(stack_adjust);
+  gen_push32d(0);
+}
+
+void gen_call_void(const char * label, unsigned int stack_adjust)
+{
+  gen_jsr(label);
+  if (stack_adjust > 0) gen_pop_ignore(stack_adjust);
+}

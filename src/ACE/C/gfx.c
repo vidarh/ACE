@@ -803,63 +803,29 @@ void scroll()
   }
  }
 
-void text_style()
-{
 /* STYLE n */
-int stype;
-
+void text_style() {
   insymbol();
-  stype = expr();
-
-  if (stype == stringtype)
-	_error(4);
-  else
-  {
-  	if (make_integer(stype) == shorttype) make_long(); 
-	gen_jsr("_change_text_style");
-	gen_pop_ignore(4);
-  }
+  make_sure_long();
+  gen_call_void("_change_text_style",4);
 }
 
-void text_font()
-{
 /* FONT name,size */
-int ftype;
-
+void text_font() {
   insymbol();
-  
-  if (expr() != stringtype)
-  	_error(4);
-  else
-  {
-	if (sym != comma)
-		_error(16);
-	else
-	{
-		insymbol();
-  		ftype = expr();
-
-  		if (ftype == stringtype)
-			_error(4);
-  		else
-  		{
-  			if (make_integer(ftype) == shorttype) make_long();
-
-			gen_jsr("_change_text_font");
-			gen_pop_ignore(8);
-  		}
+  if (expr() != stringtype) _error(4);
+  else {
+	if (sym != comma) _error(16);
+	else {
+	  insymbol();
+	  make_sure_long(expr());
+	  gen_call_void("_change_text_font",8);
 	}		
   }
 }
 
-void gfx_get()
-{
 /* GET */
- insymbol();
-}
+void gfx_get() { insymbol(); }
 
-void gfx_put()
-{
 /* PUT */
- insymbol();
-}
+void gfx_put() { insymbol(); }

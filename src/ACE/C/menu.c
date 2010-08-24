@@ -55,64 +55,39 @@ void menu()
    MENU CLEAR
    MENU ON | OFF | STOP
 */
-int  mtype;
-
-	insymbol();
-	
-	if (sym == onsym || sym == offsym || sym == stopsym)
-		change_event_trapping_status(lastsym);
-	else
-	if (sym == clearsym)
-		clear_menu();
-	else
-        if (sym == waitsym)
-		wait_menu();
-	else
-	{
-	 	if (make_integer(expr()) == shorttype) make_long();  /* menu-id */
-	
-	 	if (sym != comma) _error(16);
-	 	else
-	 	{
-	 		insymbol();
-	  		if (make_integer(expr()) == shorttype) make_long();  /* item-id */
- 	 
-			if (sym != comma) _error(16);
-			else
-			{
-				insymbol();
-	  			if (make_integer(expr()) == shorttype) make_long();  /* state */
-
-				if (sym != comma)
-				{ 
-					gen_jsr("_ChangeMenuState");
-					gen_pop_ignore(12);
-					return;	
-				}
-			}
-	 	}
-
-		if (sym != comma) _error(16);
-		else
-		{
-			insymbol();
-			mtype = expr();	
-
-			if (mtype != stringtype) _error(4); /* title-string */
+  insymbol();
+  
+  if (sym == onsym || sym == offsym || sym == stopsym)
+	change_event_trapping_status(lastsym);
+  else if (sym == clearsym) clear_menu();
+  else if (sym == waitsym)  wait_menu();
+  else {
+	make_sure_long(expr()); /* menu-id */
+	if (sym != comma) _error(16);
+	else {
+	  insymbol();
+	  make_sure_long(expr()); /* item-id */
+	  if (sym != comma) _error(16);
+	  else {
+		insymbol();
+		make_sure_long(expr()); /* state */
+		if (sym != comma) {
+		  gen_call_void("_ChangeMenuState",12);
+		  return;	
 		}
-
-		if (sym == comma)
-		{
-			insymbol();
-			mtype = expr();
-			
-			if (mtype != stringtype) _error(4);
-		}
-		else
-			gen_push32_val(0);	/* command-key */
-
-	 /* call function */
-	 gen_jsr("_ModifyMenu");
-	 gen_pop_ignore(20);
+	  }
 	}
+	
+	if (sym != comma) _error(16);
+	else {
+	  insymbol();
+	  if (expr() != stringtype) _error(4); /* title-string */
+	}
+	
+	if (sym == comma) {
+	  insymbol();
+	  if (expr() != stringtype) _error(4);
+	} else gen_push32_val(0);	/* command-key */
+	gen_call_void("_ModifyMenu",20);
+  }
 }

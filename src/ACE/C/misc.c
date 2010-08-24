@@ -243,9 +243,7 @@ char mulbuf[40],srcbuf[40];
   gen("ext.l","d1","  "); 
   gen_push32d(1);   /* push next index after coercing to long */
   gen_push32_var(mulbuf); /* push cumulative index */
-  gen_jsr("lmulu");
-  gen_pop_ignore(8);
-  
+  gen_call_void("lmulu",8);
   gen("add.l","d0","d7");  
   ndx_mult *= curr->index[i];
  }
@@ -261,8 +259,7 @@ char mulbuf[40],srcbuf[40];
   /* calculate absolute offset */  
   gen_push32d(7);
   gen_push32_var(srcbuf);
-  gen_jsr("lmulu");	/* d7*MAXSTRLEN */
-  gen_pop_ignore(8);
+  gen_call_void("lmulu",8);	/* d7*MAXSTRLEN */
   gen("move.l","d0","d7");
  }
  else
@@ -555,29 +552,21 @@ void MsgBox()
 **
 ** See also basfun.c for MsgBox *function*. 
 */
-
-	insymbol();
-	
-	if (expr() != stringtype)     /* message */
-		_error(4);
-	else
-	{
-   		if (sym != comma)
-      			_error(16);
-   		else
-   		{
-    			insymbol();
-    			if (expr() != stringtype)  /* response text */
-				_error(4);
-			else
-        		{
-				/* no second button! (pass NULL) */
-	     			gen_push32_val(0);
-		     
-	    			/* call the function */
-	    			gen_jsr("_sysrequest");
-	    			gen_pop_ignore(12);
-	   		}
-	  	}
-	 }
+  insymbol();
+  
+  if (expr() != stringtype) _error(4);  /* message */
+  else {
+	if (sym != comma) _error(16);
+	else {
+	  insymbol();
+	  if (expr() != stringtype) _error(4); /* response text */
+	  else {
+		/* no second button! (pass NULL) */
+		gen_push32_val(0);
+		
+		/* call the function */
+		gen_call_void("_sysrequest",12);
+	  }
+	}
+  }
 }

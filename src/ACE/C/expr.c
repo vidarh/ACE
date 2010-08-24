@@ -207,10 +207,7 @@ CODE *cx[5];
     gen_Flt(factype);
    }
 
-   gen_jsr("_power");	/* - Call exponentiation function. */
-   gen_pop_ignore(8);	/* - Remove parameters from stack. */
-   gen_push32d(0);  /* - Push the result. */
-				
+   gen_call("_power",8);	/* - Call exponentiation function. */
    enter_XREF("_MathTransBase"); /* opens FFP+IEEE SP transcendental libraries */
 
    localtype=singletype;  /* MUST always return a single-precision value
@@ -321,8 +318,7 @@ CODE *cx[5];
 					break;
 			
 		     case longtype   :	/* args on stack */
-					gen_jsr("lmul"); 
-					gen_pop_ignore(8);
+					gen_call_void("lmul",8); 
 					localtype=longtype;
 					break;
 
@@ -393,9 +389,7 @@ CODE *cx[5];
    localtype=prodtype;
 
    /* integer division - args on stack */
-   gen_jsr("ace_ldiv");
-   gen_pop_ignore(8);
-   gen_push32d(0);
+   gen_call("ace_ldiv",8);
   }
   else _error(4); /* notype -> type mismatch */
   firsttype=localtype;  /* moving record of last sub-expression type */
@@ -458,20 +452,14 @@ CODE *cx[5];
 
    localtype=idivtype;  /* short or single */
 
-   if (localtype == longtype)
-   {
+   if (localtype == longtype) {
     /* integer MOD - args on stack */
-    gen_jsr("ace_lrem");
-    gen_pop_ignore(8);
-    gen_push32d(0);
-   }
-   else
-   {
+    gen_call("ace_lrem",8);
+   } else {
     /* single MOD */
     gen_pop32d(1);   /* divisor */
     gen_pop32d(0);   /* dividend */
-    gen_jsr("_modffp");
-    gen_push32d(0);
+    gen_call("_modffp",0);
     enter_XREF("_MathBase");
     localtype=singletype;
    }

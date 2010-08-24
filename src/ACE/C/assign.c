@@ -749,16 +749,12 @@ int  inptype;
 char addrbuf[80];
 SYM  *storage;
 
- if ((sym != comma) && (sym != semicolon) && (sym != ident)) 
- {
-  /* print a string constant? */
-  inptype=expr();
-  if ((inptype == stringtype) && (lastsym == stringconst))
-  {
-   gen_jsr("_Ustringprint");
-   gen_pop_ignore(4);
-  }
-  else _error(18); 
+ if ((sym != comma) && (sym != semicolon) && (sym != ident)) {
+   /* print a string constant? */
+   inptype=expr();
+   if ((inptype == stringtype) && (lastsym == stringconst)) {
+	 gen_call_void("_Ustringprint",4);
+   } else _error(18); 
  }
 
  do

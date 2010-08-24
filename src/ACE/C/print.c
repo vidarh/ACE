@@ -71,8 +71,7 @@ int code;
  }
 
  /* call function */
- gen_jsr("_Ucodeprint");
- gen_pop_ignore(4);
+ gen_call_void("_Ucodeprint",4);
 }
 
 void print_statement()
@@ -117,24 +116,15 @@ do
   if (exprtype == undefined) { _error(0); return; } /* illegal syms? */
 
   switch(exprtype)
-  {
-   case shorttype :  make_long();
-		     gen_jsr("_Ushortprint");
-		     gen_pop_ignore(4);	
-		     break;
-
-   case longtype :   gen_jsr("_Ulongprint");
-		     gen_pop_ignore(4);	
-		     break;
-
-   case singletype : gen_jsr("_Usingleprint");
-		     gen_pop_ignore(4);	
-		     break;
-
-   case stringtype : gen_jsr("_Ustringprint");
-		     gen_pop_ignore(4);	
-		     break;
-  }
+	{
+	case shorttype :
+	  make_long();
+	  gen_call_void("_Ushortprint",4);
+	  break;
+	case longtype :   gen_call_void("_Ulongprint",4); break;
+	case singletype : gen_call_void("_Usingleprint",4); break;
+	case stringtype : gen_call_void("_Ustringprint",4); break;
+	}
 
   if (exprtype != stringtype) gen_printcode(SPACE_CODE); /* trailing space
 							    for any number */
@@ -158,17 +148,11 @@ do
 void gen_printscode(code)
 int code;
 {
- switch(code)
- {
-  /* LF */
-  case LF_CODE : 	gen_jsr("_printsLF");
-		 	break;
-  /* TAB */
-  case TAB_CODE :  	gen_jsr("_printsTAB");
-			break;
-  /* SPACE */
-  case SPACE_CODE :	gen_jsr("_printsSPC");
-			break;
+  switch(code)
+	{
+	case LF_CODE :    gen_jsr("_printsLF"); break;
+	case TAB_CODE :   gen_jsr("_printsTAB"); break;
+	case SPACE_CODE : gen_jsr("_printsSPC"); break;
  }
 }
 
