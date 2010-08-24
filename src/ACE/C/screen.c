@@ -31,87 +31,68 @@
 extern	int	sym;
 
 /* functions */
-void	screen()
-{
+void	screen() {
 /*
 ** SCREEN [CLOSE|FORWARD|BACK]
 */
-int	rword,stype;
+  int	rword,stype;
 
   insymbol();
 
   /* SCREEN CLOSE screen-id */
-  if (sym == closesym) 
-  {
-   insymbol();
-   make_sure_short(expr()); /* screen-id */
-   gen_pop16d(0);
-   gen_jsr("_closescreen");
-  }
-  else
-  /* SCREEN FORWARD|BACK screen-id */
-  if (sym == forwardsym || sym == backsym)
-  {
+  if (sym == closesym) {
+	insymbol();
+	gen_pop_as_short(expr(),0); /* screen-id */
+	gen_jsr("_closescreen");
+  } else if (sym == forwardsym || sym == backsym) {
+	/* SCREEN FORWARD|BACK screen-id */
 	rword = sym;
 
 	insymbol();
 	stype = expr();
-	if (stype == stringtype)
-		_error(4);
-	else
-	{
-		/* screen-id */
-		make_sure_short(stype);
-		gen_pop16d(0);
+	if (stype == stringtype) _error(4);
+	else {
+	  gen_pop_as_short(stype,0); /* screen-id */
 
 		/* forward or back? */
-		switch(rword)
-		{
-			case forwardsym : gen("move.w","#1","d1"); break;
-			case backsym 	: gen("move.w","#2","d1"); break;
-		}
+	  switch(rword) {
+	  case forwardsym : gen("move.w","#1","d1"); break;
+	  case backsym 	: gen("move.w","#2","d1"); break;
+	  }
 
-		gen_jsr("_change_screen_depth");
+	  gen_jsr("_change_screen_depth");
 	}
-  }
-  else
-  /* SCREEN screen-id,width,height,colors,mode */
-  {
-   /* open a screen */
-   make_sure_short(expr()); /* screen-id */
-   if (sym != comma) _error(16);
-   else
-   {
-    insymbol();
-    make_sure_short(expr()); /* width */
-    if (sym != comma) _error(16);
-    else
-    {
-     insymbol();
-     make_sure_short(expr()); /* height */
-     if (sym != comma) _error(16);
-     else
-     {
-      insymbol();
-      make_sure_short(expr()); /* depth */
-      if (sym != comma) _error(16);
-      else
-      {
-       insymbol();
-       make_sure_short(expr()); /* mode */
-       
-       /* pop parameters */
-       gen_pop16d(4); /* mode */
-       gen_pop16d(3); /* depth */
-       gen_pop16d(2); /* height */
-       gen_pop16d(1); /* width */
-       gen_pop16d(0); /* screen-id (1-9) */
+  } else {
+	/* SCREEN screen-id,width,height,colors,mode */
+	/* open a screen */
+	make_sure_short(expr()); /* screen-id */
+	if (sym != comma) _error(16);
+	else {
+	  insymbol();
+	  make_sure_short(expr()); /* width */
+	  if (sym != comma) _error(16);
+	  else {
+		insymbol();
+		make_sure_short(expr()); /* height */
+		if (sym != comma) _error(16);
+		else {
+		  insymbol();
+		  make_sure_short(expr()); /* depth */
+		  if (sym != comma) _error(16);
+		  else {
+			insymbol();
+			gen_pop_as_short(expr(),4); /* mode */
+			gen_pop16d(4); /* mode */
+			gen_pop16d(3); /* depth */
+			gen_pop16d(2); /* height */
+			gen_pop16d(1); /* width */
+			gen_pop16d(0); /* screen-id (1-9) */
 
-       /* open the screen */
-       gen_jsr("_openscreen");
-      }
-     }
-    }
-   }
+			/* open the screen */
+			gen_jsr("_openscreen");
+		  }
+		}
+	  }
+	}
   }
 }

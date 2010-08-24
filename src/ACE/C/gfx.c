@@ -87,8 +87,7 @@ BOOL colorset=FALSE;
         {
 	 /* pen color */
 	 insymbol();
-	 make_sure_short(expr());
-	 gen_pop16d(0);
+	 gen_pop_as_short(expr(),0);
 	 gen_gfxcall("SetAPen");
 	 colorset=TRUE;
 	}
@@ -254,10 +253,9 @@ BOOL aspect=FALSE;
       insymbol();
       if (sym != comma)   /* else skipping to next parameter (start angle) */
       {
-       make_sure_short(expr());
-       gen_pop16d(0);
-	   gen_gfxcall("SetAPen");
-       colorset=TRUE;
+		gen_pop_as_short(expr(),0);
+		gen_gfxcall("SetAPen");
+		colorset=TRUE;
       }
      }
      else colorset=FALSE;
@@ -445,8 +443,7 @@ CODE *cx,*cx1,*cx2,*cx3,*cx4,*cx5,*cx6;
 	 cx3=curr_code;
 	 gen_push16_var("_ymin");
 	 cx4=curr_code;
-	 make_sure_short(expr());
-	 gen_pop16d(0);
+	 gen_pop_as_short(expr(),0);
 	 gen_gfxcall("SetAPen");
 	 gen_pop16_var("_ymin");
 	 cx5=curr_code;
@@ -547,29 +544,25 @@ CODE *cx,*cx1,*cx2,*cx3,*cx4,*cx5,*cx6;
 
 
 
-void color()
-{
+void color() {
  /* foreground color */
  insymbol();
- make_sure_short(expr());
- gen_pop16d(0);
+ gen_pop_as_short(expr(),0);
  gen("move.w","d0","_fg");   /* foreground pen for text color change */
  gen("move.w","d0","_fgdpen");  /* change global foreground color holder */
  gen_gfxcall("SetAPen");
  enter_XREF("_fgdpen");
  enter_BSS("_fg","ds.w 1");
 
- if (sym == comma)
- {
-  /* background color */
-  insymbol();
-  make_sure_short(expr());
-  gen_pop16d(0);
-  gen_save16d(0,"_bg");  /* background pen for text color change */
-  gen_save16d(0,"_bgpen"); /* change global background pen color */
-  gen_gfxcall("SetBPen");
-  enter_XREF("_bgpen");
-  enter_BSS("_bg","ds.w 1");
+ if (sym == comma) {
+   /* background color */
+   insymbol();
+   gen_pop_as_short(expr(),0);
+   gen_save16d(0,"_bg");  /* background pen for text color change */
+   gen_save16d(0,"_bgpen"); /* change global background pen color */
+   gen_gfxcall("SetBPen");
+   enter_XREF("_bgpen");
+   enter_BSS("_bg","ds.w 1");
  }
  else 
  {
@@ -673,32 +666,22 @@ BOOL linepatterncalled;
   gen("move.l","#1","d1");	/* RESTORE flag */
   gen_jsr("_areapattern");
   insymbol();
- }
- else
- {
-  if (sym != comma)
-  {
+ } else {
+  if (sym != comma) {
    /* get line-pattern */
-   make_sure_short(expr());
-   gen_pop16d(0);	/* line-pattern */
-   gen("move.l","#0","d1");	/* RESTORE flag */
-   gen_jsr("_linepattern");
-   linepatterncalled=TRUE;
-  }
-  else
-      linepatterncalled=FALSE;
+	gen_pop_as_short(expr(), 0); /* line-pattern */
+	gen("move.l","#0","d1");	/* RESTORE flag */
+	gen_jsr("_linepattern");
+	linepatterncalled=TRUE;
+  } else linepatterncalled=FALSE;
 
-  if (sym == comma)
-  {
+  if (sym == comma) {
    /* area-pattern */
    insymbol();
-   if ((sym == ident) && (obj == variable) && (exist(id,array)))
-   {
+   if ((sym == ident) && (obj == variable) && (exist(id,array))) {
       if (curr_item->type != shorttype) _error(28);
-      else
-      {
-        if (!linepatterncalled)
-        {
+      else {
+        if (!linepatterncalled) {
 	 /* line-pattern must be set
 	    to $FFFF if none specified,
 	    otherwise area-pattern doesn't
@@ -717,16 +700,15 @@ BOOL linepatterncalled;
 	sprintf(numbuf,"#%ld",(long)curr_item->size/2);
 	gen("move.l",numbuf,"d0");	/* size of array */
 
-        gen("move.l","#0","d1");	/* RESTORE flag */
-        gen_jsr("_areapattern");
+	gen("move.l","#0","d1");	/* RESTORE flag */
+	gen_jsr("_areapattern");
 	enter_XREF("_MathBase");
 	enter_XREF("_MathTransBase");	/* need to find Log2(size) */
       }
 
-     insymbol();
+	  insymbol();
    }
-   else
-       _error(28);  /* short integer array expected */ 
+   else _error(28);  /* short integer array expected */ 
   }
  }
 }
@@ -738,70 +720,61 @@ void scroll()
  insymbol();
 
  if (sym != lparen) _error(14);
- else
- {
-  insymbol();
-  make_sure_short(expr());  /* xmin */
-  if (sym != comma) _error(16);
-  else
-  {
+ else {
    insymbol();
-   make_sure_short(expr());  /* ymin */
-   if (sym != rparen) _error(9);
-   else
-   {
-    insymbol();
-    if (sym != minus) _error(21);
-    else
-    {
-     insymbol();
-     if (sym != lparen) _error(14);
-     else
-     {
-      insymbol(); 
-      make_sure_short(expr());      /* xmax */
-      if (sym != comma) _error(16);
-      else
-      {
-       insymbol();
-       make_sure_short(expr());     /* ymax */
-       if (sym != rparen) _error(9);
-       else
-       {
-	insymbol();
-	if (sym != comma) _error(16);
-	else
-	{
+   make_sure_short(expr());  /* xmin */
+   if (sym != comma) _error(16);
+   else {
 	 insymbol();
-	 make_sure_short(expr());   /* delta-x */ 	
-	 if (sym != comma) _error(16);
-	 else
-	 {
-	  insymbol();
-	  make_sure_short(expr());  /* delta-y */	
+	 make_sure_short(expr());  /* ymin */
+	 if (sym != rparen) _error(9);
+	 else {
+	   insymbol();
+	   if (sym != minus) _error(21);
+	   else {
+		 insymbol();
+		 if (sym != lparen) _error(14);
+		 else {
+		   insymbol(); 
+		   make_sure_short(expr());      /* xmax */
+		   if (sym != comma) _error(16);
+		   else {
+			 insymbol();
+			 make_sure_short(expr());     /* ymax */
+			 if (sym != rparen) _error(9);
+			 else {
+			   insymbol();
+			   if (sym != comma) _error(16);
+			   else {
+				 insymbol();
+				 make_sure_short(expr());   /* delta-x */ 	
+				 if (sym != comma) _error(16);
+				 else {
+				   insymbol();
+				   make_sure_short(expr());  /* delta-y */	
+				 }
+			   }     
+			 }
+
+			 /* pop parameters */
+			 gen_pop16d(1);		/* delta-y */
+			 gen("neg.w","d1","  ");			
+			 gen_pop16d(0);		/* delta-x */
+			 gen("neg.w","d0","  ");
+			 gen_pop16d(5);  		/* ymax */
+			 gen_pop16d(4);  		/* xmax */
+			 gen_pop16d(3);  		/* ymin */
+			 gen_pop16d(2);  		/* xmin */
+			 
+			 /* call ScrollRaster function */
+			 gen_gfxcall("ScrollRaster");
+		   } 
+		 }
+	   }
 	 }
-	}     
-       }
-
-       	/* pop parameters */
-	gen_pop16d(1);		/* delta-y */
-	gen("neg.w","d1","  ");			
-	gen_pop16d(0);		/* delta-x */
-	gen("neg.w","d0","  ");
-	gen_pop16d(5);  		/* ymax */
-	gen_pop16d(4);  		/* xmax */
-	gen_pop16d(3);  		/* ymin */
-	gen_pop16d(2);  		/* xmin */
-
-	/* call ScrollRaster function */
-	gen_gfxcall("ScrollRaster");
-       } 
-      }
-     }
-    }
    }
-  }
  }
+}
 
 /* STYLE n */
 void text_style() {

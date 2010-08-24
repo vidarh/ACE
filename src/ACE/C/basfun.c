@@ -115,7 +115,6 @@ int  func;
 int  sftype=undefined;
 int  ntype=undefined;
 char buf[80],srcbuf[80];
-BOOL commaset=FALSE;
 BOOL offset_on_stack;
  
  if (strfunc()) 
@@ -375,10 +374,9 @@ BOOL offset_on_stack;
     /* LEFT$ */
     case leftstrsym :	if (sftype == stringtype)
 			{
-			 if (sym == comma)
-			 {
+			  if (sym == comma) {
 			  insymbol();
-			  make_sure_short(expr());
+			  gen_pop_as_short(expr(),0);
 			  gen_pop16d(0);  /* index */
 			  gen_pop_addr(0);  /* string */
 			  load_temp_string(1);
@@ -420,8 +418,7 @@ BOOL offset_on_stack;
 			 if (sym == comma)
 			 {
 			  insymbol();
-			  make_sure_short(expr());
-			  gen_pop16d(0);  /* index */
+			  gen_pop_as_short(expr(),0); /* index */
 			  gen_pop_addr(0);  /* string */
 			  load_temp_string(1);
 		   	  gen_jsr("_rightstr");
@@ -443,12 +440,11 @@ BOOL offset_on_stack;
     case spcsym:
     case spacestrsym :  if (sftype != stringtype)
 			{
-			 make_sure_short(sftype);
-			 gen_pop16d(0);
-			 load_temp_string(0);
-			 if (func == spacestrsym) gen_call("_spacestring",0);
-			 else gen_call("_spc",0);
-			 sftype=stringtype;
+			  gen_pop_as_short(sftype,0);
+			  load_temp_string(0);
+			  if (func == spacestrsym) gen_call("_spacestring",0);
+			  else gen_call("_spc",0);
+			  sftype=stringtype;
 			}
 			else { _error(4); sftype=undefined; }
 			break;
@@ -487,20 +483,16 @@ BOOL offset_on_stack;
 			{
 			 make_sure_short(sftype);
 
-			 if (sym == comma)
-			 {		
+			 if (sym == comma) {
 			  insymbol();
 			  ntype=expr();
 
-			  if (ntype == stringtype)
-			  {
-			   gen_pop_addr(0);
-			   gen("move.b","(a0)","d1");
-			   gen("ext.w","d1","  ");
-			   gen("ext.l","d1","  ");	/* MID$(X$,1,1) */
-			  }
-			  else
-			  {
+			  if (ntype == stringtype) {
+				gen_pop_addr(0);
+				gen("move.b","(a0)","d1");
+				gen("ext.w","d1","  ");
+				gen("ext.l","d1","  ");	/* MID$(X$,1,1) */
+			  } else {
 				make_sure_long(ntype);
 				gen_pop32d(1);	/* J */			
 			  }
@@ -520,24 +512,18 @@ BOOL offset_on_stack;
     /* MID$ -> MID$(X$,n[,m]) */
     case midstrsym :	if (sftype == stringtype)
 			{
-			 if (sym == comma)
-			 {
-			  insymbol();	       /* start position */
-			  make_sure_short(expr());
+			  if (sym == comma) {
+				insymbol();	       /* start position */
+				make_sure_short(expr());
 
-			   if (sym == comma)
-			   {
-			    insymbol();        /* character count */
-			    make_sure_short(expr());
-			    commaset=TRUE;
-			   }
+				if (sym == comma) {
+				  insymbol();        /* character count */
+				  gen_pop_as_short(expr(),1); /* char count */
+				} else {
+				  /* take the full length of the string */
+				  gen("move.w","#-1","d1");  
+				}
 
-		    	   if (commaset) 
-			      gen_pop16d(1);  /* char count */
-		  	   else
-			   /* take the full length of the string */
-			   gen("move.w","#-1","d1");  
-	   	
 			   gen_pop16d(0);  /* start posn */
 			   gen_pop_addr(0);  /* string */
 			   load_temp_string(1);
@@ -611,10 +597,8 @@ int gen_sfunc(const char * funcname, int nftype, int srctype,int rettype)
 	_error(4); 
 	return undefined;
   }
-  if (srctype == shorttype) {
-	make_sure_short(nftype);
-	gen_pop16d(0);
-  } else {
+  if (srctype == shorttype) gen_pop_as_short(nftype,0);
+  else {
 	make_sure_long(nftype);
 	gen_pop32d(0);
   }
@@ -1051,13 +1035,10 @@ char varptr_obj_name[MAXIDSIZE];
 	case pointsym :	if (nftype != stringtype)
 			{
 			 make_sure_short(nftype);
-			 if (sym != comma)
-			    { _error(16); nftype=undefined; }
-			 else
-			 {
+			 if (sym != comma) { _error(16); nftype=undefined; }
+			 else {
 			  insymbol();
-			  make_sure_short(expr());
-			  gen_pop16d(1);  /* y */
+			  gen_pop_as_short(expr(), 1); /* y */
 			  gen_pop16d(0);  /* x */
 			  gen_gfxcall("ReadPixel");
 			  gen_push32d(0);

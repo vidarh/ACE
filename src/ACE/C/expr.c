@@ -1053,6 +1053,15 @@ int type;
  return shorttype;
 }
 
+int gen_pop_as_short(int type, unsigned char reg)
+{
+  if (type == singletype) type = make_integer(type);
+  if (type == longtype) gen_pop32d(reg);
+  else if (type == shorttype) { gen_pop16d(reg); }
+  else if (type == stringtype) { _error(4); return undefined; }
+  return shorttype;
+}
+
 void make_sure_long(type)
 int type;
 {

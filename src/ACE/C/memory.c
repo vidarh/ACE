@@ -61,8 +61,7 @@ int addrtype;
   { 
    /* get value */
    insymbol();
-   make_sure_short(expr());
-   gen_pop16d(0);   /* data to be poked */
+   gen_pop_as_short(expr(),0); /* data to be poked */
    gen_pop_addr(0);   /* address */
    gen("move.b","d0","(a0)");    /* poke (a0),d0 */
   }
@@ -90,8 +89,7 @@ int addrtype;
   { 
    /* get value */
    insymbol();
-   make_sure_short(expr());
-   gen_pop16d(0);   /* data to be poked */
+   gen_pop_as_short(expr(), 0); /* data to be poked */
    gen_pop_addr(0);   /* address */
    gen("move.w","d0","(a0)");    /* pokew (a0),d0 */
   }

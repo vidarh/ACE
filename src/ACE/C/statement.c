@@ -924,8 +924,7 @@ SHORT popcount;
  if (sym == setheadingsym)
  {
   insymbol();
-  make_sure_short(expr());
-  gen_pop16d(0);
+  gen_pop_as_short(expr(),0);
   gen_jsr("_setheading");
  }
  else
@@ -935,12 +934,9 @@ SHORT popcount;
   insymbol();
   make_sure_short(expr()); /* x */
   if (sym != comma) _error(16);
-  else
-  {
+  else {
    insymbol();
-   make_sure_short(expr()); /* y */
-   /* pop operands */
-   gen_pop16d(1); /* y */
+   gen_pop_as_short(expr(),1); /* y */
    gen_pop16d(0); /* x */
    gen_jsr("_setxy");
   }
@@ -1017,8 +1013,7 @@ SHORT popcount;
  if (sym == turnsym)
  {
   insymbol();
-  make_sure_short(expr());
-  gen_pop16d(0);
+  gen_pop_as_short(expr(),0);
   gen_jsr("_turn");
  }	
  else
@@ -1026,8 +1021,7 @@ SHORT popcount;
  if (sym == turnleftsym)
  {
   insymbol();
-  make_sure_short(expr());
-  gen_pop16d(0);
+  gen_pop_as_short(expr(),0);
   gen_jsr("_turnleft");
  }	
  else
@@ -1035,8 +1029,7 @@ SHORT popcount;
  if (sym == turnrightsym)
  {
   insymbol();
-  make_sure_short(expr());
-  gen_pop16d(0);
+  gen_pop_as_short(expr(),0);
   gen_jsr("_turnright");
  }	
  else
@@ -1219,15 +1212,11 @@ SHORT popcount;
   insymbol();
   if (expr() != longtype)  /* address */
      _error(4);
-  else
-  {
-   if (sym != becomes)
-      _error(5);
-   else
-   {
+  else {
+   if (sym != becomes) _error(5);
+   else {
     insymbol();
-    make_sure_short(expr());  
-    gen_pop16d(0);  /* pop expression */ 
+    gen_pop_as_short(expr(),0); /* expression */
     gen_pop_addr(0);  /* pop address */
     gen("move.w","d0","(a0)");   /* store expression */
    }
@@ -1240,45 +1229,33 @@ SHORT popcount;
   insymbol();
   if (expr() != longtype)  /* address */
      _error(4);
-  else
-  {
-   if (sym != becomes)
-      _error(5);
-   else
-   {
-    insymbol();
-    if ((statetype=make_integer(expr())) == notype)
-       _error(4);
-    else 
-    {
-     /* statetype is either short or long now */
-     if (statetype == shorttype) make_long();
-     gen_pop32d(0);  /* pop expression */ 
-     gen_pop_addr(0);  /* pop address */
-     gen("move.l","d0","(a0)");   /* store expression */
-    }
-   }
+  else {
+	if (sym != becomes) _error(5);
+	else {
+	  insymbol();
+	  make_sure_long(expr());
+	  gen_pop32d(0);  /* pop expression */ 
+	  gen_pop_addr(0);  /* pop address */
+	  gen("move.l","d0","(a0)");   /* store expression */
+	}
   }
  }
  else
- /* *!<address> = <expr> */
- if (sym == singlepointer) 
+   /* *!<address> = <expr> */
+   if (sym == singlepointer) 
  { 
   insymbol();
   if (expr() != longtype)  /* address */
      _error(4);
-  else
-  {
-   if (sym != becomes)
-      _error(5);
-   else
-   {
-    insymbol();
-    gen_Flt(expr());
-    gen_pop32d(0);  /* pop expression */ 
-    gen_pop_addr(0);  /* pop address */
-    gen("move.l","d0","(a0)");   /* store expression */
-   }
+  else {
+	if (sym != becomes) _error(5);
+	else {
+	  insymbol();
+	  gen_Flt(expr());
+	  gen_pop32d(0);  /* pop expression */ 
+	  gen_pop_addr(0);  /* pop address */
+	  gen("move.l","d0","(a0)");   /* store expression */
+	}
   }
  }
  else
