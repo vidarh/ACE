@@ -592,7 +592,6 @@ int	gen_single_func();
 BOOL	numfunc();
 int	numericfunction();	
 int  	address_of_object();
-int  	find_object_size();
 
 /* functions in main ace modules */
 void	make_temp_long();
@@ -640,7 +639,7 @@ void	pop_operands();
 void	push_result();
 
 void	gen_round();
-void	gen_Flt();
+int	gen_Flt();
 void	change_Flt();
 
 int	make_integer();
@@ -672,7 +671,7 @@ void	on_branch();
 void	block_statement();
 
 int     make_sure_short();
-void	make_sure_long();
+int	    make_sure_long();
 
 void	pset();
 void	paint();

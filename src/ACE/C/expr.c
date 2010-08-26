@@ -105,8 +105,7 @@ void make_short() {
  gen_push16d(0);
 }
 
-void make_long()
-{
+void make_long() {
  gen_pop16d(0);
  gen("ext.l","d0","  ");
  gen_push32d(0);
@@ -952,16 +951,17 @@ void gen_round(int type) {
   }
 }  
  
-void gen_Flt(int typ) {
+int gen_Flt(int typ) {
 /* convert an integer to a single-precision float */
-  if (typ == singletype) return;  /* already a float! */
-  if (typ == stringtype) _error(4); /* can't do it */
+  if (typ == singletype) return singletype;  /* already a float! */
+  if (typ == stringtype) {_error(4); return undefined; } /* can't do it */
   if (typ == shorttype) gen_pop16d(0);
   else gen_pop32d(0);
   if (typ == shorttype) gen("ext.l","d0","  "); /* extend sign */
   gen_libbase("Math");
   gen_libcall("SPFlt","Math");
   gen_push32d(0);
+  return singletype;
 }
 
 void change_Flt(exptyp,cx)
@@ -1005,8 +1005,9 @@ int gen_pop_as_short(int type, unsigned char reg) {
   return shorttype;
 }
 
-void make_sure_long(int type) {
+int make_sure_long(int type) {
  if      (type == shorttype) make_long();
  else if (type == singletype) make_integer(type);
- else if (type == stringtype) _error(4);
+ else if (type == stringtype) { _error(4); return undefined; }
+ return longtype;
 }

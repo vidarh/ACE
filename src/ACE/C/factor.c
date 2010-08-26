@@ -81,37 +81,179 @@ BOOL factorfunc()
 ** PRINT needs this information.
 */
 
-  switch(sym)
-  {
-    	case argcountsym	: return(TRUE);
-    	case csrlinsym		: return(TRUE);
-	case datestrsym		: return(TRUE);
-	case daysym		: return(TRUE);
-    	case errsym		: return(TRUE);
-	case headingsym		: return(TRUE);
-	case inkeysym		: return(TRUE);
-	case possym		: return(TRUE);
-	case rndsym		: return(TRUE); /* has optional parameter! */
-	case systemsym		: return(TRUE);
-	case timersym		: return(TRUE);
-	case timestrsym		: return(TRUE);
-	case xcorsym		: return(TRUE);
-	case ycorsym		: return(TRUE);
-	default			: return(FALSE);
+  switch(sym) {
+  case argcountsym	: return(TRUE);
+  case csrlinsym		: return(TRUE);
+  case datestrsym		: return(TRUE);
+  case daysym		: return(TRUE);
+  case errsym		: return(TRUE);
+  case headingsym		: return(TRUE);
+  case inkeysym		: return(TRUE);
+  case possym		: return(TRUE);
+  case rndsym		: return(TRUE); /* has optional parameter! */
+  case systemsym		: return(TRUE);
+  case timersym		: return(TRUE);
+  case timestrsym		: return(TRUE);
+  case xcorsym		: return(TRUE);
+  case ycorsym		: return(TRUE);
+  default			: return(FALSE);
   }
 }
 
-int factor()
-{
-char buf[80],srcbuf[80],sub_name[80];
-char func_name[MAXIDSIZE],func_address[MAXIDSIZE+9];
-char ext_name[MAXIDSIZE+1];
-int  ftype=undefined;
-int  arraytype=undefined;
-SYM  *fact_item;
-int  oldlevel;
-BYTE libnum;
-BOOL need_symbol;
+
+static int handleident() {
+  char sub_name[80],buf[80],srcbuf[80];
+  char func_name[MAXIDSIZE],func_address[MAXIDSIZE+9];
+  char ext_name[MAXIDSIZE+1];
+  int  arraytype=undefined;
+  SYM  *fact_item;
+  int  oldlevel;
+  int  ftype=undefined;
+  BYTE libnum;
+  BOOL need_symbol = TRUE;
+
+  /* does object exist? */
+  /* in case it's a subprogram */
+  strcpy(sub_name,"_SUB_");
+  strcat(sub_name,id);
+
+  /* store id in case it's a function */
+  strcpy(func_name,id);
+  remove_qualifier(func_name);
+	
+  /* make external variable name */
+  /* add an underscore prefix if one is not present.  */
+  strcpy(buf,ut_id);
+  remove_qualifier(buf);
+  if (buf[0] != '_') {
+	strcpy(ext_name,"_\0");
+	strcat(ext_name,buf);
+  } else  strcpy(ext_name,buf);
+	
+  /* what sort of object is it? */
+  if (exist(id,array)) { obj=array; arraytype=typ=curr_item->type; }
+  else if (exist(sub_name,subprogram)) { obj=subprogram; typ=curr_item->type; }
+  else if (exist(sub_name,definedfunc))  { obj=definedfunc; typ=curr_item->type; }
+  else if (exist(func_name,function)) { obj=function; typ=curr_item->type; }
+  else if (exist(ext_name,extfunc))   { obj=extfunc; typ=curr_item->type; } 
+  else if (exist(ext_name,extvar))    { obj=extvar; typ=curr_item->type; }	
+  else if (exist(id,structure)) obj=structure; 
+  else if (exist(id,constant)) { obj=constant; typ=curr_item->type; } 
+  else if (exist(id,obj))    /* obj == variable? */ typ=curr_item->type;
+  else {
+	/* object doesn't exist so create a default variable */
+	enter(id,typ,obj,0);  
+  }
+
+  fact_item=curr_item; 
+  
+  /* frame address of object */
+  if (obj == subprogram) { oldlevel=lev; lev=ZERO; }
+  
+  itoa(-1*curr_item->address,srcbuf,10);
+  strcat(srcbuf,frame_ptr[lev]);
+  
+  if (obj == subprogram) lev=oldlevel;
+  
+  /* 
+  ** what sort of object? -> constant,variable,subprogram,
+  ** function (library,external,defined),array,structure.
+  */
+  
+  if (obj == variable) {		 /* variable */
+	/* shared variable in SUB? */
+	if ((fact_item->shared) && (lev == ONE) && (typ != stringtype)) {
+	  gen("move.l",srcbuf,"a0");
+	  if (typ == shorttype) gen("move.w","(a0)","-(sp)");
+	  else gen("move.l","(a0)","-(sp)");
+	} else {
+	  /* ordinary variable */ 
+	  if (typ == shorttype) gen_push16_var(srcbuf);
+	  else  /* string, long, single */ 
+		gen_push32_var(srcbuf);
+	}
+	ftype=typ;
+  } else if (obj == structure) {  /* structure */
+	ftype=push_struct(fact_item);
+	return(ftype);
+  } else if (obj == constant) {  /* defined constant */
+	push_num_constant(typ,fact_item); 
+	ftype=typ;
+  } else if (obj == extvar) {  /* external variable */
+	if (typ == shorttype) gen_push16_var(ext_name);
+	else if (typ == stringtype) gen("pea",ext_name,"  ");		 
+	else gen_push32_var(ext_name); /* long integer, single-precision */
+	ftype=typ;
+  } else if (obj == subprogram || obj == definedfunc) { /* subprogram */
+	/* CALL the subprogram */
+	if (fact_item->no_of_params != 0) {
+	  insymbol();
+	  load_params(fact_item);
+	}
+	gen_jsr(sub_name);
+	
+	/* push the return value */
+	if (fact_item->type == shorttype) {
+	  if (fact_item->object == subprogram && 
+		  fact_item->address != extfunc)
+		gen_push16_var(srcbuf);
+	  else gen_push16d(0);
+	} else {  /* string, long, single */
+	  if (fact_item->object == subprogram &&
+		  fact_item->address != extfunc)
+		gen_push32_var(srcbuf); /* push value */
+	  else gen_push32d(0);
+	}
+	ftype=fact_item->type;
+  } else if (obj == function) {	/* library function */
+	if (fact_item->no_of_params != 0) { insymbol(); load_func_params(fact_item); }
+	/* call it */
+	if ((libnum=check_for_ace_lib(fact_item->libname))==NEGATIVE) 
+	  make_library_base(fact_item->libname);
+	else strcpy(librarybase,acelib[libnum].base);
+	gen_load32a(librarybase,6);
+	itoa(fact_item->address,func_address,10);
+	strcat(func_address,"(a6)");
+	gen_jsr(func_address);
+	
+	if (fact_item->type == shorttype) gen_push16d(0);
+	else gen_push32d(0); /* push return value */
+	
+	if (restore_a4) { gen_load32a("_a4_temp",4); restore_a4=FALSE; }
+	if (restore_a5) { gen_load32a("_a5_temp",5); restore_a5=FALSE; }
+	
+	ftype=fact_item->type;
+  } else if (obj == extfunc) {
+	/* external function call */
+	insymbol();
+	call_external_function(ext_name,&need_symbol);
+	/* push return value */
+	if (fact_item->type == shorttype) gen_push16d(0);
+	else gen_push32d(0);
+	ftype=fact_item->type;
+  } else if (obj == array) {
+	push_indices(fact_item);
+	get_abs_ndx(fact_item);
+	gen("move.l",srcbuf,"a0");
+	
+	if (arraytype == stringtype) {
+	  /* push start address of string within BSS object */
+	  gen("adda.l","d7","a0");
+	  gen_push_addr(0);
+	} else if (arraytype == shorttype) gen("move.w","0(a0,d7.L)","-(sp)");
+	else gen("move.l","0(a0,d7.L)","-(sp)");
+	
+	ftype=arraytype;  /* typ killed by push_indices()! */
+  }
+  if (need_symbol) insymbol();
+  if ((obj == extvar || obj == variable || obj == constant) && 
+	  sym == lparen) _error(71);  /* undimensioned array? */
+  return(ftype);
+}
+
+int factor() {
+  int  ftype=undefined;
+  char buf[80];
 
  ftype=stringfunction();
  if (ftype != undefined) return(ftype);
@@ -119,397 +261,80 @@ BOOL need_symbol;
  ftype=numericfunction();
  if (ftype != undefined) return(ftype);
 
- switch(sym)
- {
-  case shortconst  : sprintf(numbuf,"#%d",shortval);
-                     gen_push16_var(numbuf);
-                     ftype=typ;
-                     insymbol();
-                     return(ftype);
-                     break;
-
-  case longconst   : sprintf(numbuf,"#%ld",(long)longval);
-       		     gen_push32_var(numbuf);
-                     ftype=typ;
-                     insymbol();
-                     return(ftype);
-                     break;
-
-  case singleconst : sprintf(numbuf,"#$%lx",(unsigned long)singleval);
-       		     gen_push32_var(numbuf);
-                     ftype=typ;
-       		     insymbol();
-                     return(ftype);
-                     break;
-  
-  case stringconst : make_string_const(stringval);
-       		     ftype=typ;
-       		     insymbol();
-                     return(ftype);
-       		     break;
-
-  case ident : /* does object exist? */
-
-	       /* in case it's a subprogram */
-  	       strcpy(sub_name,"_SUB_");
-   	       strcat(sub_name,id);
-
-	       /* store id in case it's a function */
-	       strcpy(func_name,id);
-  	       remove_qualifier(func_name);
-
-	       /* make external variable name */
-  	       /* add an underscore prefix 
-     	        if one is not present. 
-  	       */
-	       strcpy(buf,ut_id);
-  	       remove_qualifier(buf);
-               if (buf[0] != '_')
-               {
-                strcpy(ext_name,"_\0");
-                strcat(ext_name,buf);
-               }
-               else 
-                   strcpy(ext_name,buf);
-
-	       /* what sort of object is it? */
-	       if (exist(id,array)) 
-                  { obj=array; arraytype=typ=curr_item->type; }
-               else
-                if (exist(sub_name,subprogram)) 
-       	 	   { obj=subprogram; typ=curr_item->type; }
-	       else
-                if (exist(sub_name,definedfunc)) 
-       	 	   { obj=definedfunc; typ=curr_item->type; }
-               else
-                if (exist(func_name,function)) 
-       	 	   { obj=function; typ=curr_item->type; }
-	       else		
-		if (exist(ext_name,extfunc)) 
-		   { obj=extfunc; typ=curr_item->type; } 
-	       else
-		if (exist(ext_name,extvar)) 
-		   { obj=extvar; typ=curr_item->type; }	
-	       else
-		if (exist(id,structure)) obj=structure; 
-               else
-		if (exist(id,constant)) 
-		   { obj=constant; typ=curr_item->type; } 
-	       else
-	        if (exist(id,obj))    /* obj == variable? */
-		   typ=curr_item->type;
-               else
-		  {
-		   /* object doesn't exist so create a default variable */
-		   enter(id,typ,obj,0);  
-		  }
-
-	       fact_item=curr_item; 
-
-               /* frame address of object */
-	       if (obj == subprogram) { oldlevel=lev; lev=ZERO; }
-
-               itoa(-1*curr_item->address,srcbuf,10);
-               strcat(srcbuf,frame_ptr[lev]);
-	       
-	       if (obj == subprogram) lev=oldlevel;
-  
-               /* 
-	       ** what sort of object? -> constant,variable,subprogram,
-	       ** function (library,external,defined),array,structure.
-	       */
-
-               if (obj == variable)		 /* variable */
-               {
-                /* shared variable in SUB? */
-		if ((fact_item->shared) && (lev == ONE) && (typ != stringtype))
-                {
-		 gen("move.l",srcbuf,"a0");
-		 if (typ == shorttype)
-                    gen("move.w","(a0)","-(sp)");
-		 else
-                    gen("move.l","(a0)","-(sp)");
-		}
-                else  
-		/* ordinary variable */ 
-  		if (typ == shorttype)
-            	   gen_push16_var(srcbuf);
-  		else  /* string, long, single */ 
-     		   gen_push32_var(srcbuf); /* push value */
-
-   		ftype=typ;
-   		insymbol();
-	  	if (sym == lparen) _error(71);  /* undimensioned array? */
-   		return(ftype);
-  	       }
-               else
-	       if (obj == structure)  /* structure */
-	       {
-		ftype=push_struct(fact_item);
-		return(ftype);
-	       }
-	       else
-   	       if (obj == constant)  /* defined constant */
-	       {
-		push_num_constant(typ,fact_item); 
-		ftype=typ;
-		insymbol();
-	  	if (sym == lparen) _error(71);  /* undimensioned array? */
-		return(ftype);
-	       }
-		else
-		if (obj == extvar)  /* external variable */
-		{
-		 if (typ == shorttype)
-		    /* short integer */	
-		    gen_push16_var(ext_name);
-		 else
-		 if (typ == stringtype)
-		    /* string */
-		    gen("pea",ext_name,"  ");		 
-		 else
-		    /* long integer, single-precision */
-		    gen_push32_var(ext_name);
-		 ftype=typ;
-		 insymbol();
- 	  	 if (sym == lparen) _error(71);  /* undimensioned array? */
-		 return(ftype);
-		}
-  	        else
-  		if (obj == subprogram || obj == definedfunc)  /* subprogram */
-  		{ 
-		 /* CALL the subprogram */
-		 if (fact_item->no_of_params != 0) 
-		 {
-		  insymbol();
-		  load_params(fact_item);
-		 }
-		 gen_jsr(sub_name);
-
-		 /* push the return value */
-    		 if (fact_item->type == shorttype)
-	 	 {
-          	  if (fact_item->object == subprogram && 
-		      fact_item->address != extfunc)
-			gen_push16_var(srcbuf);
-		  else
-			gen_push16d(0);
-		 }
-  		 else  /* string, long, single */
-  		 {
-		  if (fact_item->object == subprogram &&
-		      fact_item->address != extfunc)
-  		  	gen_push32_var(srcbuf); /* push value */
-		  else
-			gen_push32d(0);
-  		 }
-  		 ftype=fact_item->type;
-   		 insymbol();
-   		 return(ftype);
- 		}
-	        else
-	        if (obj == function)	/* library function */
- 		{
-    		 if (fact_item->no_of_params != 0)
-    		    { insymbol(); load_func_params(fact_item); }
-    		 /* call it */
-  		 if ((libnum=check_for_ace_lib(fact_item->libname))==NEGATIVE) 
-       		    make_library_base(fact_item->libname);
-    		 else
-       		    strcpy(librarybase,acelib[libnum].base);
-    		 gen_load32a(librarybase,6);
-    		 itoa(fact_item->address,func_address,10);
-    		 strcat(func_address,"(a6)");
-    		 gen_jsr(func_address);
-
-			 if (fact_item->type == shorttype) gen_push16d(0);
-			 else gen_push32d(0); /* push return value */
-
-			 if (restore_a4) { gen_load32a("_a4_temp",4); restore_a4=FALSE; }
-			 if (restore_a5) { gen_load32a("_a5_temp",5); restore_a5=FALSE; }
-
-  		 ftype=fact_item->type;
-   		 insymbol();
-   		 return(ftype);
-	        }		 
-  		else
-		  if (obj == extfunc) {
-			/* external function call */
-			insymbol();
-			call_external_function(ext_name,&need_symbol);
-			/* push return value */
-			if (fact_item->type == shorttype) gen_push16d(0);
-			else gen_push32d(0);
-			ftype=fact_item->type;
-			if (need_symbol) insymbol();
-			return(ftype);
-		  } else
-			if (obj == array) {
-			  push_indices(fact_item);
-			  get_abs_ndx(fact_item);
-			  gen("move.l",srcbuf,"a0");
-
-			  if (arraytype == stringtype) {
-				/* push start address of string within BSS object */
-				gen("adda.l","d7","a0");
-				gen_push_addr(0);
-			  }   
-			  else
-				if (arraytype == shorttype)
-				  gen("move.w","0(a0,d7.L)","-(sp)");
-				else
-				  gen("move.l","0(a0,d7.L)","-(sp)");
-
-			  ftype=arraytype;  /* typ killed by push_indices()! */
-			  insymbol();
-			  return(ftype);
-			}
-  		break;
-
-  case lparen : insymbol();
-  		ftype=expr();
-  		if (sym != rparen) _error(9);
-  		insymbol();
-  		return(ftype);
-         	break;
+ switch(sym) {
+ case shortconst:  gen_push16_val(shortval); ftype=typ; break;
+ case longconst:   gen_push32_val(longval); ftype=typ; break;
+ case singleconst: gen_push32_val((unsigned long)singleval); ftype=typ; break;
+ case stringconst: make_string_const(stringval); ftype=typ; break;
+ case ident : return handleident(); break;
+ case lparen :
+   insymbol();
+   ftype=expr();
+   if (sym != rparen) _error(9);
+   break;
 
   /* @<object> */
   case atsymbol : insymbol();
-		  if (sym != ident)
-		     { _error(7); ftype=undefined; insymbol(); }
-		  else
-		  {
-		   strcpy(buf,id);
-		   ftype=address_of_object();
-		   /* structure and array code returns next symbol */
-		   if (!exist(buf,structure) && !exist(buf,array)) 
-		      insymbol();
-		  }
-	          return(ftype);
-		  break;
+	if (sym != ident) { _error(7); ftype=undefined; insymbol(); }
+	else {
+	  strcpy(buf,id);
+	  ftype=address_of_object();
+	  /* structure and array code returns next symbol */
+	  if (!exist(buf,structure) && !exist(buf,array))  insymbol();
+	}
+	return ftype;
+	break;
 
   /* parameterless functions */
 
-  case argcountsym : gen_call_args("_argcount",":d0",0);
+  case argcountsym : 
+	gen_call_args("_argcount",":d0",0);
 	ftype=longtype;
 	cli_args=TRUE;
-	insymbol();
-	return(ftype);
 	break;
 
-  case csrlinsym  : gen_call_args("_csrlin",":d0.w",0);
-	ftype=shorttype;
-	insymbol();
-	return(ftype);
-	break;
- 
-  case datestrsym : gen_call_args("_date",":d0",0);
-		    ftype=stringtype;
-		    insymbol();
-		    return(ftype);
-		    break;			
+ case csrlinsym: gen_call_args("_csrlin",":d0.w",0); ftype=shorttype; break;
+ case datestrsym: gen_call_args("_date",":d0",0); ftype=stringtype; break;
+ case daysym:     gen_call_args("_getday",":d0",0); ftype=longtype; break;
+ case errsym:     gen_call_args("_err",":d0",0); ftype=longtype; break;
+ case headingsym: gen_call_args("_heading",":d0.w",0); ftype=shorttype; break;
+ case inkeysym:   gen_call_args("_inkey",":d0",0); ftype=stringtype; break;
+ case possym:     gen_call_args("_pos",":d0.w",0); ftype=shorttype; break;
 
-  case daysym   : gen_jsr("_getday");
-		  gen_push32d(0);
-		  ftype=longtype;
-		  insymbol();
-		  return(ftype);
-		  break;
-
-  case errsym : gen_jsr("_err");
-		gen_push32d(0);
-		ftype=longtype;
-		insymbol();
-		return(ftype);
-		break;
-
-  case headingsym : gen_jsr("_heading");
-		    gen_push16d(0);
-		    ftype=shorttype;
-		    insymbol();
-		    return(ftype);
-		    break;
-
-  case inkeysym : gen_jsr("_inkey");
-		  gen_push32d(0);
-		  ftype=stringtype;
-	 	  insymbol();
-		  return(ftype);
-		  break;
-
-  case possym  : gen_jsr("_pos");
-		 gen_push16d(0);
-		 ftype=shorttype;
-		 insymbol();
-		 return(ftype);
-		 break;
-
-  case rndsym : insymbol();
-		if (sym == lparen)
-		{
-		  /* ignore dummy expression if exists */
-		  insymbol();
-		  ftype = make_integer(expr());
-		  switch(ftype)
-		  {
-			case shorttype 	: gen_pop16d(0);
-					  break;
-
-			case longtype  	: gen_pop32d(0);
-					  break;
-
-			default		: _error(4);
-		  }	
-		  if (sym != rparen) _error(9);
-		  else
-		      insymbol();
-		}
-		gen_call_args("_rnd",":d0",0);
-		enter_XREF("_MathBase"); /* make sure mathffp lib is open */
-		ftype=singletype;
-		return(ftype);
-		break;
-
-  case systemsym : gen_jsr("_system_version");
-		   gen_push16d(0);
-		   ftype=shorttype;
-		   insymbol();
-		   return(ftype);
-		   break;
-
-  case timersym : gen_jsr("_timer");
-		  gen_push32d(0);
-		  enter_XREF("_MathBase"); /* _timer needs basic ffp funcs */
-		  ftype=singletype;
-		  insymbol();
-		  return(ftype);
-		  break;
-
-  case timestrsym : gen_jsr("_timeofday");
-		    gen_push32d(0);
-		    ftype=stringtype;
-		    insymbol();
-		    return(ftype);
-		    break;
-
-  case xcorsym	: gen_jsr("_xcor");
-		  gen_push16d(0);
-		  ftype=shorttype;
-		  insymbol();
-		  return(ftype);
-		  break;
-
-  case ycorsym	: gen_jsr("_ycor");
-		  gen_push16d(0);
-		  ftype=shorttype;
-		  insymbol();
-		  return(ftype);
-		  break;
+ case rndsym : 
+   insymbol();
+   if (sym == lparen) {
+	 /* ignore dummy expression if exists */
+	 insymbol();
+	 ftype = make_integer(expr());
+	 switch(ftype) {
+	 case shorttype: gen_pop16d(0); break;
+	 case longtype:  gen_pop32d(0); break;
+	 default:         _error(4);
+	 }	
+	 if (sym != rparen) _error(9);
+	 else insymbol();
+   }
+   gen_call_args("_rnd",":d0",0);
+   enter_XREF("_MathBase"); /* make sure mathffp lib is open */
+   ftype=singletype;
+   return ftype;
+   break;
+   
+ case systemsym : gen_call_args("_system_version",":d0.w",0); ftype=shorttype; break;
+ case timersym : 
+   gen_call_args("_timer",":d0",0);
+   enter_XREF("_MathBase"); /* _timer needs basic ffp funcs */
+   ftype=singletype;
+   break;
+ case timestrsym: gen_call_args("_timeofday",":d0",0); ftype=stringtype; break;
+ case xcorsym: gen_call_args("_xcor",":d0.w",0); ftype=shorttype; break;
+ case ycorsym: gen_call_args("_ycor",":d0.w",0); ftype=shorttype; break;
+ default:
+   /* none of the above! */
+   ftype=undefined;
+   _error(13);  /* illegal expression */
  }
-
- /* none of the above! */
- ftype=undefined;
- _error(13);  /* illegal expression */
  insymbol();
  return(ftype);
 }

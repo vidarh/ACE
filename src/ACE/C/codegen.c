@@ -107,11 +107,22 @@ void gen_push32d(unsigned char reg)
   gen("move.l",dreg[reg],"-(sp)");
 }
 
-void gen_push32_val(long val)
-{
+void gen_push32_val(long val) {
   char buf[16];
   sprintf(buf,"#%ld",val);
   gen("move.l",buf,"-(sp)");
+}
+
+void gen_load32d_val(long val, unsigned char reg) {
+  char buf[16];
+  sprintf(buf,"#%ld",val);
+  gen("move.l",buf,dreg[reg]);
+}
+
+void gen_push16_val(int val) {
+  char buf[16];
+  sprintf(buf,"#%d",val);
+  gen("move.w",buf,"-(sp)");
 }
 
 void gen_pop_ignore(unsigned int bytes)
@@ -269,7 +280,7 @@ static char * gen_pop_arg(char * args)
 
 static char * gen_push_ret(char * args)
 {
-  if (*args != ':') return;
+  if (*args != ':') return args;
   args += 1;
   if (*args == 'd') {
 	if (args[2] == '.') {
