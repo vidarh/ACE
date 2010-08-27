@@ -42,32 +42,21 @@ extern	char	tempstrname[80];
 /* -------------- */
 
 void poke() {
-  int addrtype;
-
- /* get address */
- insymbol();
- addrtype=make_integer(expr());
- if ((addrtype == longtype) || (addrtype == shorttype)) {
-   /* make sure address is long */
-   make_sure_long();
-   if (sym == comma) { 
-	 /* get value */
-	 insymbol();
-	 gen_pop_as_short(expr(),0); /* data to be poked */
-	 gen_pop_addr(0);   /* address */
-	 gen_save_indirect8(0,0);  /* poke (a0),d0 */
-   }
- } else _error(4);
+  insymbol();
+  if (make_sure_long(expr()) != undefined) {
+	if (sym == comma) { 
+	  /* get value */
+	  insymbol();
+	  gen_pop_as_short(expr(),0); /* data to be poked */
+	  gen_pop_addr(0);   /* address */
+	  gen_save_indirect8(0,0);  /* poke (a0),d0 */
+	}
+  }
 }
 
 void pokew() {
-  int addrtype;
-  
-  /* get address */
   insymbol();
-  addrtype=make_integer(expr());
-  if ((addrtype == longtype) || (addrtype == shorttype)) {
-	make_sure_long();
+  if (make_sure_long(expr()) != undefined) {
 	if (sym == comma) { 
 	  /* get value */
 	  insymbol();
@@ -75,17 +64,13 @@ void pokew() {
 	  gen_pop_addr(0);   /* address */
 	  gen_save_indirect16(0,0);   /* pokew (a0),d0 */
 	}
-  } else _error(4);
+  }
 }
 
 void pokel() {
-  int addrtype,datatype;
-  
-  /* get address */
+  int datatype;
   insymbol();
-  addrtype=make_integer(expr());
-  if ((addrtype == longtype) || (addrtype == shorttype)) {
-	make_sure_long();
+  if (make_sure_long(expr()) != undefined) {  
 	if (sym == comma) { 
 	  /* get value */
 	  insymbol();
@@ -100,91 +85,71 @@ void pokel() {
 		gen_save_indirect32(0,0); /* pokel (a0),d0 */
 	  } else _error(4);
 	}
-  } else _error(4);
+  }
 }
 
 /* ---- */
 /* SWAP */
 /* ---- */
-void get_obj_info(objname,object,objtype)
-char *objname;
-int  *object;
-int  *objtype;
-{
-/* get info about a variable, extvar, array or structure for SWAP */
+void get_obj_info(char * objname,int * object,int * objtype) {
+  /* get info about a variable, extvar, array or structure for SWAP */
 
-BOOL found=FALSE;
+  BOOL found = 
+	exist(objname,variable) ||
+	exist(objname,extvar) ||
+	exist(objname,array) ||
+	exist(objname,structure);
 
- if (exist(objname,variable))
-    found = TRUE;
- else
- if (exist(objname,extvar))
-    found = TRUE;
- else
- if (exist(objname,array))
-    found = TRUE;
- else
- if (exist(objname,structure))
-    found = TRUE;
-
- if (found)
- {
-  *object = curr_item->object;
-  *objtype = curr_item->type;
- }
- else
- {
-  *object = undefined;
-  *objtype = undefined;
- }
+  if (found) {
+	*object = curr_item->object;
+	*objtype = curr_item->type;
+  } else {
+	*object = undefined;
+	*objtype = undefined;
+  }
 }
 
-void swap()
-{
 /* SWAP <object>,<object> */
-
+void swap() {
   char first[MAXIDSIZE],second[MAXIDSIZE];
   int  typ1,typ2,dataobj1,dataobj2;
- 
- insymbol();
-
- if (sym != ident) _error(7);
- else
- {
-  strcpy(first,id);
-  address_of_object();
-  get_obj_info(first,&dataobj1,&typ1);
-
-  /* get_obj_info() won't tell us about structure member type */
-  if (dataobj1 == structure) typ1 = struct_member_type;
-
-  if (dataobj1 != structure && dataobj1 != array) insymbol();
-
-  if (sym != comma) _error(16);
+  
+  insymbol();
+  
+  if (sym != ident) _error(7);
   else {
-   insymbol();
-   if (sym != ident) _error(7);
-   else {
-    strcpy(second,id);
-    address_of_object();
-    get_obj_info(second,&dataobj2,&typ2);
+	strcpy(first,id);
+	address_of_object();
+	get_obj_info(first,&dataobj1,&typ1);
 
-    /* get_obj_info() won't tell us about structure member type */
-    if (dataobj2 == structure) typ2 = struct_member_type;
+	/* get_obj_info() won't tell us about structure member type */
+	if (dataobj1 == structure) typ1 = struct_member_type;
+	if (dataobj1 != structure && dataobj1 != array) insymbol();
 
-    if (dataobj2 != structure && dataobj2 != array) insymbol();
+	if (sym != comma) _error(16);
+	else {
+	  insymbol();
+	  if (sym != ident) _error(7);
+	  else {
+		strcpy(second,id);
+		address_of_object();
+		get_obj_info(second,&dataobj2,&typ2);
 
-    /* if two objects are of same data type -> swap them */
-    if (typ1 != typ2) _error(4);
-    else {
-     gen_pop_addr(2); /* second address */
-     gen_pop_addr(1); /* first address */
+		/* get_obj_info() won't tell us about structure member type */
+		if (dataobj2 == structure) typ2 = struct_member_type;
+		if (dataobj2 != structure && dataobj2 != array) insymbol();
 
-     if (typ1 == stringtype) gen_swapstr(tempstrname);
-	 else if (typ1 == shorttype) gen_swap16();
-     else gen_swap32();
-    }
-   }
-  }
- } 
+		/* if two objects are of same data type -> swap them */
+		if (typ1 != typ2) _error(4);
+		else {
+		  gen_pop_addr(2); /* second address */
+		  gen_pop_addr(1); /* first address */
+		  
+		  if (typ1 == stringtype) gen_swapstr(tempstrname);
+		  else if (typ1 == shorttype) gen_swap16();
+		  else gen_swap32();
+		}
+	  }
+	}
+  } 
 }

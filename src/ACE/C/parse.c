@@ -573,44 +573,31 @@ void usage()
  printf("usage: ACE [words | -bcEilmOw] <sourcefile>[.b[as]]\n");
 }
 
-BOOL check_options(opt)
-char *opt;
-{
-BOOL legalopt=TRUE;
+BOOL check_options(char * opt) {
+  BOOL legalopt=TRUE;
 
- if (*opt != '-') return(FALSE);
- /* extract the options */
- opt++;
- if (*opt == '\0') 
-    	legalopt=FALSE;
- else
- while ((*opt != '\0') && (legalopt)) 
- {
-  if (*opt == 'b') break_opt=TRUE; 
-  else
-  if (*opt == 'O') optimise_opt=TRUE; 
-  else
-  if (*opt == 'i') make_icon=TRUE; 
-  else
-  if (*opt == 'E') error_log=TRUE;
-  else
-  if (*opt == 'c') asm_comments=TRUE;
-  else
-  if (*opt == 'l') list_source=TRUE;
-  else
-  if (*opt == 'm') module_opt=TRUE;
-  else
-  if (*opt == 'w') wdw_close_opt=TRUE;
-  else
-     legalopt=FALSE;
+  if (*opt != '-') return(FALSE);
+  /* extract the options */
   opt++;
- }
+  if (*opt == '\0')  legalopt=FALSE;
+  else
+	while ((*opt != '\0') && (legalopt)) {
+	  if (*opt == 'b') break_opt=TRUE; 
+	  else if (*opt == 'O') optimise_opt=TRUE; 
+	  else if (*opt == 'i') make_icon=TRUE; 
+	  else if (*opt == 'E') error_log=TRUE;
+	  else if (*opt == 'c') asm_comments=TRUE;
+	  else if (*opt == 'l') list_source=TRUE;
+	  else if (*opt == 'm') module_opt=TRUE;
+	  else if (*opt == 'w') wdw_close_opt=TRUE;
+	  else legalopt=FALSE;
+	  opt++;
+	}
 
  return(legalopt);
 }
 
-void ctrl_c_break_test()
-{
+void ctrl_c_break_test() {
 #ifdef AMIGA
 	if (SetSignal(0L,SIGBREAKF_CTRL_C) & SIGBREAKF_CTRL_C) 
 	{
@@ -620,81 +607,69 @@ void ctrl_c_break_test()
 #endif
 }
 
-void dump_reserved_words()
-{
-int i;
-
- printf("\nAmigaBASIC RESERVED WORDS: %d\n\n",(xorsym-abssym)+1);
-
- for (i=abssym;i<=xorsym;i++) 
- {
+void dump_reserved_words() {
+  int i;
+  
+  printf("\nAmigaBASIC RESERVED WORDS: %d\n\n",(xorsym-abssym)+1);
+  
+  for (i=abssym;i<=xorsym;i++)  {
+	printf("%s\n",rword[i]);
+	ctrl_c_break_test();	
+  }
+  
+  printf("\nACE-SPECIFIC RESERVED WORDS: %d\n\n",(ycorsym-addresssym)+1);
+  
+  for (i=addresssym;i<=ycorsym;i++)  {
  	printf("%s\n",rword[i]);
 	ctrl_c_break_test();	
- }
- 
- printf("\nACE-SPECIFIC RESERVED WORDS: %d\n\n",(ycorsym-addresssym)+1);
-
- for (i=addresssym;i<=ycorsym;i++) 
- {
- 	printf("%s\n",rword[i]);
-	ctrl_c_break_test();	
- }
+  }
 }
-  
-int main(int argc,char * argv[])
-{
-char *tmparg;
 
- show_title();
+int main(int argc,char * argv[]) {
+  char *tmparg;
   
- /* 
- ** - get args and compiler switches.
- ** - open source and destination files. 
- */ 
- if ((argc == 1) || (argc > 3)) 
+  show_title();
+  
+  /* 
+  ** - get args and compiler switches.
+  ** - open source and destination files. 
+  */ 
+  if ((argc == 1) || (argc > 3)) 
     { usage(); exit(10); } /* arg count mismatch */
-
- /* send reserved words to stdout then quit? */
- tmparg = (char *)malloc(strlen(argv[1])+1);
- if (tmparg == NULL) 
- {
+  
+  /* send reserved words to stdout then quit? */
+  tmparg = (char *)malloc(strlen(argv[1])+1);
+  if (tmparg == NULL)  {
 	puts("Unable to allocate temporary argument buffer!");
  	exit(10);
- }
- else   
- {
+  } else {
 	strcpy(tmparg,argv[1]);
+	
+ 	if (strcmp(strupr(tmparg),"WORDS") == 0) {
+	  dump_reserved_words();
+	  if (tmparg) free(tmparg);
+	  exit(0);
+ 	} else
+	  if (tmparg) free(tmparg);
+  }
 
- 	if (strcmp(strupr(tmparg),"WORDS") == 0)
- 	{
-		dump_reserved_words();
-		if (tmparg) free(tmparg);
- 		exit(0);
- 	}
-	else
-		if (tmparg) free(tmparg);
- }
-
- /* 
- ** compile program 
- */
- if (argc == 2) 
- {
+  /* 
+  ** compile program 
+  */
+  if (argc == 2) {
     /* source file, no options */
     open_files(argv[1]);
     setup();
     compile(srcfile,destfile); 
- }
- else 
- {
+  } else {
     /* options plus source file */
     if (!check_options(argv[1])) 
-       { usage(); exit(10); } /* illegal options */  
+	  { usage(); exit(10); } /* illegal options */  
     open_files(argv[2]);  
     setup();
     compile(srcfile,destfile);
- }
-
- cleanup();
- return 0;
+  }
+  
+  cleanup();
+  return 0;
 }

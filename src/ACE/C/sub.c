@@ -66,392 +66,327 @@ int   sub_type=undefined;
 
  /* type identifiers */
  if (sym == shortintsym || sym == longintsym || sym == addresssym ||
-     sym == singlesym || sym == stringsym)
- {
-  switch(sym)
-  {
+     sym == singlesym || sym == stringsym) {
+   switch(sym) {
    case shortintsym : sub_type = shorttype;  break;
    case longintsym  : sub_type = longtype;   break;
    case addresssym  : sub_type = longtype;   break;
    case singlesym   : sub_type = singletype; break;
    case stringsym   : sub_type = stringtype; break;
-  }
-  insymbol();
+   }
+   insymbol();
  }
 
  if (sym != ident) _error(7);
- else
- {
+ else {
   /* get the name */ 
   strcpy(sub_name,"_SUB_");
   strcat(sub_name,id);
   
   /* enter it into symbol table & mark as forward ref. */
-  if (!exist(sub_name,subprogram))
-  {
-   if (sub_type == undefined) sub_type = typ;
-   enter(sub_name,sub_type,subprogram,0);
-   curr_item->decl=fwdref;
-  }
-  else _error(33); /* subprogram already declared */
+  if (!exist(sub_name,subprogram)) {
+	if (sub_type == undefined) sub_type = typ;
+	enter(sub_name,sub_type,subprogram,0);
+	curr_item->decl=fwdref;
+  } else _error(33); /* subprogram already declared */
 
   sub_ptr=curr_item;
-
+  
   /* get parameters -- if any */  
   insymbol();
-  if (sym != lparen) 
-  {
-   /* Is this an external subprogram? */
-   if (sym == externalsym) 
-   {
-	insymbol();
-	enter_XREF(sub_name);
-	sub_ptr->address = extfunc;
-   }
+  if (sym != lparen) {
+	/* Is this an external subprogram? */
+	if (sym == externalsym) {
+	  insymbol();
+	  enter_XREF(sub_name);
+	  sub_ptr->address = extfunc;
+	}
+	
+	sub_ptr->no_of_params=0;
+	return; /* no parameters -> return sym */
+  } else {
+	/* parameters expected */
+	do {
+	  param_type = undefined;
+	  insymbol();
+	  
+	  /* type identifiers */
+	  if (sym == shortintsym || sym == longintsym || sym == addresssym ||
+		  sym == singlesym || sym == stringsym) {
+		switch(sym) {
+		case shortintsym : param_type = shorttype;  break;
+		case longintsym  : param_type = longtype;   break;
+		case addresssym  : param_type = longtype;   break;
+		case singlesym   : param_type = singletype; break;
+		case stringsym   : param_type = stringtype; break;
+		}
+		insymbol();
+	  }
 
-   sub_ptr->no_of_params=0;
-   return; /* no parameters -> return sym */
-  }
-  else
-  {
-   /* parameters expected */
-   do
-   {
-    param_type = undefined;
-
-    insymbol();
-
-    /* type identifiers */
-    if (sym == shortintsym || sym == longintsym || sym == addresssym ||
-        sym == singlesym || sym == stringsym)
-    {
-     switch(sym)
-     {
-      case shortintsym : param_type = shorttype;  break;
-      case longintsym  : param_type = longtype;   break;
-      case addresssym  : param_type = longtype;   break;
-      case singlesym   : param_type = singletype; break;
-      case stringsym   : param_type = stringtype; break;
-     }
-     insymbol();
-    }
-
-    if (sym != ident) _error(7);  /* ident expected */
-    else
-    {
-     /* store parameter type */
-     if (param_type == undefined) param_type=typ;
-     sub_ptr->p_type[param_count]=param_type;
-     param_count++;
-    }
-    insymbol();
-   }
-   while ((sym == comma) && (param_count < MAXPARAMS));
+	  if (sym != ident) _error(7);  /* ident expected */
+	  else {
+		/* store parameter type */
+		if (param_type == undefined) param_type=typ;
+		sub_ptr->p_type[param_count]=param_type;
+		param_count++;
+	  }
+	  insymbol();
+	} while ((sym == comma) && (param_count < MAXPARAMS));
   
-   sub_ptr->no_of_params=param_count;
+	sub_ptr->no_of_params=param_count;
 
-   if (param_count == MAXPARAMS) _error(42);  /* too many */
+	if (param_count == MAXPARAMS) _error(42);  /* too many */
 
-   if (sym != rparen) _error(9);
-   insymbol();
-
-   /* Is this an external subprogram? */
-   if (sym == externalsym) 
-   {
+	if (sym != rparen) _error(9);
 	insymbol();
-	enter_XREF(sub_name);
-	sub_ptr->address = extfunc;
-   }
+
+	/* Is this an external subprogram? */
+	if (sym == externalsym)  {
+	  insymbol();
+	  enter_XREF(sub_name);
+	  sub_ptr->address = extfunc;
+	}
   }
  }
 }
 
-void load_params(sub_ptr)
-SYM *sub_ptr;
-{
-SHORT par_addr=-8; /* one word above stack frame 
-                  (allows for R.A. & address reg store) */
-SHORT i,n;
-int   formal_type;
-char  addrbuf[40];
-char  formaltemp[MAXPARAMS][80],formaladdr[MAXPARAMS][80];
-int   formaltype[MAXPARAMS];
+void load_params(SYM * sub_ptr) {
+  SHORT par_addr=-8; /* one word above stack frame 
+						(allows for R.A. & address reg store) */
+  SHORT i,n;
+  int   formal_type;
+  char  addrbuf[40];
+  char  formaltemp[MAXPARAMS][80],formaladdr[MAXPARAMS][80];
+  int   formaltype[MAXPARAMS];
+  
+  /* store actual parameters in stack frame of subprogram to be CALLed */
+  
+  if (sym != lparen) { _error(14); return; }
+  else {
+	i=0;
+	do {
+	  insymbol();
+	  formal_type=expr();
+	  
+	  /* check parameter types */
+	  if (formal_type != sub_ptr->p_type[i]) {
+		/* coerce actual parameter type to formal parameter type */
+		switch(sub_ptr->p_type[i]) {
+		case shorttype:  make_sure_short(formal_type); break;
+		case longtype:   make_sure_long(formal_type);  break;
+		case singletype: gen_Flt(formal_type); break;
+		case stringtype: _error(4); break; /* can't coerce this at all! */
+		}
+	  }
 
- /* store actual parameters in stack frame of subprogram to be CALLed */
+	  /* store parameter information temporarily since further stack operations  
+		 may corrupt data in next frame if stored immediately */
+	  if (sub_ptr->p_type[i] == shorttype) {
+		par_addr -= 2; 
+		/* save parameter type */
+		formaltype[i]=shorttype; /* not data TYPE but STORE type (2 or 4 bytes) */
 
- if (sym != lparen) { _error(14); return; }
- else
- {
-  i=0;
-  do
-  {
-   insymbol();
-   formal_type=expr();
+		/* save address of formal */
+		itoa(par_addr,addrbuf,10);
+		strcat(addrbuf,"(sp)");
+		strcpy(formaladdr[i],addrbuf);
 
-   /* check parameter types */
-   if (formal_type != sub_ptr->p_type[i]) 
-   {
-    /* coerce actual parameter type to formal parameter type */
-    switch(sub_ptr->p_type[i])
-    {
-     case shorttype: make_sure_short(formal_type);
-		     break;
+		/* create temporary store in current stack frame -> don't use a global
+		   data object as it could be clobbered during recursion! */
+		addr[lev] += 2;
+		itoa(-1*addr[lev],formaltemp[i],10);
+		strcat(formaltemp[i],frame_ptr[lev]); 
+		
+		/* store it */
+		gen_pop16_var(formaltemp[i]);
+	  } else { /* long, single, string, array */   
+		par_addr -= 4; 
+		/* save parameter type */
+		formaltype[i]=longtype;  /* storage requirement is 4 bytes */
 
-     case longtype: if ((formal_type = make_integer(formal_type)) == shorttype) make_long();
-		    else 
-                       if (formal_type == notype) _error(4); /* string */ 
-		    break;
+		/* save address of formal */
+		itoa(par_addr,addrbuf,10);
+		strcat(addrbuf,"(sp)");
+		strcpy(formaladdr[i],addrbuf);
 
-     case singletype : gen_Flt(formal_type);
-		       break;
-
-     case stringtype : _error(4);  /* can't coerce this at all! */
-		       break;
-    }
-   }
-
-   /* store parameter information temporarily since further stack operations  
-      may corrupt data in next frame if stored immediately */
-   if (sub_ptr->p_type[i] == shorttype)
-   {
-    par_addr -= 2; 
-    /* save parameter type */
-    formaltype[i]=shorttype; /* not data TYPE but STORE type (2 or 4 bytes) */
-
-    /* save address of formal */
-    itoa(par_addr,addrbuf,10);
-    strcat(addrbuf,"(sp)");
-    strcpy(formaladdr[i],addrbuf);
-
-    /* create temporary store in current stack frame -> don't use a global
-       data object as it could be clobbered during recursion! */
-    addr[lev] += 2;
-    itoa(-1*addr[lev],formaltemp[i],10);
-    strcat(formaltemp[i],frame_ptr[lev]); 
+		/* create temporary store in current stack frame -> don't use a global
+		   data object as it could be clobbered during recursion! */
+		addr[lev] += 4;
+		itoa(-1*addr[lev],formaltemp[i],10);
+		strcat(formaltemp[i],frame_ptr[lev]); 
     
-    /* store it */
-    gen_pop16_var(formaltemp[i]);
-   }
-   else
-   /* long, single, string, array */   
-   {
-    par_addr -= 4; 
-    /* save parameter type */
-    formaltype[i]=longtype;  /* storage requirement is 4 bytes */
-
-    /* save address of formal */
-    itoa(par_addr,addrbuf,10);
-    strcat(addrbuf,"(sp)");
-    strcpy(formaladdr[i],addrbuf);
-
-    /* create temporary store in current stack frame -> don't use a global
-       data object as it could be clobbered during recursion! */
-    addr[lev] += 4;
-    itoa(-1*addr[lev],formaltemp[i],10);
-    strcat(formaltemp[i],frame_ptr[lev]); 
-    
-    /* store it */
-    gen_pop32_var(formaltemp[i]);
-   }
+		/* store it */
+		gen_pop32_var(formaltemp[i]);
+	  }
    
-   i++;
+	  i++;
+	}
+	while ((i < sub_ptr->no_of_params) && (sym == comma));
+	
+	if ((i < sub_ptr->no_of_params) || (sym == comma)) 
+	  _error(39); /* parameter count mismatch - too few or too many resp. */
+	else {
+	  /* disable multi-tasking 
+		 before passing parameters */
+	  gen_libbase("AbsExec");
+	  gen_libcall("Forbid","AbsExec");
+
+	  /* load parameters into next frame */
+	  for (n=0;n<sub_ptr->no_of_params;n++) {
+		if (formaltype[n] == shorttype) 
+		  gen_move16(formaltemp[n],formaladdr[n]); /* short */
+		else
+		  gen_move32(formaltemp[n],formaladdr[n]); /* long,string,single,array */
+	  }
+	}
+
+	if (sym != rparen) _error(9);
   }
-  while ((i < sub_ptr->no_of_params) && (sym == comma));
-
-  if ((i < sub_ptr->no_of_params) || (sym == comma)) 
-     _error(39); /* parameter count mismatch - too few or too many resp. */
-  else
-  {
-   /* disable multi-tasking 
-      before passing parameters */
-   gen_libbase("AbsExec");
-   gen_libcall("Forbid","AbsExec");
-
-   /* load parameters into next frame */
-   for (n=0;n<sub_ptr->no_of_params;n++)
-   {
-    if (formaltype[n] == shorttype) 
-       gen_move16(formaltemp[n],formaladdr[n]); /* short */
-    else
-       gen_move32(formaltemp[n],formaladdr[n]); /* long,string,single,array */
-   }
-  }
-
-  if (sym != rparen) _error(9);
- }
 }
 
-void sub_params(sub_ptr)
-SYM  *sub_ptr;
-{
-SHORT param_count=0;
-int   param_type;
-char  addrbuf[40];
+void sub_params(SYM * sub_ptr) {
+  SHORT param_count=0;
+  int   param_type;
+  char  addrbuf[40];
 
- /* parse current SUB's formal parameter list */
+  /* parse current SUB's formal parameter list */
 
- insymbol();
- if (sym != lparen) 
- {
-  sub_ptr->no_of_params=0;
-  return; /* no parameters -> return sym */
- }
- else
- {
-  /* if actual parameters passed, Forbid() called -> Permit() */
-  gen_libbase("AbsExec");
-  gen_libcall("Permit","AbsExec");
+  insymbol();
+  if (sym != lparen)  {
+	sub_ptr->no_of_params=0;
+	return; /* no parameters -> return sym */
+  } else {
+	/* if actual parameters passed, Forbid() called -> Permit() */
+	gen_libbase("AbsExec");
+	gen_libcall("Permit","AbsExec");
+	
+	/* formal parameters expected */
+	do {
+	  param_type=undefined;
+	  
+	  insymbol();
 
-  /* formal parameters expected */
-  do
-  {
-   param_type=undefined;
+	  /* type identifiers */
+	  if (sym == shortintsym || sym == longintsym || sym == addresssym ||
+		  sym == singlesym || sym == stringsym) {
+		switch(sym) {
+		case shortintsym : param_type = shorttype;  break;
+		case longintsym  : param_type = longtype;   break;
+		case addresssym  : param_type = longtype;   break;
+		case singlesym   : param_type = singletype; break;
+		case stringsym   : param_type = stringtype; break;
+		}
+		insymbol();
+	  }
 
-   insymbol();
+	  if (sym != ident) _error(7);  /* ident expected */
+	  else {
+		if (!exist(id,variable)) { /* treat param's as local variables */
+		  /* if type not already specified, take type indicated by ident */ 
+		  if (param_type == undefined) param_type = typ;
+		  
+		  /* enter parameter as a variable into symbol table */
+		  enter(id,param_type,variable,0);
+		  
+		  /* string parameter? -> associate with BSS object */
+		  if (curr_item->type == stringtype) {
+			itoa(-1*curr_item->address,addrbuf,10);
+			strcat(addrbuf,frame_ptr[ONE]);
+			gen_push32_var(addrbuf);  /* push value parameter */
+			assign_to_string_variable(curr_item,MAXSTRLEN);
+		  }
+		} else _error(38); /* duplicate parameter */
+	  }
 
-   /* type identifiers */
-   if (sym == shortintsym || sym == longintsym || sym == addresssym ||
-       sym == singlesym || sym == stringsym)
-   {
-    switch(sym)
-    {
-     case shortintsym : param_type = shorttype;  break;
-     case longintsym  : param_type = longtype;   break;
-     case addresssym  : param_type = longtype;   break;
-     case singlesym   : param_type = singletype; break;
-     case stringsym   : param_type = stringtype; break;
-    }
-    insymbol();
-   }
+	  /* store parameter type */
+	  sub_ptr->p_type[param_count]=param_type;
+	  param_count++;
 
-   if (sym != ident) _error(7);  /* ident expected */
-   else
-   {
-    if (!exist(id,variable)) /* treat param's as local variables */
-    {
-       /* if type not already specified, take type indicated by ident */ 
-       if (param_type == undefined) param_type = typ;
-
-       /* enter parameter as a variable into symbol table */
-       enter(id,param_type,variable,0);
-
-       /* string parameter? -> associate with BSS object */
-       if (curr_item->type == stringtype)  
-       {
-          itoa(-1*curr_item->address,addrbuf,10);
-	  strcat(addrbuf,frame_ptr[ONE]);
-	  gen_push32_var(addrbuf);  /* push value parameter */
-          assign_to_string_variable(curr_item,MAXSTRLEN);
-       }
-    }
-    else
-       _error(38); /* duplicate parameter */
-   }
-
-   /* store parameter type */
-   sub_ptr->p_type[param_count]=param_type;
-   param_count++;
-
-   insymbol();
-  }
-  while ((sym == comma) && (param_count < MAXPARAMS));
+	  insymbol();
+	} while ((sym == comma) && (param_count < MAXPARAMS));
   
-  sub_ptr->no_of_params=param_count;
-
-  if (param_count == MAXPARAMS) _error(42);  /* too many */
-
-  if (sym != rparen) _error(9);
-  insymbol();
- }
-}
- 
-void parse_shared_vars()
-{
-SYM  *zero_ptr,*one_ptr;
-int  i;
-char buf0[40],buf1[40],num[40];
-BOOL share_it;
-
- /* get the SHARED list for current SUB and store details */
-
- do
- {
-  share_it=FALSE;
-  insymbol();
-  if (sym != ident) _error(7);  /* identifier expected */
-  else
-  {
-   lev=ZERO;
-   if (exist(id,variable) || exist(id,structure)) 
-   {
-    share_it=TRUE;
-    zero_ptr=curr_item;
-    lev=ONE;
-    enter(id,zero_ptr->type,zero_ptr->object,0);  /* variable or structure */	
-    one_ptr=curr_item;
-    /* add another 2 bytes to address if short */
-    if (one_ptr->type == shorttype) 
-    {
-     addr[lev] += 2;
-     one_ptr->address=addr[lev];
-    }
-    zero_ptr->shared=TRUE;
-    one_ptr->shared=TRUE;
-    if (one_ptr->type == stringtype)
-	one_ptr->new_string_var=FALSE; /* don't want a new BSS object! */
-    if (one_ptr->object == structure)
-	one_ptr->other = zero_ptr->other; /* pointer to structdef SYM node */
-   }
-   else
-   if (exist(id,array))
-   {
-    share_it=TRUE;
-    zero_ptr=curr_item;
-    lev=ONE;
-    enter(id,zero_ptr->type,array,zero_ptr->dims);	
-    one_ptr=curr_item;
-    zero_ptr->shared=TRUE;
-    one_ptr->shared=TRUE;
-    /* copy array index values from level ZERO to ONE */
-    for (i=0;i<=zero_ptr->dims;i++) one_ptr->index[i] = zero_ptr->index[i];
-    /* get string array element size? */
-    if (one_ptr->type == stringtype) 
-       one_ptr->numconst.longnum = zero_ptr->numconst.longnum;
-   }
-   else { _error(40); lev=ONE; }
-
-   if (share_it)
-   {
-    /* copy size information for SIZEOF? */
-    if (one_ptr->type == stringtype || 
-        one_ptr->object == array ||
-        one_ptr->object == structure) one_ptr->size = zero_ptr->size;
-
-    /* copy address of object from level ZERO to level ONE stack frame */
-    
-    /* frame location of level ONE object */ 
-    itoa(-1*one_ptr->address,buf1,10);
-    strcat(buf1,"(a5)");
-
-    /* if simple numeric variable (short,long,single) or structure 
-       -> get address */
-    if ((zero_ptr->type != stringtype) && (zero_ptr->object != array))
-    {
-     gen_save32ad(4,0);  /* frame pointer */
-     gen_sub32d_val(zero_ptr->address,0);     /* offset from frame top */
-     gen_save32d(0,buf1);  /* store address in level ONE frame */
-    }
-    else
-    {
-     /* array or string -> level ZERO already contains address */
-     itoa(-1*zero_ptr->address,buf0,10);
-     strcat(buf0,"(a4)");
-     gen_move32(buf0,buf1);
-    }
-   }
+	sub_ptr->no_of_params=param_count;
+	
+	if (param_count == MAXPARAMS) _error(42);  /* too many */
+	
+	if (sym != rparen) _error(9);
+	insymbol();
   }
+}
 
-  insymbol();
- }
- while (sym == comma);
+void parse_shared_vars() {
+  SYM  *zero_ptr,*one_ptr;
+  int  i;
+  char buf0[40],buf1[40],num[40];
+  BOOL share_it;
+
+  /* get the SHARED list for current SUB and store details */
+
+  do {
+	share_it=FALSE;
+	insymbol();
+	if (sym != ident) _error(7);  /* identifier expected */
+	else {
+	  lev=ZERO;
+	  if (exist(id,variable) || exist(id,structure)) {
+		share_it=TRUE;
+		zero_ptr=curr_item;
+		lev=ONE;
+		enter(id,zero_ptr->type,zero_ptr->object,0);  /* variable or structure */	
+		one_ptr=curr_item;
+		/* add another 2 bytes to address if short */
+		if (one_ptr->type == shorttype) {
+		  addr[lev] += 2;
+		  one_ptr->address=addr[lev];
+		}
+		zero_ptr->shared=TRUE;
+		one_ptr->shared=TRUE;
+		if (one_ptr->type == stringtype)
+		  one_ptr->new_string_var=FALSE; /* don't want a new BSS object! */
+		if (one_ptr->object == structure)
+		  one_ptr->other = zero_ptr->other; /* pointer to structdef SYM node */
+	  } else if (exist(id,array)) {
+		share_it=TRUE;
+		zero_ptr=curr_item;
+		lev=ONE;
+		enter(id,zero_ptr->type,array,zero_ptr->dims);	
+		one_ptr=curr_item;
+		zero_ptr->shared=TRUE;
+		one_ptr->shared=TRUE;
+		/* copy array index values from level ZERO to ONE */
+		for (i=0;i<=zero_ptr->dims;i++) one_ptr->index[i] = zero_ptr->index[i];
+		/* get string array element size? */
+		if (one_ptr->type == stringtype) 
+		  one_ptr->numconst.longnum = zero_ptr->numconst.longnum;
+	  } else { _error(40); lev=ONE; }
+
+	  if (share_it) {
+		/* copy size information for SIZEOF? */
+		if (one_ptr->type == stringtype || 
+			one_ptr->object == array ||
+			one_ptr->object == structure) one_ptr->size = zero_ptr->size;
+		
+		/* copy address of object from level ZERO to level ONE stack frame */
+		
+		/* frame location of level ONE object */ 
+		itoa(-1*one_ptr->address,buf1,10);
+		strcat(buf1,"(a5)");
+		
+		/* if simple numeric variable (short,long,single) or structure 
+		   -> get address */
+		if ((zero_ptr->type != stringtype) && (zero_ptr->object != array)) {
+		  gen_save32ad(4,0);  /* frame pointer */
+		  gen_sub32d_val(zero_ptr->address,0);     /* offset from frame top */
+		  gen_save32d(0,buf1);  /* store address in level ONE frame */
+		} else {
+		  /* array or string -> level ZERO already contains address */
+		  itoa(-1*zero_ptr->address,buf0,10);
+		  strcat(buf0,"(a4)");
+		  gen_move32(buf0,buf1);
+		}
+	  }
+	}
+	
+	insymbol();
+  } while (sym == comma);
 }

@@ -54,153 +54,134 @@
 /* globals */
 BOOL 	inside_string = FALSE;	/* see last line of nextch() */
 
-void setup()
-{
-int i;
+void setup() {
+  int i;
 
- /* initialize nextch() variables */
- column=linelen=-1; 
- line[0]='\0';
+  /* initialize nextch() variables */
+  column=linelen=-1; 
+  line[0]='\0';
  
- /* 
- ** All id's default to singletype (A..Z + "_" 
- ** with 4 bytes wasted between Z and "_").
- */ 
- for (i=0;i<=30;i++) idtype[i]=singletype; 
-
- /* libraries used by ACE */
- strcpy(acelib[0].name,"DOS");
- strcpy(acelib[0].base,"_DOSBase");
- strcpy(acelib[1].name,"INTUITION");
- strcpy(acelib[1].base,"_IntuitionBase");
- strcpy(acelib[2].name,"GRAPHICS");
- strcpy(acelib[2].base,"_GfxBase");
- strcpy(acelib[3].name,"MATHFFP");
- strcpy(acelib[3].base,"_MathBase");
- strcpy(acelib[4].name,"MATHTRANS");
- strcpy(acelib[4].base,"_MathTransBase");
- strcpy(acelib[5].name,"TRANSLATOR");
- strcpy(acelib[5].base,"_TransBase");
- /* sentinel ACE library entry */
- strcpy(acelib[6].name,"SENTINEL");
+  /* 
+  ** All id's default to singletype (A..Z + "_" 
+  ** with 4 bytes wasted between Z and "_").
+  */ 
+  for (i=0;i<=30;i++) idtype[i]=singletype; 
+  
+  /* libraries used by ACE */
+  strcpy(acelib[0].name,"DOS");
+  strcpy(acelib[0].base,"_DOSBase");
+  strcpy(acelib[1].name,"INTUITION");
+  strcpy(acelib[1].base,"_IntuitionBase");
+  strcpy(acelib[2].name,"GRAPHICS");
+  strcpy(acelib[2].base,"_GfxBase");
+  strcpy(acelib[3].name,"MATHFFP");
+  strcpy(acelib[3].base,"_MathBase");
+  strcpy(acelib[4].name,"MATHTRANS");
+  strcpy(acelib[4].base,"_MathTransBase");
+  strcpy(acelib[5].name,"TRANSLATOR");
+  strcpy(acelib[5].base,"_TransBase");
+  /* sentinel ACE library entry */
+  strcpy(acelib[6].name,"SENTINEL");
  
- /* make "other library" entries null */ 
- for (i=0;i<NUMLIBS-1;i++)
- {
+  /* make "other library" entries null */ 
+  for (i=0;i<NUMLIBS-1;i++) {
 	otherlib[i].name[0] = '\0';
 	otherlib[i].base[0] = '\0';
- }
- /* sentinel for "other libraries" */
- strcpy(otherlib[NUMLIBS-1].name,"SENTINEL");
+  }
+  /* sentinel for "other libraries" */
+  strcpy(otherlib[NUMLIBS-1].name,"SENTINEL");
 
- /* open error log? */
- if (error_log)
- {
-  err_log = fopen("ace.err","w");
-  if (err_log == NULL) 
-     { puts("Unable to open error log: ace.err!"); exit(10); }
- }
+  /* open error log? */
+  if (error_log) {
+	err_log = fopen("ace.err","w");
+	if (err_log == NULL) 
+	  { puts("Unable to open error log: ace.err!"); exit(10); }
+  }
 }
 
-void cleanup()
-{
- /* close files */
- if (!std_in && src != NULL) fclose(src);
- if (dest != NULL) fclose(dest);
- if (err_log != NULL) fclose(err_log);
+void cleanup() {
+  /* close files */
+  if (!std_in && src != NULL) fclose(src);
+  if (dest != NULL) fclose(dest);
+  if (err_log != NULL) fclose(err_log);
+  
+  free_alloc();
 
- free_alloc();
-
- /* exit with return value */
- if (early_exit) exitvalue=10;
- exit(exitvalue);
+  /* exit with return value */
+  if (early_exit) exitvalue=10;
+  exit(exitvalue);
 }
 
-void _warn(n)
-int n;
-{
-char *msg;
+void _warn(int n) {
+  char *msg;
 
- printf("Warning: ");
- if (error_log) fprintf(err_log,"Warning: ");
+  printf("Warning: ");
+  if (error_log) fprintf(err_log,"Warning: ");
 
- switch(n)
- {
+  switch(n) {
   case 0 : /* dummy */ break;
   case 1 : msg="Exponent out of range"; break;
- }
- printf("%s",msg);
- if (error_log) fprintf(err_log,"%s",msg);
- printf(" in line %d.\n",lineno);
- if (error_log) fprintf(err_log," in line %d.\n",lineno);
+  }
+  printf("%s",msg);
+  if (error_log) fprintf(err_log,"%s",msg);
+  printf(" in line %d.\n",lineno);
+  if (error_log) fprintf(err_log," in line %d.\n",lineno);
 }
 
-void _error(n)
-int n;
-{
-int  i,spot,badline,length;
-char *msg;
+void _error(int n) {
+  int  i,spot,badline,length;
+  char *msg;
 
- /* display an error and the line in which it occurs */
+  /* display an error and the line in which it occurs */
+  
+  if (!report_errors) return;	/* eg. see assem() in misc.c */
+  
+  if (n > 1 && n != 8) {
+	if (n!=12 && n!=15 && n!=17 && n!=25 && n!=34 && 
+		n!=51 && n!=52 && n!=64 && n!=73)
+	  {
+		/* show the offending line */
+		if (column != 0) {
+		  length=strlen(line);
+		  if (length > 0) {
+			printf("\n%s\n",line); 
+			if (error_log) fprintf(err_log,"\n%s\n",line);
+			spot=column;
+		  }
+		  badline=lineno;
+		} else {
+		  length=strlen(lastline);
+		  if (length > 0) {
+			printf("\n%s\n",lastline);
+			if (error_log) fprintf(err_log,"\n%s\n",lastline); 
+			spot=length;
+		  }
+		  badline=lineno-1;
+		}
+		
+		if (length > 0) {
+		  /* point to the error */
+		  for (i=1;i<spot;i++) { putchar(' '); if (error_log) fputc(' ',err_log); }
+		  printf("^\n");
+		  if (error_log) fprintf(err_log,"^\n");    
+		}
 
- if (!report_errors) return;	/* eg. see assem() in misc.c */
+		/* ignore rest of line */
+		column=linelen;
+		ch=' ';   /* force a call to nextch() when insymbol() next invoked */
+	  } else {
+		putchar('\n');
+		if (error_log) fputc('\n',err_log);
+		badline=lineno;
+	  }
 
- if (n > 1 && n != 8)
- {
-  if (n!=12 && n!=15 && n!=17 && n!=25 && n!=34 && 
-      n!=51 && n!=52 && n!=64 && n!=73)
-  {
-   /* show the offending line */
-   if (column != 0)
-   {
-    length=strlen(line);
-    if (length > 0) 
-    {
-     printf("\n%s\n",line); 
-     if (error_log) fprintf(err_log,"\n%s\n",line);
-     spot=column;
-    }
-    badline=lineno;
-   }
-   else
-   {
-    length=strlen(lastline);
-    if (length > 0) 
-    {
-     printf("\n%s\n",lastline);
-     if (error_log) fprintf(err_log,"\n%s\n",lastline); 
-     spot=length;
-    }
-    badline=lineno-1;
-   }
-     
-   if (length > 0)
-   {
-    /* point to the error */
-    for (i=1;i<spot;i++) { putchar(' '); if (error_log) fputc(' ',err_log); }
-    printf("^\n");
-    if (error_log) fprintf(err_log,"^\n");    
-   }
-
-   /* ignore rest of line */
-   column=linelen;
-   ch=' ';   /* force a call to nextch() when insymbol() next invoked */
-  }
-  else
-  {
-   putchar('\n');
-   if (error_log) fputc('\n',err_log);
-   badline=lineno;
+	printf("** ");
+	if (error_log) fprintf(err_log,"** ");
+	
+	if (!early_exit) early_exit=TRUE;
   }
 
-  printf("** ");
-  if (error_log) fprintf(err_log,"** ");
-
-  if (!early_exit) early_exit=TRUE;
- }
-
- switch(n)
- {
+  switch(n) {
   case 0  : /* dummy */ break;
   case 1  : msg="Unexpected end of source\n"; break;
   case 2  : msg="Unknown symbol"; break;
@@ -284,224 +265,199 @@ char *msg;
   case 80 : msg="BLOCK without END BLOCK"; break;
  }
 
- /* show the error */
- printf("%s",msg);
- if (error_log) fprintf(err_log,"%s",msg);
- if (n > 1 && n != 8)
- {
-  printf(" in line %d.\n",badline);
-  if (error_log) fprintf(err_log," in line %d.\n",badline);
- }
-
- if (n != 0) errors++;
+  /* show the error */
+  printf("%s",msg);
+  if (error_log) fprintf(err_log,"%s",msg);
+  if (n > 1 && n != 8) {
+	printf(" in line %d.\n",badline);
+	if (error_log) fprintf(err_log," in line %d.\n",badline);
+  }
+  
+  if (n != 0) errors++;
 }
 
-void _abort(n)
-int n;
-{
- _error(n);
- printf("*** compilation aborted with %d error(s).\n",errors);
- early_exit=TRUE;
- kill_all_lists();
- cleanup();
-}
-
-void open_files(source)
-char *source;
-{
-int  cc;
-char *xtn;
-
- /* 
- ** Open source file: allocate memory for extension in case required.
- */
- srcfile = (char *)alloc(strlen(source)+3); /* 3 = 2*Xtn + EOS */
- if (srcfile == NULL)
- {
-  puts("can't allocate memory for source file name.");
-  early_exit=TRUE;
-  cleanup();
- }
-
- /* copy source file name */
- strcpy(srcfile,source);
-
- /* 
- ** Does source file name already have an extension (.b or .bas)? 
- ** If not, add one. 
- */
- cc=0;
- while (srcfile[cc] && srcfile[cc] != '.') cc++;
-
- xtn = &srcfile[cc];
-
- /*
- ** Allow an extension of ".bas",".BAS",
- ** ".b" or ".B". If none is present -> append ".b".
- */
- if (strcmp(xtn,".bas") != 0 && strcmp(xtn,".BAS") != 0 && 
-     strcmp(xtn,".b") != 0 && strcmp(xtn,".B") != 0) 
- strcat(srcfile,".b");
-
- /* open source file */
- if ((src = fopen(srcfile,"r")) == NULL) 
- { 
-  printf("can't open %s.\n",srcfile);
-  early_exit=TRUE;
-  cleanup();
- }
-
- /* 
- ** Open object file. 
- */
- destfile = (char *)alloc(strlen(srcfile)+3); /* Full size + '.s' + 0 */
- if (destfile == NULL)
- {
-  puts("can't allocate memory for object file name.");
-  early_exit=TRUE;
-  cleanup();
- }
-
- /* copy source file name and change extension to ".s" */
- strcpy(destfile,srcfile);
- cc=strlen(destfile)-1;
- while (cc > 0 && destfile[cc] != '.') cc--;
- if (cc == 0) cc = strlen(destfile);
- destfile[cc] = '\0';
- strcat(destfile,".s");
-
- /* open target file */
- if ((dest = fopen(destfile,"w")) == NULL)
- {
-  printf("can't write to %s.\n",destfile);
-  early_exit=TRUE;
-  cleanup();
- }
-}
-
-void nextch()
-/* character handler */
-{
-char lineno_buf[15], *tmp;
-unsigned int  i,n;
-
-#ifdef __AMIGA__
- /* if user hits ctrl-c clean up and abort. */
- if (SetSignal(0L,SIGBREAKF_CTRL_C) & SIGBREAKF_CTRL_C)
- {
-  puts("\n*** Break: ACE terminating.");
+void _abort(int n) {
+  _error(n);
+  printf("*** compilation aborted with %d error(s).\n",errors);
   early_exit=TRUE;
   kill_all_lists();
   cleanup();
- }
+}
+
+void open_files(char * source) {
+  int  cc;
+  char *xtn;
+
+  /* Open source file: allocate memory for extension in case required. */
+  srcfile = (char *)alloc(strlen(source)+3); /* 3 = 2*Xtn + EOS */
+  if (srcfile == NULL) {
+	puts("can't allocate memory for source file name.");
+	early_exit=TRUE;
+	cleanup();
+  }
+  
+  /* copy source file name */
+  strcpy(srcfile,source);
+  
+  /* 
+  ** Does source file name already have an extension (.b or .bas)? 
+  ** If not, add one. 
+  */
+  cc=0;
+  while (srcfile[cc] && srcfile[cc] != '.') cc++;
+  
+  xtn = &srcfile[cc];
+  
+  /*
+  ** Allow an extension of ".bas",".BAS",
+  ** ".b" or ".B". If none is present -> append ".b".
+  */
+  if (strcmp(xtn,".bas") != 0 && strcmp(xtn,".BAS") != 0 && 
+	  strcmp(xtn,".b") != 0 && strcmp(xtn,".B") != 0) 
+	strcat(srcfile,".b");
+  
+  /* open source file */
+  if ((src = fopen(srcfile,"r")) == NULL) { 
+	printf("can't open %s.\n",srcfile);
+	early_exit=TRUE;
+	cleanup();
+  }
+  
+  /* 
+  ** Open object file. 
+  */
+  destfile = (char *)alloc(strlen(srcfile)+3); /* Full size + '.s' + 0 */
+  if (destfile == NULL) {
+	puts("can't allocate memory for object file name.");
+	early_exit=TRUE;
+	cleanup();
+  }
+  
+  /* copy source file name and change extension to ".s" */
+  strcpy(destfile,srcfile);
+  cc=strlen(destfile)-1;
+  while (cc > 0 && destfile[cc] != '.') cc--;
+  if (cc == 0) cc = strlen(destfile);
+  destfile[cc] = '\0';
+  strcat(destfile,".s");
+  
+  /* open target file */
+  if ((dest = fopen(destfile,"w")) == NULL) {
+	printf("can't write to %s.\n",destfile);
+	early_exit=TRUE;
+	cleanup();
+  }
+}
+
+void nextch() {
+  /* character handler */
+  char lineno_buf[15], *tmp;
+  unsigned int  i,n;
+
+#ifdef __AMIGA__
+  /* if user hits ctrl-c clean up and abort. */
+  if (SetSignal(0L,SIGBREAKF_CTRL_C) & SIGBREAKF_CTRL_C) {
+	puts("\n*** Break: ACE terminating.");
+	early_exit=TRUE;
+	kill_all_lists();
+	cleanup();
+  }
 #endif
 
- if (column == linelen)
- {
-  strcpy(lastline,line);
+  if (column == linelen) {
+	strcpy(lastline,line);
 
-  /* refill line buffer */
-  column = linelen = -1;
+	/* refill line buffer */
+	column = linelen = -1;
 
-  do
-  {
-  	line[++linelen]=(ch=getc(src));
-  }
-  while ((ch != '\n') && (ch != EOF) && (linelen < MAXLINELEN));
+	do {
+	  line[++linelen]=(ch=getc(src));
+	} while ((ch != '\n') && (ch != EOF) && (linelen < MAXLINELEN));
 
-  /* next line of source code */
-  line[linelen] = '\0';
+	/* next line of source code */
+	line[linelen] = '\0';
 
-  /* 
-  ** !!! eoln for previous line [PRINT statement etc] !!! 
-  **
-  ** Having just refilled the line buffer means we've
-  ** run out of characters, so reached the eoln. The last
-  ** character was '\0' which will be treated as whitespace
-  ** but which is required for string literal parsing.
-  **
-  ** If the previous line's last non-whitespace character is '~' the line 
-  ** should be continued (ie. the eoln should be ignored) and the '~' 
-  ** character should be seen as whitespace.
-  **
-  ** Geez this whole EOLN thing is _messy_!!
-  */
-  tmp = lastline;
-  while (*tmp) tmp++; 				/* find EOS */
-  while (tmp > lastline && *tmp <= ' ') tmp--;	/* find '~' */
-  if (*tmp != '~') sym=endofline;
+	/* 
+	** !!! eoln for previous line [PRINT statement etc] !!! 
+	**
+	** Having just refilled the line buffer means we've
+	** run out of characters, so reached the eoln. The last
+	** character was '\0' which will be treated as whitespace
+	** but which is required for string literal parsing.
+	**
+	** If the previous line's last non-whitespace character is '~' the line 
+	** should be continued (ie. the eoln should be ignored) and the '~' 
+	** character should be seen as whitespace.
+	**
+	** Geez this whole EOLN thing is _messy_!!
+	*/
+	tmp = lastline;
+	while (*tmp) tmp++; 				/* find EOS */
+	while (tmp > lastline && *tmp <= ' ') tmp--;	/* find '~' */
+	if (*tmp != '~') sym=endofline;
+	
+	/* advance line counter */  
+	lineno++;
 
-  /* advance line counter */  
-  lineno++;
+	/* 
+	** Check for EOF -> Due to some editors, last line may not have 
+	**     	      a LF, but parse it! Next time nextch() is called
+	**		      EOF will be detected immediately. 
+	*/
+	if (ch == EOF && linelen == 0) {
+	  if ((lineno == 0) && (linelen == 0)) _abort(1);
+	  else
+		end_of_source = TRUE; 
+	}
 
-  /* 
-  ** Check for EOF -> Due to some editors, last line may not have 
-  **     	      a LF, but parse it! Next time nextch() is called
-  **		      EOF will be detected immediately. 
-  */
-  if (ch == EOF && linelen == 0)
-  {
-   if ((lineno == 0) && (linelen == 0)) _abort(1);
-   else
-       end_of_source = TRUE; 
-  }
-
-  /* line count display */
-  if (!list_source && ((lineno % 10 == 0) || end_of_source))
-  {
+	/* line count display */
+	if (!list_source && ((lineno % 10 == 0) || end_of_source)) {
 	  n=lineno;
 	  if (end_of_source && linelen == 0) --n;
-      	  printf("\rCompiling line %s",itoa(n,lineno_buf,10));
+	  printf("\rCompiling line %s",itoa(n,lineno_buf,10));
 	  for (i=1;i<=strlen(lineno_buf);i++) putchar('\b');
 	  fflush(stdout);
+	}
+
+	if (!end_of_source) {
+	  /* use source code line as a comment? */
+	  if (asm_comments) gen_comment(line);
+	  
+	  /* show each source code line before compilation? */
+	  if (list_source) printf("%ld: %s\n",(long)lineno,line);
+	}
   }
-
-  if (!end_of_source)
-  {
-   /* use source code line as a comment? */
-   if (asm_comments) gen_comment(line);
-
-   /* show each source code line before compilation? */
-   if (list_source) printf("%ld: %s\n",(long)lineno,line);
-  }
- }
-
- /* next character */
- column++;
- ut_ch = ch = line[column];
- if (ch == '~' && !inside_string) ut_ch = ch = ' ';  /* '~' == whitespace */
+  
+  /* next character */
+  column++;
+  ut_ch = ch = line[column];
+  if (ch == '~' && !inside_string) ut_ch = ch = ' ';  /* '~' == whitespace */
 }
 
-BOOL letter()
-{
- if ((ch >= 'A') && (ch <= 'Z')) return(TRUE);
- if ((ch >= 'a') && (ch <= 'z')) { ch -= 32; return(TRUE); }
- return(FALSE);
+BOOL letter() {
+  if ((ch >= 'A') && (ch <= 'Z')) return(TRUE);
+  if ((ch >= 'a') && (ch <= 'z')) { ch -= 32; return(TRUE); }
+  return(FALSE);
 }
 
-BOOL digit()
-{
- if ((ch >= '0') && (ch <= '9')) return(TRUE);
- else
-     return(FALSE);
+BOOL digit() {
+  if ((ch >= '0') && (ch <= '9')) return(TRUE);
+  else return(FALSE);
 }
 
-BYTE hex_digit()
-{
- if ((ch >= '0') && (ch <= '9')) return(ch-'0');
- letter(); /* make sure it's uppercase */
- if ((ch >= 'A') && (ch <= 'F')) return(10+ch-'A');
- return(-1);
+BYTE hex_digit() {
+  if ((ch >= '0') && (ch <= '9')) return(ch-'0');
+  letter(); /* make sure it's uppercase */
+  if ((ch >= 'A') && (ch <= 'F')) return(10+ch-'A');
+  return(-1);
 }
 
-BYTE octal_digit()
-{
- if ((ch >= '0') && (ch <= '7')) return(ch-'0');
- return(-1);
+BYTE octal_digit() {
+  if ((ch >= '0') && (ch <= '7')) return(ch-'0');
+  return(-1);
 }
 
-void convert_special_ident()
-{
+void convert_special_ident() {
 /* 
 ** If the current identifier is one of a special 
 ** group, modify it by prefixing an underscore.
@@ -511,11 +467,11 @@ void convert_special_ident()
 ** which cause A68K to generate errors when
 ** encountered as labels. 
 */
-char chr0,chr1;
- 
+  char chr0,chr1;
+  
   chr0 = id[0];
   chr1 = id[1];
-
+  
   /* 
   ** Address or data register name? (A0..A7, D0..D7 or SP)
   ** If so -> convert to _Dn, _An or _SP.
@@ -523,24 +479,22 @@ char chr0,chr1;
   if (((chr0 == 'A' || chr0 == 'D') &&
        (chr1 >= '0' && chr1 <= '7' && id[2] == '\0')) ||
       (chr0 == 'S' && chr1 == 'P' && id[2] == '\0'))
-  {
-	/* convert id */
-	id[3] = '\0';
-	id[2] = chr1;
-	id[1] = chr0;
-	id[0] = '_';
-  }   
+	{
+	  /* convert id */
+	  id[3] = '\0';
+	  id[2] = chr1;
+	  id[1] = chr0;
+	  id[0] = '_';
+	}   
 }
 
-BOOL qualifier()
-{
- /* - Attach a qualifier character (%&$!#).
-    - The default object (variable) can be overriden by
-      the later declaration of an array, subprogram etc.
- */
+BOOL qualifier() {
+  /* - Attach a qualifier character (%&$!#).
+	 - The default object (variable) can be overriden by
+	 the later declaration of an array, subprogram etc.
+  */
 
- switch(ch)
- {
+  switch(ch) {
   case '$' : obj = variable;  typ = stringtype; return(TRUE);
   case '%' : obj = variable;  typ = shorttype;  return(TRUE);  
   case '&' : obj = variable;  typ = longtype;   return(TRUE);
@@ -550,523 +504,357 @@ BOOL qualifier()
  }
 }
 
-BOOL ssymbol()
-{
-int  i=0;
-BOOL found=FALSE;
+BOOL ssymbol() {
+  int  i=0;
+  BOOL found=FALSE;
  
- /* if (ch == '"') return(TRUE); */
- while ((spec_sym[i] != '\0')&&(!found)) if (ch == spec_sym[i++]) found=TRUE;
- return(found);
+  /* if (ch == '"') return(TRUE); */
+  while ((spec_sym[i] != '\0')&&(!found)) if (ch == spec_sym[i++]) found=TRUE;
+  return(found);
 }
 
-int rsvd_wd(id)
-char *id;
-{
-BOOL found=FALSE;
-int first,last,this;
-
-   /* search the reserved word
-      list using a binary search 
-      for AmigaBASIC and then ACE 
-      keywords.
+int rsvd_wd(char * id) {
+  BOOL found=FALSE;
+  int first,last,this;
+  
+  /* search the reserved word list using a binary search 
+	 for AmigaBASIC and then ACE keywords.
    */
 
-   /* AmigaBASIC keyword? */
-   first=abssym; last=xorsym;
-   do
-   {
+  /* AmigaBASIC keyword? */
+  first=abssym; last=xorsym;
+  do {
     this = (first+last) / 2;
     if (strcmp(id,rword[this]) <= 0) last  = this-1;  /* id <= rword[this] ? */
     if (strcmp(id,rword[this]) >= 0) first = this+1;  /* id >= rword[this] ? */
-   }   
-   while (first <= last);
-   if (first-1 > last) found=TRUE;
-
-   /* ACE keyword? */
-   if (!found)
-   {
+  } while (first <= last);
+  if (first-1 > last) found=TRUE;
+  
+  /* ACE keyword? */
+  if (!found) {
     first=addresssym; last=ycorsym;
-    do
-    {
-     this = (first+last) / 2;
-     if (strcmp(id,rword[this]) <= 0) last  = this-1;  /* id <= rword[this] ? */
-     if (strcmp(id,rword[this]) >= 0) first = this+1;  /* id >= rword[this] ? */
-    }   
-    while (first <= last);
+    do {
+	  this = (first+last) / 2;
+	  if (strcmp(id,rword[this]) <= 0) last  = this-1;  /* id <= rword[this] ? */
+	  if (strcmp(id,rword[this]) >= 0) first = this+1;  /* id >= rword[this] ? */
+    } while (first <= last);
     if (first-1 > last) found=TRUE;
-   }
-
-   if (found) return(this); else return(undefined);
+  }
+  
+  if (found) return(this); else return(undefined);
 }
 
-int rsvd_sym(id)
-char *id;
-{
-BOOL found=FALSE;
-int cc=0;
+int rsvd_sym(char * id) {
+  BOOL found=FALSE;
+  int cc=0;
 
    /* reserved symbol? */
-   do
-   {
-    if (strcmp(id,rsym[cc++]) == 0) found=TRUE;
-   }
-   while ((!found) && (strcmp(rsym[cc],"SENTINEL")!=0));
+   do {
+	 if (strcmp(id,rsym[cc++]) == 0) found=TRUE;
+   } while ((!found) && (strcmp(rsym[cc],"SENTINEL")!=0));
    if (found) return(500+cc-1); else return(undefined); 
 }
 
-void reclassify_number()
-{
+void reclassify_number() {
  /* reclassify a number as a short, long or floating point value
     if a qualifying character (%&!#) follows the numeric literal.
  */
-  if (ch == '%')
-  {
-   /* coerce to a SHORT constant */
-   nextch();
-   switch(typ)
-   {
-    case longtype   : shortval=(SHORT)longval; break;
-    case singletype : shortval=round(singleval); break;
-   }
-   sym=shortconst;
-   typ=shorttype;
-  }
-  else
-  if (ch == '&')  
-  {
-   /* coerce to a LONG constant */
-   nextch(); 
-   switch(typ)
-   {
-    case shorttype  : longval=(LONG)shortval; break;
-    case singletype : longval=(LONG)round(singleval);
-   }
-   sym=longconst;
-   typ=longtype; 
-  }
-  else
-  if (ch == '!' || ch == '#')
-  {
-   /* coerce to a SINGLE constant */
-   nextch();
-   switch(typ)
-   {
+  if (ch == '%') {
+	/* coerce to a SHORT constant */
+	nextch();
+	switch(typ) {
+	case longtype   : shortval=(SHORT)longval; break;
+	case singletype : shortval=round(singleval); break;
+	}
+	sym=shortconst;
+	typ=shorttype;
+  } else if (ch == '&') {
+	/* coerce to a LONG constant */
+	nextch(); 
+	switch(typ) {
+	case shorttype  : longval=(LONG)shortval; break;
+	case singletype : longval=(LONG)round(singleval);
+	}
+	sym=longconst;
+	typ=longtype; 
+  } else if (ch == '!' || ch == '#') {
+	/* coerce to a SINGLE constant */
+	nextch();
+	switch(typ) {
     case shorttype : singleval=(float)shortval; break;
     case longtype  : singleval=(float)longval; break;    
-   }
-   sym=singleconst;
-   typ=singletype;
+	}
+	sym=singleconst;
+	typ=singletype;
   }  
 }
 
-void classify_integer(n)
-LONG n;
-{
- /* classify as a long or short integer value */
- if (n >= 0 && n <= MAXSHORT)
- {
-   /* SHORT constant */
-   shortval=(SHORT)n;
-   sym=shortconst; 
-   typ=shorttype;
- }
- else
- {
-   /* LONG constant */
-   longval=n;  
-   sym=longconst;
-   typ=longtype; 
- }
+void classify_integer(LONG n) {
+  /* classify as a long or short integer value */
+  if (n >= 0 && n <= MAXSHORT) {
+	/* SHORT constant */
+	shortval=(SHORT)n;
+	sym=shortconst; 
+	typ=shorttype;
+  } else {
+	/* LONG constant */
+	longval=n;  
+	sym=longconst;
+	typ=longtype; 
+  }
 }
 
-void insymbol()
 /* lexical analyser */
-{
-int  i,cc=0;
-BOOL found;
-char ssym[3];
-LONG n[2],n0,n1;
-int  index;
-int  periods;
-BOOL period;
-LONG places;
-int  placecount;
-int  ex;
-LONG val;
-BYTE num;
-int  sign;
-char lastch=' ';
+void insymbol() {
+  int  i,cc=0;
+  BOOL found;
+  char ssym[3];
+  LONG n[2],n0,n1;
+  int  index;
+  int  periods;
+  BOOL period;
+  LONG places;
+  int  placecount;
+  int  ex;
+  LONG val;
+  BYTE num;
+  int  sign;
+  char lastch=' ';
 
- lastsym=sym;   
- sym = undefined;
- obj = undefined;
- typ = undefined;
- found = FALSE;
-
- if (!end_of_source)
- {
-  /* skip whitespace */
-  while (ch <= ' ') 
-  { 
-   nextch(); 
-   if (end_of_source) return; 
-   if (sym == endofline) return;  /* for PRINT */
-  }
-
-  /* single-line comment? */
-  if (ch == '\'') 
-  {
-   do
-   {
-    nextch();
-   }
-   while ((sym != endofline) && (!end_of_source));
-   if (end_of_source) return;
-   if (sym == endofline) return;  /* for PRINT '... */
-  }
-
-  /* block comment? */
-  if (ch == '{')
-  {
-   do
-   {
-    nextch();
-   }
-   while ((ch != '}') && (!end_of_source));
-
-   if (!end_of_source) nextch();  /* character after "}" */
-   else
-       return;
-
-   if (sym == endofline) return;  /* for PRINT {..} */
-
-   /* skip whitespace */
-   while (ch <= ' ') 
-   { 
-    nextch(); 
-    if (end_of_source) return; 
-    if (sym == endofline) return;  /* for PRINT {..} eoln */
-   }
-  }
-
-  /* identifier or reserved word? */
-  if (letter() || (ch == '_'))
-  {
-   do
-   {
-    ut_id[cc]=ut_ch; /* keep an "untouched" version (ie: upper/lower case) 
-			for DATA statements, library function searches 
-			and external functions */
-    id[cc++]=ch;
-    nextch();
-   }
-   while ((letter() || digit() || (ch == '.') || (ch == '_')) && 
-	  (cc < MAXIDSIZE-2));  
- 
-   id[cc]='\0';
-   ut_id[cc]='\0';
+  lastsym=sym;   
+  sym = undefined;
+  obj = undefined;
+  typ = undefined;
+  found = FALSE;
   
-   /* is there a qualifier? %&$!# */
-   if (qualifier()) 
-   {
-    if (ch == '&') ch='@';   
-    if (ch == '!') ch='[';   /* this is ONLY because a jsr SUB_name& or
-				SUB_name! gives an error in A68K, whereas
-			  	SUB_name@ and SUB_name[ don't!! */
-    id[cc++]=ch;
-    nextch();
-   }
+  if (!end_of_source) {
+	/* skip whitespace */
+	while (ch <= ' ') { 
+	  nextch(); 
+	  if (end_of_source) return; 
+	  if (sym == endofline) return;  /* for PRINT */
+	}
 
-   id[cc] = '\0';
-   ut_id[cc] = '\0';
-   
-   /* reserved word? */
-   if ((sym = rsvd_wd(id)) == undefined)
-   { 
-    /* no, it's an identifier */
-    convert_special_ident();
+	/* single-line comment? */
+	if (ch == '\'') {
+	  do { nextch(); } while ((sym != endofline) && (!end_of_source));
+	  if (end_of_source) return;
+	  if (sym == endofline) return;  /* for PRINT '... */
+	}
 
-    sym=ident; 
+	/* block comment? */
+	if (ch == '{') {
+	  do { nextch(); } while ((ch != '}') && (!end_of_source));
 
-    if (typ == undefined) 
-    { 
-    	/* 
-	** Data type = ASCII value of 1st char in id minus 'A'.
-	** Note that the underscore character is also catered
-	** for here since it is higher in the ASCII table than
-	** "Z". See lexvar.c, misc.c and setup() (above) for 
-	** more info.
-    	*/
-	typ=idtype[id[0]-'A']; 
+	  if (!end_of_source) nextch();  /* character after "}" */
+	  else return;
 
-        obj=variable;        
-    }
-   }
-   else
-    {
-     /* 
-     ** It's a reserved word, so typ & obj mean nothing, but may
-     ** have been set by qualifier() if qualifier character was a '$' 
-     */
-     typ=undefined;
-     obj=rsvd_word;
-    }
-  }
-  else
-  /* string constant? */
-  if (ch == '"')
-  {
-   inside_string = TRUE;
-   cc=0;
-   do
-   {
-    nextch();
-    stringval[cc++] = ch;
-   }
-   while ((ch != '"') && (ch != '\0') && (cc < MAXSTRLEN));
-   if (ch == '"') --cc;
-   if (ch == '"') nextch();
-   stringval[cc]='\0';
-   sym=stringconst; typ=stringtype; obj=constant;
-   inside_string = FALSE;
-  }
-  else
-  /* numeric literal? */
-  if (digit() || (ch == '.'))
-  {
-   n[0]=n[1]=0;
-   index=0;
-   period=FALSE;
-   periods=0;
-   placecount=0;
-   
-   /* is first char '.'? */
-   if (ch == '.')
-   {
-    period=TRUE;
-    placecount=0;
-    index=1;
-    periods++;
-   }
-   /* get the value */
-   if (!period) n[0]=10*n[0]+(ch-'0');
-   do
-   {
-    nextch();
-    if (digit()) n[index]=10*n[index]+(ch-'0');
-    if (digit() && period) placecount++;
-    if (ch == '.') periods++;
-    if ((ch == '.') && (!period))
-    {
-     period=TRUE;
-     placecount=0;
-     index=1;
-    }
-   }
-   while ((digit() || ch == '.') && (periods <= 1));
+	  if (sym == endofline) return;  /* for PRINT {..} */
+	  
+	  /* skip whitespace */
+	  while (ch <= ' ') { 
+		nextch(); 
+		if (end_of_source) return; 
+		if (sym == endofline) return;  /* for PRINT {..} eoln */
+	  }
+	}
+
+	/* identifier or reserved word? */
+	if (letter() || (ch == '_')) {
+	  do {
+		ut_id[cc]=ut_ch; /* keep an "untouched" version (ie: upper/lower case) 
+							for DATA statements, library function searches 
+							and external functions */
+		id[cc++]=ch;
+		nextch();
+	  }
+	  while ((letter() || digit() || (ch == '.') || (ch == '_')) && 
+			 (cc < MAXIDSIZE-2));  
  
-   /* integer or real? */
-   if (period && (periods == 1))
-   {
-    /* make FFP */
-    sym = singleconst; typ=singletype;
-    places=1;
-    for (i=1;i<=placecount;i++) places *= 10;
-    n0=n[0];
-    n1=n[1];
-    singleval= (float)n0 + (float)places / n1;
-   }  
-  else 
-      classify_integer(n[0]);
-
-  reclassify_number();
-
-  /* is it a real in scientific format? */
-  if ((ch == 'e') || (ch == 'E'))
-  {
-   ex=0;
-   sign=1;
-   nextch();
-   if (ch == '+') { sign=1; nextch(); }
-   else
-      if (ch == '-') { sign=-1; nextch(); }
-   if (!digit()) _error(3);  /* expect a digit */ 
-   /* get digits */
-   while (digit()) { ex = 10*ex + (ch-48); nextch(); }
-   ex *= sign;
-   /* convert to FFP */
-   if ((ex >= -20) && (ex <= 18))
-   {
-
-    /* mantissa */
-    if (sym != singleconst) 
-    { 
-     singleval = (float)n[0]; 
-     sym=singleconst; typ=singletype;
-    }
-
-    /* if exponent is zero: 10^ex = 1 -> num*1 = num 
-       so just return singleval as it is. */
-    if (ex != 0) singleval = pow((float)ex,10.0) * singleval;
-
-    reclassify_number();
-   }
-   else { singleval = 0.0; _warn(1); }
-  }    
-  obj=constant;
- }
- else
-  /* reserved symbol? */
-  if (ch == '\\') /* backslash */
-  { 
-   sym=idiv;  
-   nextch();
-  }
-  else
-  if (ssymbol() || (ch == '&') || (ch == '#'))
-  {
-   /* one character symbol? */
-   ssym[0]=ch;
-   ssym[1]='\0';
-   sym = rsvd_sym(ssym);  /* tentatively */
-
-   lastch=ch;  /* might be '&' or '*' */
-   nextch();   
-
-   /* multiple character symbol? (++,--,->,<>,<=,>=,:=,&H,&O,*%,*&,*!) */
-
-   /* ++ */
-   if (sym==plus && ch=='+') 
-      { ssym[1]=ch; ssym[2]='\0'; sym=rsvd_sym(ssym); nextch(); }
-   else 
-   /* --,-> */
-   if (sym==minus && (ch=='-' || ch=='>')) 
-      { ssym[1]=ch; ssym[2]='\0'; sym=rsvd_sym(ssym); nextch(); }
-   else
-   /* <>,<= */
-   if (sym==lessthan && (ch=='>' || ch=='=')) 
-      { ssym[1]=ch; ssym[2]='\0'; sym=rsvd_sym(ssym); nextch(); }
-   else
-   /* >=,:= */
-   if ((sym==gtrthan || sym==colon) && ch=='=') 
-      { ssym[1]=ch; ssym[2]='\0'; sym=rsvd_sym(ssym); nextch(); }
-   else
-   /* &H,&O */
-   if (lastch=='&' && (ch=='H' || ch=='O')) 
-      { ssym[1]=ch; ssym[2]='\0'; sym=rsvd_sym(ssym); nextch(); }
-   else
-   /* *%,*&,*! */
-   if (lastch=='*' && (ch=='%' || ch=='&' || ch=='!'))
-      { ssym[1]=ch; ssym[2]='\0'; sym=rsvd_sym(ssym); nextch(); }
+	  id[cc]='\0';
+	  ut_id[cc]='\0';
   
+	  /* is there a qualifier? %&$!# */
+	  if (qualifier()) {
+		if (ch == '&') ch='@';   
+		if (ch == '!') ch='[';   /* this is ONLY because a jsr SUB_name& or
+									SUB_name! gives an error in A68K, whereas
+									SUB_name@ and SUB_name[ don't!! */
+		id[cc++]=ch;
+		nextch();
+	  }
+	  
+	  id[cc] = '\0';
+	  ut_id[cc] = '\0';
+   
+	  /* reserved word? */
+	  if ((sym = rsvd_wd(id)) == undefined) { 
+		/* no, it's an identifier */
+		convert_special_ident();
+
+		sym=ident; 
+		
+		if (typ == undefined) { 
+		  /* 
+		  ** Data type = ASCII value of 1st char in id minus 'A'.
+		  ** Note that the underscore character is also catered
+		  ** for here since it is higher in the ASCII table than
+		  ** "Z". See lexvar.c, misc.c and setup() (above) for 
+		  ** more info.
+		  */
+		  typ=idtype[id[0]-'A']; 
+		  
+		  obj=variable;        
+		}
+	  } else {
+		/* 
+		** It's a reserved word, so typ & obj mean nothing, but may
+		** have been set by qualifier() if qualifier character was a '$' 
+		*/
+		typ=undefined;
+		obj=rsvd_word;
+	  }
+	} else if (ch == '"') {
+	  /* string constant? */
+	  inside_string = TRUE;
+	  cc=0;
+	  do {
+		nextch();
+		stringval[cc++] = ch;
+	  }
+	  while ((ch != '"') && (ch != '\0') && (cc < MAXSTRLEN));
+	  if (ch == '"') --cc;
+	  if (ch == '"') nextch();
+	  stringval[cc]='\0';
+	  sym=stringconst; typ=stringtype; obj=constant;
+	  inside_string = FALSE;
+	} else if (digit() || (ch == '.')) { /* numeric literal? */
+	  n[0]=n[1]=0;
+	  index=0;
+	  period=FALSE;
+	  periods=0;
+	  placecount=0;
+   
+	  if (ch == '.') {
+		period=TRUE;
+		placecount=0;
+		index=1;
+		periods++;
+	  }
+	  /* get the value */
+	  if (!period) n[0]=10*n[0]+(ch-'0');
+	  do {
+		nextch();
+		if (digit()) n[index]=10*n[index]+(ch-'0');
+		if (digit() && period) placecount++;
+		if (ch == '.') periods++;
+		if ((ch == '.') && (!period)) {
+		  period=TRUE;
+		  placecount=0;
+		  index=1;
+		}
+	  } while ((digit() || ch == '.') && (periods <= 1));
  
-       /* hexadecimal constant? */
-       if (sym == hexprefix)
-       {
-        val=0;
-	if (hex_digit() == -1)
-	   _error(2);
-	else
-        while ((num = hex_digit()) != -1)
-        {
-         val = 16*val + num;
-         nextch();
-        }
-        classify_integer(val); 
-	reclassify_number();
-       }
-       else
-      /* octal constant? */
-      if ((sym == octalprefix) || ((ssym[0] == '&') && (strlen(ssym)==1)))
-      {
-       val=0;
-       if (octal_digit() == -1) 
-           _error(2); 
-       else
-       {
-        while ((num = octal_digit()) != -1)
-        {
-         val = 8*val + num;
-         nextch();
-        }
-        classify_integer(val);
-	reclassify_number();
-       }
-      }
-    }
+	  /* integer or real? */
+	  if (period && (periods == 1)) {
+		/* make FFP */
+		sym = singleconst; typ=singletype;
+		places=1;
+		for (i=1;i<=placecount;i++) places *= 10;
+		n0=n[0];
+		n1=n[1];
+		singleval= (float)n0 + (float)places / n1;
+	  } else classify_integer(n[0]);
+
+	  reclassify_number();
+	  
+	  /* is it a real in scientific format? */
+	  if ((ch == 'e') || (ch == 'E')) {
+		ex=0;
+		sign=1;
+		nextch();
+		if (ch == '+') { sign=1; nextch(); }
+		else if (ch == '-') { sign=-1; nextch(); }
+		if (!digit()) _error(3);  /* expect a digit */ 
+		/* get digits */
+		while (digit()) { ex = 10*ex + (ch-48); nextch(); }
+		ex *= sign;
+		/* convert to FFP */
+		if ((ex >= -20) && (ex <= 18)) {
+		  
+		  /* mantissa */
+		  if (sym != singleconst) { 
+			singleval = (float)n[0]; 
+			sym=singleconst; typ=singletype;
+		  }
+
+		  /* if exponent is zero: 10^ex = 1 -> num*1 = num 
+			 so just return singleval as it is. */
+		  if (ex != 0) singleval = pow((float)ex,10.0) * singleval;
+		  
+		  reclassify_number();
+		} else { singleval = 0.0; _warn(1); }
+	  }    
+	  obj=constant;
+	} else
+	  /* reserved symbol? */
+	  if (ch == '\\') /* backslash */
+		{ 
+		  sym=idiv;  
+		  nextch();
+		} else if (ssymbol() || (ch == '&') || (ch == '#')) {
+		  /* one character symbol? */
+		  ssym[0]=ch;
+		  ssym[1]='\0';
+		  sym = rsvd_sym(ssym);  /* tentatively */
+		  
+		  lastch=ch;  /* might be '&' or '*' */
+		  nextch();   
+		  
+		  /* multiple character symbol? (++,--,->,<>,<=,>=,:=,&H,&O,*%,*&,*!) */
+		  if (sym==plus && ch=='+')  /* ++ */
+			{ ssym[1]=ch; ssym[2]='\0'; sym=rsvd_sym(ssym); nextch(); }
+		  else if (sym==minus && (ch=='-' || ch=='>')) /* --,-> */
+			{ ssym[1]=ch; ssym[2]='\0'; sym=rsvd_sym(ssym); nextch(); }
+		  else if (sym==lessthan && (ch=='>' || ch=='=')) /* <>,<= */
+			{ ssym[1]=ch; ssym[2]='\0'; sym=rsvd_sym(ssym); nextch(); }
+		  else if ((sym==gtrthan || sym==colon) && ch=='=')  /* >=,:= */
+			{ ssym[1]=ch; ssym[2]='\0'; sym=rsvd_sym(ssym); nextch(); }
+		  else if (lastch=='&' && (ch=='H' || ch=='O')) /* &H,&O */
+			{ ssym[1]=ch; ssym[2]='\0'; sym=rsvd_sym(ssym); nextch(); }
+		  else if (lastch=='*' && (ch=='%' || ch=='&' || ch=='!')) /* *%,*&,*! */
+			{ ssym[1]=ch; ssym[2]='\0'; sym=rsvd_sym(ssym); nextch(); }
+		  
+		  /* hexadecimal constant? */
+		  if (sym == hexprefix) {
+			val=0;
+			if (hex_digit() == -1) _error(2);
+			else
+			  while ((num = hex_digit()) != -1) {
+				val = 16*val + num;
+				nextch();
+			  }
+			classify_integer(val); 
+			reclassify_number();
+		  } else
+			/* octal constant? */
+			if ((sym == octalprefix) || ((ssym[0] == '&') && (strlen(ssym)==1))) {
+			  val=0;
+			  if (octal_digit() == -1) _error(2); 
+			  else {
+				while ((num = octal_digit()) != -1) {
+				  val = 8*val + num;
+				  nextch();
+				}
+				classify_integer(val);
+				reclassify_number();
+			  }
+			}
+		}
     /*
     ** Unknown symbol.
     */
     if (sym == undefined) { _error(2); nextch(); }
-    /*showsym(sym); lf();*/
- } 
+  } 
 }
 
-/*
-void showsym(sym)
-int sym;
-{
- if (sym == undefined) printf("undefined");
- else
- if (sym <= RWSENTINEL) printf("%s -> %d",rword[sym],sym);
- else
- if (sym <= RSSENTINEL) printf("%s",rsym[sym-500]);
- else
-     printf("%s",symbol[sym-1000]);
-}
-
-void showobj(obj)
-int obj;
-{
- if (obj == undefined) printf(" undefined");
- else
-     printf("%10s",object[obj-3000]);
-}
-
-void showtyp(typ)
-int typ;
-{
- if (typ == undefined) printf(" undefined");
- else
-     printf("%10s",type[typ-2000]);
-}
- 
-void tab()
-{
- putchar('\t');
-}
-
-void lf()
-{
- putchar('\n');
-}
-*/
-
-/*
-void main(argc,argv)
-int  argc;
-char *argv[];
-{
- if (argc == 1) { src = stdin; std_in=TRUE; }
- else
-    open_files(argv[1]);
- setup();
- while (!end_of_source) 
- { 
-  insymbol(); 
-  puts("                             ");
-  showsym(sym); tab(); 
-  showobj(obj); tab(); 
-  showtyp(typ); lf(); 
-  switch(sym)
-  {
-   case stringconst : printf("-->>%s\n",stringval); break;
-   case shortconst  : printf("-->>%d\n",shortval);  break;
-   case longconst   : printf("-->>%ld\n",longval);  break;
-   case singleconst : printf("-->>%x\n",singleval); break;
-  }
- }
- cleanup();
-}
-*/
