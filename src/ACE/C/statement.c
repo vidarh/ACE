@@ -521,8 +521,8 @@ BOOL  need_symbol=TRUE;
    case mousesym:
    case timersym:
    case errorsym:
-    change_event_trapping_status(sym);
-	break;
+	 change_event_trapping_status(sym);
+	 break;
 
    case blocksym: block_statement(); break;
    case callsym:  call_statement(); break; 
@@ -746,7 +746,7 @@ BOOL  need_symbol=TRUE;
    stype = make_integer(expr());
    if (stype == shorttype || stype == longtype) {
      /* SYSTEM returncode */
-     if (stype == shorttype) make_long()  ; /* get short integer exit value */
+     make_sure_long(stype);
      gen_pop32_var("_returncode");
      gen_jmp("_EXIT_PROG");
    } else {
@@ -769,8 +769,7 @@ BOOL  need_symbol=TRUE;
 
  case shortpointer: /* *%<address> = <expr> */
    insymbol();
-   if (expr() != longtype)  /* address */
-	 _error(4);
+   if (expr() != longtype) _error(4); /* address */
    else {
 	 if (sym != becomes) _error(5);
 	 else {
@@ -784,8 +783,7 @@ BOOL  need_symbol=TRUE;
 
  case longpointer:  /* *&<address> = <expr> */
   insymbol();
-  if (expr() != longtype)  /* address */
-	_error(4);
+  if (expr() != longtype)  _error(4); /* address */
   else {
 	if (sym != becomes) _error(5);
 	else {

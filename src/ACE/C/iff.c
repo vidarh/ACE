@@ -49,46 +49,32 @@ void	iff_open() {
   } 
 }
 
-/* 
-** IFF READ [#]channel[,screen-id]
-*/
-void	iff_read() {
+/*  IFF READ [#]channel[,screen-id] */
+void iff_read() {
   parse_channel();
-  if (sym != comma)
-	/* no screen-id */
-	gen_push32_val(-1);
+  if (sym != comma) gen_push32_val(-1); /* no screen-id */
   else {
 	/* screen-id */
-
 	insymbol();
 	make_sure_long();
 	gen_call_void("_IFFPicRead",8);
   }
 }
 
-/* 
-** IFF CLOSE [#]channel
-*/
+/* IFF CLOSE [#]channel */
 void  iff_close() {
   parse_channel();
   gen_call_void("_IFFPicClose",4);
 }
 
-void iff()
-{
 /* IFF OPEN | READ | CLOSE */
-
-	insymbol();
-	
-	switch(sym)
-	{
-		case opensym  : iff_open(); break;
-		case readsym  : iff_read(); break;
-		case closesym : iff_close(); break;
-	}
-
-	/*
-	** We need to tell ACE to create/delete ILBM.library.
-	*/
-	iffused = TRUE;
+void iff() {
+  insymbol();
+  switch(sym) {
+  case opensym  : iff_open(); break;
+  case readsym  : iff_read(); break;
+  case closesym : iff_close(); break;
+  }
+  /* We need to tell ACE to create/delete ILBM.library. */
+  iffused = TRUE;
 }

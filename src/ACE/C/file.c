@@ -71,24 +71,19 @@ void open_a_file()
   else
   {
    insymbol();
-   if (sym == hash) insymbol(); /* # filenumber */
-   if (make_integer(expr()) == shorttype) make_long();
+   parse_channel();
    if (sym != comma) _error(16);
-   else
-   {
+   else {
     insymbol();
     if (expr() != stringtype) _error(4);  /* filespec */
-    else {
-	  gen_call_args("_openfile","a1,d0,a0",0);
-    }
+    else gen_call_args("_openfile","a1,d0,a0",0);
    }
   }
  }    
 }
 
-void close_a_file()
-{
- /* CLOSE [#]filenumber[,[#]filenumber..] */
+/* CLOSE [#]filenumber[,[#]filenumber..] */
+void close_a_file() {
  check_for_event();
  do {
    parse_channel();
@@ -107,7 +102,6 @@ void line_input() {
  */
 
  check_for_event();
- 
  insymbol();
  
  if (sym != hash) _error(44);
@@ -170,58 +164,57 @@ void write_to_file() {
 	insymbol();
 	make_sure_long(expr());
 
-  gen_pop32_var("_seq_filenumber");
+	gen_pop32_var("_seq_filenumber");
   
-  if (sym != comma) _error(16);
-  else {
-   /* get expressions */
-	do {
-	  insymbol();
-	  wtype=expr(); 
+	if (sym != comma) _error(16);
+	else {
+	  /* get expressions */
+	  do {
+		insymbol();
+		wtype=expr(); 
 	  
-	  switch(wtype) {
-	  case undefined : _error(0);  break; /* expression expected */ 
-	  case shorttype : 	gen_pop16d(1);
-		gen_load32d("_seq_filenumber",0);
-		gen_jsr("_writeshort");
-		break;
+		switch(wtype) {
+		case undefined : _error(0);  break; /* expression expected */ 
+		case shorttype : 	gen_pop16d(1);
+		  gen_load32d("_seq_filenumber",0);
+		  gen_jsr("_writeshort");
+		  break;
 
-	  case longtype : 	gen_pop32d(1);
-		gen_load32d("_seq_filenumber",0);
-		gen_jsr("_writelong");
-		break;
+		case longtype : 	gen_pop32d(1);
+		  gen_load32d("_seq_filenumber",0);
+		  gen_jsr("_writelong");
+		  break;
 
-     case singletype : 	gen_pop32d(1);
-	   gen_load32d("_seq_filenumber",0);
-	   gen_jsr("_writesingle");
-	   enter_XREF("_MathBase");
-	   break;
-
-     case stringtype :  gen_load32d("_seq_filenumber",0);
-	   gen_jsr("_writequote");	
-	   gen_pop_addr(0);
-	   gen_load32d("_seq_filenumber",0);
-	   gen_jsr("_writestring");
-	   gen_load32d("_seq_filenumber",0);
-	   gen_jsr("_writequote");
-	   break;
-    }
+		case singletype : 	gen_pop32d(1);
+		  gen_load32d("_seq_filenumber",0);
+		  gen_jsr("_writesingle");
+		  enter_XREF("_MathBase");
+		  break;
+		  
+		case stringtype :  gen_load32d("_seq_filenumber",0);
+		  gen_jsr("_writequote");	
+		  gen_pop_addr(0);
+		  gen_load32d("_seq_filenumber",0);
+		  gen_jsr("_writestring");
+		  gen_load32d("_seq_filenumber",0);
+		  gen_jsr("_writequote");
+		  break;
+		}
+		
+		/* need a delimiter? */
+		if (sym == comma) {
+		  gen_load32d("_seq_filenumber",0);
+		  gen_jsr("_writecomma"); 
+		}
+		
+	  } while (sym == comma);  
+	
+	  /* write LF to mark EOLN */
+	  gen_load32d("_seq_filenumber",0);
+	  gen_jsr("_write_eoln");
 	  
-	  /* need a delimiter? */
-	  if (sym == comma) {
-		gen_load32d("_seq_filenumber",0);
-		gen_jsr("_writecomma"); 
-	  }
-	  
+	  enter_BSS("_seq_filenumber:","ds.l 1");
 	}
-	while (sym == comma);  
-	
-   /* write LF to mark EOLN */
-	gen_load32d("_seq_filenumber",0);
-	gen_jsr("_write_eoln");
-	
-	enter_BSS("_seq_filenumber:","ds.l 1");
-  }
   }
 }
 
@@ -254,10 +247,8 @@ void print_to_file() {
  enter_BSS("_seq_filenumber:","ds.l 1");
 
  if (sym != comma) _error(16);
- else
- {
-  do
-  {
+ else {
+   do {
    if (sym != ident && !strfunc() && !numfunc() && !factorfunc() && 
        obj != constant) 
       insymbol(); /* ident/func/literal after a space or as first parameter */
@@ -267,53 +258,35 @@ void print_to_file() {
 
       if ((sym == endofline) || (sym == colon) || (sym == apostrophe) || 
           (sym == semicolon) || (sym == comma) || (sym == elsesym) ||
-	  (end_of_source))
-      {
-       if (sym == comma) gen_writecode(TAB_CODE);
-       else
-       if ((arguments == 0) && (sym != semicolon)) 
-          gen_writecode(LF_CODE);  /* "PRINT #filenumber," with no args */ 
-
-       if (sym != colon && sym != elsesym) 
- 	  insymbol();  /* leave colon for multi-statement 
- 	                  in statement() or leave ELSE for if_statement() */
-       return;
+		  (end_of_source)) {
+		if (sym == comma) gen_writecode(TAB_CODE);
+		else
+		  if ((arguments == 0) && (sym != semicolon)) 
+			gen_writecode(LF_CODE);  /* "PRINT #filenumber," with no args */ 
+		
+		if (sym != colon && sym != elsesym) 
+		  insymbol();  /* leave colon for multi-statement 
+						  in statement() or leave ELSE for if_statement() */
+		return;
       }
-
+	  
       /* get an expression */
       exprtype = expr();
-   
+	  
       if (exprtype == undefined) { _error(0); return; } /* illegal syms? */
-
+	  
       /* pass filenumber to write routine */
 	  gen_load32d("_seq_filenumber", exprtype == stringtype ? 0 : 1);
-
-      switch(exprtype)
-      {
-	  case shorttype :
-		gen_pop16d(0);
-		gen_jsr("_fprintshort");
-		break;
-		
-	  case longtype :
-		gen_pop32d(0);  
-		gen_jsr("_fprintlong");
-		break;
-		
-	  case singletype :
-		gen_pop32d(0);
-		gen_jsr("_fprintsingle");
-		enter_XREF("_MathBase");
-		break;
-		
-	  case stringtype :
-		gen_pop_addr(0);
-		gen_jsr("_writestring");
-		break;
+	  
+      switch(exprtype) {
+	  case shorttype : gen_fcall("_fprintshort",shorttype,"w",longtype,"d0",0); break;
+	  case longtype:   gen_fcall("_fprintlong",longtype,"l",longtype,"d0",0); break;
+	  case singletype: gen_fcall("_fprintsingle",singletype,"f",singletype,"d0",0); break;
+	  case stringtype: gen_fcall("_writestring",stringtype,"s",stringtype,"a0",0); break;
       }
 
       if (exprtype != stringtype) 
-         gen_writecode(SPACE_CODE); /* trailing space for any number */
+		gen_writecode(SPACE_CODE); /* trailing space for any number */
 
       arguments++;
 
@@ -328,359 +301,294 @@ void print_to_file() {
  }
 }
 
-void input_from_file()
-{
-char addrbuf[80];
-SYM  *storage;
+void input_short(SYM * storage,const char * func, char * addrbuf) {
+  gen_jsr(func);
+  if (storage->object == variable) {
+	if ((storage->shared) && (lev == ONE)) {
+	  gen_load32a(addrbuf,0); /* abs address of store */
+	  gen_save_indirect16(0,0);
+	} else gen_save16d(0,addrbuf); /* ordinary variable */
+  } else if (storage->object == array) {
+	gen_save16d(0,"_short_input_temp");
+	point_to_array(storage,addrbuf);
+	gen_save_indirect_indexed16("_short_input_temp",2,7);
+	enter_BSS("_short_input_temp:","ds.w 1");
+  }
+}
 
- /* INPUT #filenumber,variable-list */
+void input_long(SYM * storage, const char * func, char * addrbuf) {
+ gen_jsr(func);
+ if (storage->object == variable) {
+   if ((storage->shared) && (lev == ONE)) {
+	 gen_load32a(addrbuf,0);  /* abs address of store */
+	 gen_save_indirect32(0,0);
+   } else gen_save32d(0,addrbuf); /* ordinary variable */
+ } else  if (storage->object == array) {
+   gen_save32d(0,"_long_input_temp");
+   point_to_array(storage,addrbuf);
+   gen_save_indirect_indexed32("_long_input_temp",2,7);
+   enter_BSS("_long_input_temp:","ds.l 1");
+ }
+}
 
- check_for_event();
+void input_single(SYM * storage, const char * func, char * addrbuf) {
+  gen_jsr(func);
+  if (storage->object == variable) {
+	if ((storage->shared) && (lev == ONE)) {
+	  gen_load32a(addrbuf,0);  /* abs address of store */
+	  gen_save_indirect32(0,0);
+	} else gen_save32d(0,addrbuf); /* ordinary variable */
+  } else  if (storage->object == array) {
+	gen_save32d(0,"_long_input_temp");
+	point_to_array(storage,addrbuf);
+	gen_save_indirect_indexed32("_long_input_temp",2,7);
+	enter_BSS("_long_input_temp:","ds.l 1");
+  }
+  enter_XREF("_MathBase"); /* need math libs */
+  enter_XREF("_MathTransBase");
+}
 
- insymbol();
+void assign_string_to_storage(SYM * storage, char * addrbuf) {
+  if (storage->object == variable)
+	assign_to_string_variable(storage,MAXSTRLEN);
+  else if (storage->object == array) {
+	point_to_array(storage,addrbuf);
+	assign_to_string_array(addrbuf);
+  }
+}
 
- if (make_integer(expr()) == shorttype) make_long();
-
- gen_pop32_var("_seq_filenumber");
- enter_BSS("_seq_filenumber:","ds.l 1");
-
- if (sym != comma) _error(16);
- else
- {
-  do
-  { 
-   /* allocate variable storage, call _input* and store value in variable */
-
-   insymbol();
-
-   if ((sym == ident) && (obj == variable))
-   {
-    if ((!exist(id,obj)) && (!exist(id,array)))
-       enter(id,typ,obj,0);  /* allocate storage for a simple variable */
-
-    storage = curr_item;
-
-    itoa(-1*storage->address,addrbuf,10);
-    strcat(addrbuf,frame_ptr[lev]); 
+void input_from_file() {
+  char addrbuf[80];
+  SYM  *storage;
   
-    /* ALL data types need a temporary string pointer in a0 */
-    load_temp_string(0);
+  /* INPUT #filenumber,variable-list */
+  
+  check_for_event();
+  insymbol();
 
-    /* when storing an input value into an array element, must save
-       value (d0) first, since array index calculation may be corrupted
-       if index has to be coerced from ffp to short.
-    */
+  if (make_integer(expr()) == shorttype) make_long();
+  
+  gen_pop32_var("_seq_filenumber");
+  enter_BSS("_seq_filenumber:","ds.l 1");
+  
+  if (sym != comma) _error(16);
+  else {
+	do { 
+	  /* allocate variable storage, call _input* and store value in variable */
 
-    /* pass file number */
-	gen_load32d("_seq_filenumber",0);
-    switch(storage->type)
-    {
-    case shorttype  : gen_jsr("_finputshort");
+	  insymbol();
 
-		      if (storage->object == variable)
-		      {
-		       if ((storage->shared) && (lev == ONE))
-		       {
-				 gen_load32a(addrbuf,0); /* abs address of store */
-				 gen_save_indirect16(0,0);
-		       }
-		       else
-				 /* ordinary variable */
-				 gen_save16d(0,addrbuf);
-		      }
-		      else 
-	 		 if (storage->object == array)
-			 {
-			  gen_save16d(0,"_short_input_temp");
-			  point_to_array(storage,addrbuf);
-			  gen_save_indirect_indexed16("_short_input_temp",2,7);
-			  enter_BSS("_short_input_temp:","ds.w 1");
-			 }
+	  if ((sym == ident) && (obj == variable)) {
+		if ((!exist(id,obj)) && (!exist(id,array)))
+		  enter(id,typ,obj,0);  /* allocate storage for a simple variable */
 
-		      break;
+		storage = curr_item;
 
-    case longtype   : gen_jsr("_finputlong");
+		itoa(-1*storage->address,addrbuf,10);
+		strcat(addrbuf,frame_ptr[lev]); 
+  
+		/* ALL data types need a temporary string pointer in a0 */
+		load_temp_string(0);
 
-	  if (storage->object == variable) {
-		if ((storage->shared) && (lev == ONE)) {
-		  gen_load32a(addrbuf,0);  /* abs address of store */
-		  gen_save_indirect32(0,0);
-		} else
-		  /* ordinary variable */
-		  gen_save32d(0,addrbuf);
-	  } else  if (storage->object == array) {
-		gen_save32d(0,"_long_input_temp");
-		point_to_array(storage,addrbuf);
-		gen_save_indirect_indexed32("_long_input_temp",2,7);
-		enter_BSS("_long_input_temp:","ds.l 1");
-	  }
+		/* when storing an input value into an array element, must save
+		   value (d0) first, since array index calculation may be corrupted
+		   if index has to be coerced from ffp to short.
+		*/
 
-		      break;
-
-    case singletype : gen_jsr("_finputsingle");
-
-		      if (storage->object == variable)
-		      {
-		       if ((storage->shared) && (lev == ONE))
-		       {
-				 gen_load32a(addrbuf,0);  /* abs address of store */
-				 gen_save_indirect32(0,0);
-		       }
-		       else
-			   /* ordinary variable */
-				 gen_save32d(0,addrbuf);
-		      }
-		      else 
-	 		 if (storage->object == array)
-			 {
-			  gen_save32d(0,"_long_input_temp");
-			  point_to_array(storage,addrbuf);
-			  gen_save_indirect_indexed32("_long_input_temp",2,7);
-			  enter_BSS("_long_input_temp:","ds.l 1");
-			 }
-
-		      enter_XREF("_MathBase"); /* need math libs */
-		      enter_XREF("_MathTransBase");
-		      break;
-
-    case stringtype : gen_jsr("_finputstring");
-
-		      gen_push_addr(0); 
-
-		      if (storage->object == variable)
-  	   		 assign_to_string_variable(storage,MAXSTRLEN);
-		      else 
-	 		 if (storage->object == array)
-			 {
-			  point_to_array(storage,addrbuf);
-			  assign_to_string_array(addrbuf);
-			 }
-
-		      break;
-    }
-   } else _error(19);
-
-   insymbol();
-   if (sym == lparen && storage->object != array)
-      _error(71);  /* undeclared array */
+		/* pass file number */
+		gen_load32d("_seq_filenumber",0);
+		switch(storage->type) {
+		case shorttype:  input_short(storage,"_finputshort",addrbuf); break;
+		case longtype:   input_long(storage,"_finputlong",addrbuf); break;
+		case singletype: input_single(storage,"_finputsingle",addrbuf); break;
+		case stringtype : 
+		  gen_jsr("_finputstring");
+		  gen_push_addr(0); 
+		  assign_string_to_storage(storage,addrbuf);
+		  break;
+		}
+	  } else _error(19);
+	  
+	  insymbol();
+	  if (sym == lparen && storage->object != array) _error(71); 	  /* undeclared array */
+	} while (sym == comma);
   }
-  while (sym == comma);
- }
 }
 
-void kill()
-{
 /* KILL <filespec> */
-
- check_for_event();
-
- insymbol();
- if (expr() != stringtype) _error(4);
- else
- {
-  gen_pop32d(1);
-  gen_jsr("_kill");
- }
-}
-
-void ace_rename()
-{
-/* NAME <filespec1> AS <filespec2> */
-
- check_for_event();
-
- insymbol();
- if (expr() != stringtype) _error(4);
- else
- {
-  if (sym != assym) _error(72);
-  else
-  {
-   insymbol();
-   if (expr() != stringtype) _error(4);
-   else
-   {
-    gen_pop32d(2);  /* <filespec2> */
-    gen_pop32d(1);  /* <filespec1> */
-    gen_jsr("_rename");
-   }
+void kill() {
+  check_for_event();
+  insymbol();
+  if (expr() != stringtype) _error(4);
+  else {
+	gen_pop32d(1);
+	gen_jsr("_kill");
   }
- }
 }
 
+/* NAME <filespec1> AS <filespec2> */
+void ace_rename() {
+  check_for_event();
+  insymbol();
+  if (expr() != stringtype) _error(4);
+  else {
+	if (sym != assym) _error(72);
+	else {
+	  insymbol();
+	  if (expr() != stringtype) _error(4);
+	  else {
+		gen_pop32d(2);  /* <filespec2> */
+		gen_pop32d(1);  /* <filespec1> */
+		gen_jsr("_rename");
+	  }
+	}
+  }
+}
+
+/* CHDIR <dirname> */
 void chdir() {
-  /* CHDIR <dirname> */
-
  check_for_event();
  insymbol();
- if (expr() != stringtype) _error(4);
- else gen_call_args("_chdir","d1",0);
+ gen_fcall("_chdir",expr(),"s",stringtype,"d1",0);
 }
 
-void files() {
 /* FILES [TO <storefile>] [,<target>] */
- 
- check_for_event();
- insymbol();
+void files() {
+  check_for_event();
+  insymbol();
 
- /* storage file specified? */
- if (sym == tosym) {
-   insymbol();
-   if (expr() != stringtype) _error(4);
- } else gen_push32_val(0);  /* NULL for storage file name */
+  /* storage file specified? */
+  if (sym == tosym) {
+	insymbol();
+	if (expr() != stringtype) _error(4);
+  } else gen_push32_val(0);  /* NULL for storage file name */
       
- /* target file or directory specified? */
- if (sym == comma) {
-   insymbol();
-   if (expr() != stringtype) _error(4);
- } else  gen_push32_val(0);  /* NULL for target name */
- gen_call_void("_files",4);
+  /* target file or directory specified? */
+  if (sym == comma) {
+	insymbol();
+	if (expr() != stringtype) _error(4);
+  } else  gen_push32_val(0);  /* NULL for target name */
+  gen_call_void("_files",4);
 }
 
 void push_struct_var_info(SYM * structVar) {
   char addrbuf[40], sizebuf[10];
 
+  /* Push address held by structure variable. */
+  sprintf(addrbuf,"%d%s",-1*structVar->address, frame_ptr[lev]);
+  if (structVar->shared && lev == ONE) {
+	/* Shared structure variable. */
+	gen_load32a(addrbuf,0);	/* struct variable address */
+	gen_push_indirect32(0);   /* start address of struct */
+  } else {
 	/*
-	** Push address held by structure variable.
+	** Local structure variable, ie. in main program or SUB.
 	*/
-	sprintf(addrbuf,"%d%s",-1*structVar->address, frame_ptr[lev]);
-	if (structVar->shared && lev == ONE)
-	{
+	gen_push32_var(addrbuf);	/* variable holds start address */
+  }
+  /* Push size of structure in bytes. */
+  gen_push32_val(structVar->other->size);
+}
+
+void random_file_get() {
+  /*
+  ** Fill a structure from a random file.
+  **
+  ** SYNTAX: GET [#]fileNum, structVar [, recordNum]
+  */
+  SYM *structVar;
+
+  check_for_event(); 
+	
+  /* 
+  ** We already have the first symbol.
+  ** Skip `#' if present.
+  */
+  if (sym == hash) insymbol();
+	
+  /* Get the file number */
+  if (make_integer(expr()) == shorttype) make_long();
+
+  if (sym != comma) _error(16);
+  else {
+	/*
+	** Structure variable address and size.
+	*/
+	insymbol();
+	if (!exist(id,structure)) _error(79);
+	else {
+	  structVar = curr_item;
+	  push_struct_var_info(structVar);
+
+	  insymbol();
+	  if (sym == comma) {
 		/*
-		** Shared structure variable.
+		** Optional record number.
 		*/
-	  gen_load32a(addrbuf,0);	/* struct variable address */
-	  gen_push_indirect32(0);   /* start address of struct */
+		insymbol();
+		if (make_integer(expr()) == shorttype) make_long();
+	  } else {
+		/*
+		** Tell library function not to
+		** seek to a particular record 
+		** before reading.
+		*/
+		gen_push32_val(0);
+	  }
+	  gen_call_void("_GetRecord",16);
 	}
-	else
-		/*
-		** Local structure variable,
-		** ie. in main program or SUB.
-		*/
-		gen_push32_var(addrbuf);	/* variable holds start address */
-
-	/*
-	** Push size of structure in bytes.
-	*/
-	gen_push32_val(structVar->other->size);
+  }	
 }
 
-void random_file_get()
-{
-/*
-** Fill a structure from a random file.
-**
-** SYNTAX: GET [#]fileNum, structVar [, recordNum]
-*/
-SYM *structVar;
+void random_file_put() {
+  /*
+  ** Write a structure to a random file.
+  **
+  ** SYNTAX: PUT [#]fileNum, structVar [, recordNum]
+  */
+  SYM *structVar;
 
-	check_for_event(); 
+  check_for_event(); 
 	
-	/* 
-	** We already have the first symbol.
-	** Skip `#' if present.
-	*/
-	if (sym == hash) insymbol();
+  /* 
+  ** We already have the first symbol.
+  ** Skip `#' if present.
+  */
+  if (sym == hash) insymbol();
 	
+  /*
+  ** Get the file number.
+  */
+  if (make_integer(expr()) == shorttype) make_long();
+
+  if (sym != comma) _error(16);
+  else {
 	/*
-	** Get the file number.
+	** Structure variable address and size.
 	*/
- 	if (make_integer(expr()) == shorttype) make_long();
-
- 	if (sym != comma) _error(16);
- 	else
- 	{
-		/*
-		** Structure variable address and size.
-		*/
+	insymbol();
+	if (!exist(id,structure)) _error(79);
+	else {
+	  structVar = curr_item;
+	  push_struct_var_info(structVar);
+	  
+	  insymbol();
+	  if (sym == comma) {
+		/* Optional record number. */
 		insymbol();
-		if (!exist(id,structure)) _error(79);
-		else
-		{
-			structVar = curr_item;
-			push_struct_var_info(structVar);
-
-			insymbol();
-			if (sym == comma)
-			{
-				/*
-				** Optional record number.
-				*/
-				insymbol();
- 				if (make_integer(expr()) == shorttype) make_long();
-			}
-			else
-				/*
-				** Tell library function not to
-				** seek to a particular record 
-				** before reading.
-				*/
-				gen_push32_val(0);
-
-			/*
-			** Call function.
-			*/
-			gen_call_void("_GetRecord",16);
-		}
-	}	
-}
-
-void random_file_put()
-{
-/*
-** Write a structure to a random file.
-**
-** SYNTAX: PUT [#]fileNum, structVar [, recordNum]
-*/
-SYM *structVar;
-
-	check_for_event(); 
-	
-	/* 
-	** We already have the first symbol.
-	** Skip `#' if present.
-	*/
-	if (sym == hash) insymbol();
-	
-	/*
-	** Get the file number.
-	*/
- 	if (make_integer(expr()) == shorttype) make_long();
-
- 	if (sym != comma) _error(16);
- 	else
- 	{
+		if (make_integer(expr()) == shorttype) make_long();
+	  } else {
 		/*
-		** Structure variable address and size.
+		** Tell library function not to
+		** seek to a particular record 
+		** before writing.
 		*/
-		insymbol();
-		if (!exist(id,structure)) _error(79);
-		else
-		{
-			structVar = curr_item;
-			push_struct_var_info(structVar);
-
-			insymbol();
-			if (sym == comma)
-			{
-				/*
-				** Optional record number.
-				*/
-				insymbol();
- 				if (make_integer(expr()) == shorttype) make_long();
-			}
-			else
-				/*
-				** Tell library function not to
-				** seek to a particular record 
-				** before writing.
-				*/
-				gen_push32_val(0);
-
-			/*
-			** Call function.
-			*/
-			gen_call_void("_PutRecord",16);
-		}
-	}	
+		gen_push32_val(0);
+	  }
+	  /*
+	  ** Call function.
+	  */
+	  gen_call_void("_PutRecord",16);
+	}
+  }	
 }

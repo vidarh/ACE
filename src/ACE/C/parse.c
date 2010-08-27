@@ -145,17 +145,14 @@ int  sub_type,def_expr_type;
     strcpy(sub_name,"_SUB_");
     strcat(sub_name,id);
 
-    if (!exist(sub_name,subprogram)) 
-    {
+    if (!exist(sub_name,subprogram)) {
       if (sub_type == undefined) sub_type = typ;
       enter(sub_name,sub_type,subprogram,0);  /* new SUB */
       curr_item->decl=subdecl;
     }
-    else
-       if ((exist(sub_name,subprogram)) && (curr_item->decl == fwdref))
-          curr_item->decl=subdecl;
-       else 
-           _error(33); /* already exists */
+    else if ((exist(sub_name,subprogram)) && (curr_item->decl == fwdref))
+	  curr_item->decl=subdecl;
+	else _error(33); /* already exists */
 
     sub_ptr=curr_item; /* pointer to sub info' */
 
@@ -165,7 +162,7 @@ int  sub_type,def_expr_type;
     strcpy(exit_sub_name,"_EXIT");
     strcat(exit_sub_name,sub_name);
     strcpy(exit_sub_label,exit_sub_name);
-    strcat(exit_sub_label,":\0");
+    strcat(exit_sub_label,":");
 
     /* prepare for level ONE */
     lev=ONE; 
@@ -187,12 +184,11 @@ int  sub_type,def_expr_type;
     sub_params(sub_ptr);
 
     /* make this subprogram externally visible? */
-    if (sym == externalsym)
-    {
-	insymbol();
-	strcpy(xdef_name,sub_name);
-	xdef_name[0] = '*';  /* signal that this is an XDEF */
-	enter_XREF(xdef_name);
+    if (sym == externalsym) {
+	  insymbol();
+	  strcpy(xdef_name,sub_name);
+	  xdef_name[0] = '*';  /* signal that this is an XDEF */
+	  enter_XREF(xdef_name);
     }
 
     /* 
@@ -205,50 +201,37 @@ int  sub_type,def_expr_type;
 					clashes with real stack offsets. */
 	
     /* SUB or DEF FN code? */
-    if (subprog == subsym)
-    {
-      while ((sym != endsym) && (!end_of_source)) 
-      {
-       if (sym == sharedsym) parse_shared_vars();
-       if ((sym != endsym) && (!end_of_source)) statement();
+    if (subprog == subsym) {
+      while ((sym != endsym) && (!end_of_source)) {
+		if (sym == sharedsym) parse_shared_vars();
+		if ((sym != endsym) && (!end_of_source)) statement();
       }
 
       if (end_of_source) _error(34);  /* END SUB expected */
 
-      if (sym == endsym) 
-      {
-       insymbol();
-       if (sym != subsym) _error(35); 
-       insymbol(); 
+      if (sym == endsym)  {
+		insymbol();
+		if (sym != subsym) _error(35); 
+		insymbol(); 
       }
-    }
-    else
-    {
+    } else {
         /* DEF FN code */
-	if (sym != equal)
-	   _error(5);
-	else
-	{
-	  insymbol();
-     	  def_expr_type = expr();
-	  if (assign_coerce(sub_type,def_expr_type) != sub_type)
-	     _error(4);
-	  else
-	  if (sub_type == shorttype)
-	  	gen_pop16d(0);
-	  else
-		gen_pop32d(0);
+	  if (sym != equal) _error(5);
+	  else {
+		insymbol();
+		def_expr_type = expr();
+		if (assign_coerce(sub_type,def_expr_type) != sub_type) _error(4);
+		else if (sub_type == shorttype) gen_pop16d(0);
+		else gen_pop32d(0);
 
-  	  /* change object from SUB to DEF FN */
-	  sub_ptr->object = definedfunc;
-	}
+		/* change object from SUB to DEF FN */
+		sub_ptr->object = definedfunc;
+	  }
     }
 
     /* establish size of stack frame */
-    if (addr[lev] == 0)
-       strcpy(bytes,"#\0");
-    else
-       strcpy(bytes,"#-");     
+    if (addr[lev] == 0) strcpy(bytes,"#");
+    else strcpy(bytes,"#-");     
     itoa(addr[lev],buf,10);   
     strcat(bytes,buf);   
     change(link,"link","a5",bytes);  

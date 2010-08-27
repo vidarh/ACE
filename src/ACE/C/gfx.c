@@ -565,47 +565,42 @@ BOOL relative;
   /* AREA [STEP](x,y) */
 
   insymbol();
-  if (sym == stepsym)
-  { 
-   insymbol();
-   relative=TRUE; 
+  if (sym == stepsym) {
+	insymbol();
+	relative=TRUE; 
   }
   else relative=FALSE;
-   
+  
   if (sym != lparen) _error(14);
-  else
-     {
-      /* x-coordinate */
-      insymbol();
-      make_sure_short(expr());
-      if (sym != comma) _error(16);
-      else
-      {
-       /* y-coordinate */
-       insymbol();
-       make_sure_short(expr());
-       if (sym != rparen) _error(9);
-       else
-       {
-        /* pop y-coordinate */
-        gen_pop16d(1);
+  else {
+	/* x-coordinate */
 	insymbol();
+	make_sure_short(expr());
+	if (sym != comma) _error(16);
+	else {
+	  /* y-coordinate */
+	  insymbol();
+	  make_sure_short(expr());
+       if (sym != rparen) _error(9);
+       else {
+		 /* pop y-coordinate */
+		 gen_pop16d(1);
+		 insymbol();
        }
-      }
-      /* pop x-coordinate */
-      gen_pop16d(0);
-     }	
-
-     /* include point in area info' */
-     if (relative)
-     {
-       gen_add16d_var("_last_areaX",0);   /* d0 = x + lastareaY */
-       gen_add16d_var("_last_areaY",1);   /* d1 = y + lastareaY */
-       enter_XREF("_last_areaX");
-       enter_XREF("_last_areaY");
-     }
-
-     gen_jsr("_area");
+	}
+	/* pop x-coordinate */
+	gen_pop16d(0);
+  }	
+  
+  /* include point in area info' */
+  if (relative) {
+	gen_add16d_var("_last_areaX",0);   /* d0 = x + lastareaY */
+	gen_add16d_var("_last_areaY",1);   /* d1 = y + lastareaY */
+	enter_XREF("_last_areaX");
+	enter_XREF("_last_areaY");
+  }
+  
+  gen_jsr("_area");
 }
 
 void areafill()

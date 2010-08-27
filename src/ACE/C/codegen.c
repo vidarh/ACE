@@ -151,21 +151,8 @@ void gen_not16sp() { gen("not.w","(sp)","  "); }
 void gen_not32sp() { gen("not.l","(sp)","  "); }
 void gen_muls()    { gen("muls","d1","d0"); }
 
-void gen_move_indirect_indexed16(const char * label) {
-  gen("move.w",label,"0(a2,d7.L)");
-}
-
-void gen_move_indirect_indexed32(const char * label) {
-  gen("move.w",label,"0(a2,d7.L)");
-}
-
-void gen_push_indirect_indexed16() {
-  gen("move.w","0(a0,d7.L)","-(sp)");
-}
-
-void gen_push_indirect_indexed32() {
-  gen("move.l","0(a0,d7.L)","-(sp)");
-}
+void gen_push_indirect_indexed16() { gen("move.w","0(a0,d7.L)","-(sp)"); }
+void gen_push_indirect_indexed32() { gen("move.l","0(a0,d7.L)","-(sp)"); }
 
 void gen_push_indirect32(unsigned char r) {
   char buf[5];

@@ -33,6 +33,7 @@ void gen_move16dd(unsigned char srcreg, unsigned char destreg);
 void gen_move32dd(unsigned char srcreg, unsigned char destreg);
 void gen_move32aa(unsigned char srcreg, unsigned char destreg);
 void gen_load32d_val(signed long val, unsigned char reg);
+void gen_pea(const char * target);
 
 /* Mid level */
 

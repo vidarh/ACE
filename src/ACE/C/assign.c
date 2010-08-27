@@ -741,149 +741,61 @@ do
 /* INPUT functions */
 /* --------------- */
 
-void input()
-{
-int  inptype;
-char addrbuf[80];
-SYM  *storage;
-
- if ((sym != comma) && (sym != semicolon) && (sym != ident)) {
-   /* print a string constant? */
-   inptype=expr();
-   if ((inptype == stringtype) && (lastsym == stringconst)) {
-	 gen_call_void("_Ustringprint",4);
-   } else _error(18); 
- }
-
- do
- { 
-  /* ";" or "," -> "?" */
-  if ((sym == comma) || (sym == semicolon))
-  {
-   if (sym == semicolon) 
-      { gen_printcode(QUN_CODE); gen_printcode(SPACE_CODE); }
-   insymbol();
-  }
-  else { gen_printcode(QUN_CODE); gen_printcode(SPACE_CODE); }
-
-  /* allocate variable storage, call _input* and store value in variable */
-  if ((sym == ident) && (obj == variable))
-  {
-   if ((!exist(id,obj)) && (!exist(id,array)))
-      enter(id,typ,obj,0);  /* allocate storage for a simple variable */
-
-   storage = curr_item;
-
-   itoa(-1*storage->address,addrbuf,10);
-   strcat(addrbuf,frame_ptr[lev]); 
+void input() {
+  int  inptype;
+  char addrbuf[80];
+  SYM  *storage;
   
-   /* ALL data types need a temporary string */
-   make_temp_string();
-   if (storage->type != stringtype)
-   	gen_load_addr(tempstrname,0);
-   else
-	gen_pea(tempstrname);
+  if ((sym != comma) && (sym != semicolon) && (sym != ident)) {
+	/* print a string constant? */
+	inptype=expr();
+	if ((inptype == stringtype) && (lastsym == stringconst)) {
+	  gen_call_void("_Ustringprint",4);
+	} else _error(18); 
+  }
 
-   /* When storing an input value into an array element, must save
-      value (d0) first, since array index calculation may be corrupted
-      if index has to be coerced from ffp to short.
-   */
-
-   switch(storage->type)
-   {
-    case shorttype  : gen_jsr("_inputshort");
-
-		      if (storage->object == variable)
-		      {
-		       if ((storage->shared) && (lev == ONE))
-		       {
-         		gen_load32a(addrbuf,0);  /* abs address of store */
-				gen_save_indirect16(0,0);
-		       }
-		       else
-			   /* ordinary variable */
-				 gen_save16d(0,addrbuf);
-		      }
-		      else 
-	 		 if (storage->object == array)
-			 {
-			  gen_save16d(0,"_short_input_temp");
-			  point_to_array(storage,addrbuf);
-			  gen_move_indirect_indexed16("_short_input_temp");
-			  enter_BSS("_short_input_temp:","ds.w 1");
-			 }
-
-		      break;
-
-    case longtype   : gen_jsr("_inputlong");
-
-		      if (storage->object == variable)
-		      {
-		       if ((storage->shared) && (lev == ONE))
-		       {
-				 gen_load32a(addrbuf,0);   /* abs address of store */
-				 gen_save_indirect32(0,0);
-		       }
-		       else
-			   /* ordinary variable */
-				 gen_save32d(0,addrbuf);
-		      }
-		      else 
-	 		 if (storage->object == array)
-			 {
-			  gen_save32d(0,"_long_input_temp");
-			  point_to_array(storage,addrbuf);
-			  gen_move_indirect_indexed32("_long_input_temp");
-			  enter_BSS("_long_input_temp:","ds.l 1");
-			 }
-
-		      break;
-
-    case singletype : gen_jsr("_inputsingle");
-
-		      if (storage->object == variable)
-		      {
-		       if ((storage->shared) && (lev == ONE))
-		       {
-				 gen_load32a(addrbuf,0);  /* abs address of store */
-				 gen_save_indirect32(0,0);
-		       }
-		       else
-			   /* ordinary variable */
-				 gen_save32d(0,addrbuf);
-		      }
-		      else 
-	 		 if (storage->object == array)
-			 {
-			  gen_save32d(0,"_long_input_temp");
-			  point_to_array(storage,addrbuf);
-			  gen_move_indirect_indexed32("_long_input_temp");
-			  enter_BSS("_long_input_temp:","ds.l 1");
-			 }
-
-		      enter_XREF("_MathBase"); /* need math libs */
-		      enter_XREF("_MathTransBase");
-		      break;
-
-    case stringtype : gen_jsr("_Ustringinput");
-
-	  if (storage->object == variable)
-		assign_to_string_variable(storage,MAXSTRLEN);
-	  else 
-		if (storage->object == array) {
-		  point_to_array(storage,addrbuf);
-		  assign_to_string_array(addrbuf);
-		}
-
-		      break;
-   }
-  } else _error(19);
-
- insymbol();
- if (sym == lparen && storage->object != array) 
-    _error(71);  /* undeclared array */
- }
- while ((sym==comma) || (sym==semicolon) || (sym==ident));
+  do { 
+	/* ";" or "," -> "?" */
+	if ((sym == comma) || (sym == semicolon)) {
+	  if (sym == semicolon) 
+		{ gen_printcode(QUN_CODE); gen_printcode(SPACE_CODE); }
+	  insymbol();
+	} else { gen_printcode(QUN_CODE); gen_printcode(SPACE_CODE); }
+	
+	/* allocate variable storage, call _input* and store value in variable */
+	if ((sym == ident) && (obj == variable)) {
+	  if ((!exist(id,obj)) && (!exist(id,array)))
+		enter(id,typ,obj,0);  /* allocate storage for a simple variable */
+	  
+	  storage = curr_item;
+	  
+	  itoa(-1*storage->address,addrbuf,10);
+	  strcat(addrbuf,frame_ptr[lev]); 
+	  
+	  /* ALL data types need a temporary string */
+	  make_temp_string();
+	  if (storage->type != stringtype) gen_load_addr(tempstrname,0);
+	  else gen_pea(tempstrname);
+	  
+	  /* When storing an input value into an array element, must save
+		 value (d0) first, since array index calculation may be corrupted
+		 if index has to be coerced from ffp to short.
+	  */
+	  
+	  switch(storage->type) {
+	  case shorttype  : input_short(storage,"_inputshort",addrbuf); break;
+	  case longtype   : input_long(storage,"_inputlong",addrbuf); break;
+	  case singletype : input_single(storage,"_inputsingle",addrbuf); break;
+	  case stringtype : 
+		gen_jsr("_Ustringinput");
+		assign_string_to_storage(storage,addrbuf);
+		break;
+	  }
+	} else _error(19);
+	
+	insymbol();
+	if (sym == lparen && storage->object != array) _error(71);  /* undeclared array */
+  } while ((sym==comma) || (sym==semicolon) || (sym==ident));
 }
 
 void point_to_array(SYM * storage,char * addrbuf) {
@@ -914,161 +826,126 @@ char *strbuf;
  /*FreeMem(strbuf,strlen(string)+10);*/
 }
 
-void get_data()
-{
-/* parse a line of BASIC DATA */
-char  fnumbuf[40];
-float fnum,sign;
+void get_data() {
+  /* parse a line of BASIC DATA */
+  char  fnumbuf[40];
+  float fnum,sign;
 
- do
- {
-  sign=1.0;
+  do {
+	sign=1.0;
+	
+	insymbol();
+	
+	/* arithmetic sign? */
+	if ((sym == minus) || (sym == plus))  { 
+	  if (sym == minus) sign=-1.0; 
+	  insymbol();
+	  if ((sym == ident) || (sym == stringconst)) _error(27);
+	}
 
-  insymbol();
-
-  /* arithmetic sign? */
-  if ((sym == minus) || (sym == plus)) 
-  { 
-   if (sym == minus) sign=-1.0; 
-   insymbol();
-   if ((sym == ident) || (sym == stringconst)) _error(27);
-  }
-
-  if (sym == ident) make_data_const(ut_id);
-  else
-   if (sym == stringconst) make_data_const(stringval);
-   else
-    if (sym == singleconst)
-    {
-     sprintf(fnumbuf,"%lx",(unsigned long)(singleval * sign));
-     make_data_const(fnumbuf);
-    }
-    else
-     if (sym == longconst)
-     {
+	if (sym == ident) make_data_const(ut_id);
+	else if (sym == stringconst) make_data_const(stringval);
+	else if (sym == singleconst) {
+	  sprintf(fnumbuf,"%lx",(unsigned long)(singleval * sign));
+	  make_data_const(fnumbuf);
+    } else if (sym == longconst) {
       fnum=(float)longval * sign;
       sprintf(fnumbuf,"%lx",(unsigned long)fnum);
       make_data_const(fnumbuf);
-     }        
-     else
-     if (sym == shortconst)
-     {
+	} else if (sym == shortconst) {
       fnum= singleval * sign;
       sprintf(fnumbuf,"%lx",(unsigned long)fnum);
       make_data_const(fnumbuf);
-     }       
-     else _error(26);  /* constant expected */
+	} else _error(26);  /* constant expected */
 
    insymbol(); 
-  }
-  while (sym == comma);  
+  } while (sym == comma);  
 }
 
-void read_data()
-{ 
-char addrbuf[80];
-SYM  *storage;
+void read_data() { 
+  char addrbuf[80];
+  SYM  *storage;
  
-/* read a value from the DATA list into a variable or array element */
+  /* read a value from the DATA list into a variable or array element */
 
- readpresent=TRUE;
- 
- do
- {
-  insymbol();
+  readpresent=TRUE;
   
-  if ((sym == ident) && (obj == variable))
-  {
-   if ((!exist(id,obj)) && (!exist(id,array)))
+  do {
+	insymbol();
+  
+	if ((sym == ident) && (obj == variable)) {
+	  if ((!exist(id,obj)) && (!exist(id,array)))
       enter(id,typ,obj,0);  /* allocate storage */
 
-   storage=curr_item;  /* save storage item information */
+	  storage=curr_item;  /* save storage item information */
 
-   itoa(-1*storage->address,addrbuf,10);
-   strcat(addrbuf,frame_ptr[lev]); 
+	  itoa(-1*storage->address,addrbuf,10);
+	  strcat(addrbuf,frame_ptr[lev]); 
   
-   /* is it an array? (this must already have been dimensioned!) */
-   if (storage->object == array) point_to_array(storage, addrbuf);
+	  /* is it an array? (this must already have been dimensioned!) */
+	  if (storage->object == array) point_to_array(storage, addrbuf);
 
-   /* get next item from DATA list */
-   if (typ != stringtype) 
-      gen_load32a("_dataptr",1);   /* for _htol */
+	  /* get next item from DATA list */
+	  if (typ != stringtype) gen_load32a("_dataptr",1);   /* for _htol */
 
-   switch(storage->type)
-   {
-    case stringtype :	gen_push16_var("_dataptr"); /* addr of source */
+	  switch(storage->type) {
+	  case stringtype:	
+		gen_push16_var("_dataptr"); /* addr of source */
+		if (storage->object == variable) assign_to_string_variable(storage,MAXSTRLEN);
+		else if (storage->object == array) assign_to_string_array(addrbuf);
+		break;
 
-			if (storage->object == variable)
-  	   		   assign_to_string_variable(storage,MAXSTRLEN);
-			else
-			   if (storage->object == array)
-			      assign_to_string_array(addrbuf);
-			break;
+	  case singletype :   
+		gen_jsr("_htol"); /* return LONG from (a1) */
+		if (storage->object == variable) {
+		  if ((storage->shared) && (lev == ONE)) {
+			gen_load32a(addrbuf,0);   /* abs addr of store */
+			gen_save_indirect32(0,0);
+		  } else gen_save32d(0,addrbuf);
+		} else if (storage->object == array)
+		  gen_save_indirect_indexed32("d0",2,7);
+		break;
 
-    case singletype :   gen_jsr("_htol"); /* return LONG from (a1) */
-			if (storage->object == variable)
-			{
-		         if ((storage->shared) && (lev == ONE)) {
-				   gen_load32a(addrbuf,0);   /* abs addr of store */
-				   gen_save_indirect32(0,0);
-				 } else
-				   gen_save32d(0,addrbuf);
-			}
- 			else 
-			    if (storage->object == array)
-				  gen_save_indirect_indexed32("d0",2,7);
-			break;
+	  case longtype:
+		gen_jsr("_htol");
+		gen_push32d(0);
+		make_integer(singletype);
+		if (storage->object == variable) {
+		  if ((storage->shared) && (lev == ONE)) {
+			/* FIXME: Why is this so different? */
+			gen_save32a(addrbuf,0);   /* abs addr of store */
+			gen_pop_indirect32(0);
+		  } else gen_pop32_var(addrbuf);
+		} else if (storage->object == array)
+		  gen_pop_indirect_indexed32(2,7);
+		break;
 
-    case longtype   :	gen_jsr("_htol");
-			gen_push32d(0);
-			make_integer(singletype);
-			if (storage->object == variable)
-			{
-		         if ((storage->shared) && (lev == ONE))
-		         {
-				   gen_save32a(addrbuf,0);   /* abs addr of store */
-				   gen_pop_indirect32(0);
-				 }
-				 else
-				   gen_pop32_var(addrbuf);
-			}
-	 		else 
-			    if (storage->object == array)
-				  gen_pop_indirect_indexed32(2,7);
-			break;
-
-    case shorttype   :	gen_jsr("_htol");
-			gen_push32d(0);
-			make_sure_short(singletype);
-			if (storage->object == variable)
-			{
-		         if ((storage->shared) && (lev == ONE))
-		         {
-				   gen_load32a(addrbuf,0);   /* abs addr of store */
-				   gen_pop_indirect16(0);
-			 }
-			 else
- 			     gen_pop16_var(addrbuf);
-			}
-	 		else 
-			    if (storage->object == array)
-				  gen_pop_indirect_indexed16(2,7);
-			break;
-   }
-  } 
-  else _error(19);  /* variable expected */ 			
+	  case shorttype:
+		gen_jsr("_htol");
+		gen_push32d(0);
+		make_sure_short(singletype);
+		if (storage->object == variable) {
+		  if ((storage->shared) && (lev == ONE)) {
+			gen_load32a(addrbuf,0);   /* abs addr of store */
+			gen_pop_indirect16(0);
+		  } else gen_pop16_var(addrbuf);
+		} else if (storage->object == array)
+		  gen_pop_indirect_indexed16(2,7);
+		break;
+	  }
+	} 
+	else _error(19);  /* variable expected */ 			
 			
-  /* advance to next DATA item */
-  gen_load32a("_dataptr",2);
-  gen_jsr("_strlen");
-  gen_add32d_val(1,0); /* include EOS in length */
-  gen_load32d("_dataptr",1);
-  gen_add32dd(0,1);
-  gen_save32d(1,"_dataptr");
+	/* advance to next DATA item */
+	gen_load32a("_dataptr",2);
+	gen_jsr("_strlen");
+	gen_add32d_val(1,0); /* include EOS in length */
+	gen_load32d("_dataptr",1);
+	gen_add32dd(0,1);
+	gen_save32d(1,"_dataptr");
 
-  insymbol();
-  if (sym == lparen && storage->object != array) 
-     _error(71);  /* undeclared array */  
- }
- while (sym == comma);
+	insymbol();
+	if (sym == lparen && storage->object != array) 
+	  _error(71);  /* undeclared array */  
+  } while (sym == comma);
 }
