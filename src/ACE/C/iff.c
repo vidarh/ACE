@@ -56,7 +56,7 @@ void	iff_read() {
   parse_channel();
   if (sym != comma)
 	/* no screen-id */
-	gen("move.l","#-1","-(sp)");	
+	gen_push32_val(-1);
   else {
 	/* screen-id */
 

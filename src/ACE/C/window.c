@@ -104,8 +104,8 @@ int wtype;
 				 if (sym == comma) {
 				   insymbol();
 				   if (sym != comma) make_sure_long(expr());
-				   else gen("move.l","#-1","-(sp)");
-				 } else gen("move.l","#-1","-(sp)");
+				   else gen_push32_val(-1);
+				 } else gen_push32_val(-1);
 				 
 				 /* optional screen-id */
 				 if (sym == comma) {

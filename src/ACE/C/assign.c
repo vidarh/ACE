@@ -103,7 +103,7 @@ int storetype,exptype;
  if ((storetype == longtype) && (exptype == shorttype))
  {
   gen_pop16d(0);
-  gen("ext.l","d0","  ");
+  gen_ext16to32(0);
   gen_push32d(0);
  }
  else
@@ -165,7 +165,7 @@ char numbuf[10],addrbuf[20];
  itoa(-1*string_item->address,addrbuf,10);
  strcat(addrbuf,frame_ptr[lev]);
 
- gen("pea",stringvarname,"  ");
+ gen_pea(stringvarname);
  gen_pop32_var(addrbuf); 
 }
 
@@ -207,7 +207,7 @@ char addrbuf[20],buf[80];
      to SUBs, use in factor() etc). 
    */
    sprintf(buf,"#_stringvar%ld",(long)string_item->numconst.longnum);
-   gen("move.l",buf,addrbuf);
+   gen_move32(buf,addrbuf);
  }
 
  /* copy string on stack to variable */
@@ -225,8 +225,8 @@ char *addrbuf;
 */
 
  gen_pop_addr(1); /* source */
- gen("move.l",addrbuf,"a0");  
- gen("adda.l","d7","a0");    /* destination */
+ gen_save32a(addrbuf,0);
+ gen_add32da(7,0);   /* destination */
 
  gen_jsr("_strcpy");  /* copy source to destination */
 }
@@ -300,7 +300,7 @@ int    exprtype,storetype;
 
 	  gen_load32a(addrbuf,0);
       if (item->shared && lev == ONE)
-		gen("movea.l","(a0)","a0");   /* start address of structure */
+		gen_load_indirect32(0,0);   /* start address of structure */
 
       /* offset from struct start */ 
       if (member->type != stringtype)
@@ -312,14 +312,13 @@ int    exprtype,storetype;
       if (member->type == bytetype)
       {
        gen_pop16d(0);
-       gen("move.b","d0",absbuf);  /* byte */
+       gen_save8d(0,absbuf);  /* byte */
       }
       else
       if (member->type == stringtype)  /* string */
       {
-       sprintf(numbuf,"#%ld",(long)member->offset);
        gen_pop_addr(1);  /* source */
-       gen("adda.l",numbuf,"a0");   /* destination = struct address + offset */
+       gen_add32a_val(member->offset,0);  /* destination = struct address + offset */
        gen_jsr("_strcpy");   /* copy source to destination */
       }
       else
@@ -351,7 +350,7 @@ int    exprtype,storetype;
     if (item->shared && lev == ONE)
     {     
 	  gen_load32a(addrbuf,0);      /* address of structure variable */
-	  gen("move.l","(sp)+","(a0)");    /* store new address in variable */
+	  gen_pop_indirect32(0); // ("move.l","(sp)+","(a0)");    /* store new address in variable */
     }
     else
 	  gen_pop32_var(addrbuf);  /* store new address in variable */
@@ -435,12 +434,12 @@ int  exprtype;
 	if ((storage_item->shared) && (lev == ONE) 
            && (storage_item->type != stringtype))
         {
-         gen("move.l",addrbuf,"a0");  /* absolute address of store */
-	 if (storage_item->type == shorttype)
-            gen("move.w","(sp)+","(a0)");
+         gen_load32a(addrbuf,0);  /* absolute address of store */
+		 if (storage_item->type == shorttype)
+		   gen_pop_indirect16(0); // "move.w","(sp)+","(a0)");
 	 else
-            gen("move.l","(sp)+","(a0)");
-	}
+	   gen_pop_indirect32(0); // ("move.l","(sp)+","(a0)");
+		}
 	else
         /* ordinary variable or shared string variable */
         if (storage_item->type == stringtype) 
@@ -501,7 +500,7 @@ int  exprtype;
 			
 			/* save storage info in case it gets clobbered
 			   by other arrays in expr()!! */
-			gen("move.l","d7","_tmpelement");
+			gen_save32d(7,"_tmpelement");
 			enter_BSS("_tmpelement","ds.l 1");
 
 			/*if (storage_item->type == stringtype)
@@ -521,22 +520,22 @@ int  exprtype;
        			   _error(4);   /* type mismatch */
 			
 			/* restore storage item info */
-			gen("move.l","_tmpelement","d7");
+			gen_load32d("_tmpelement",7);
 
 		        if (storage_item->type == stringtype) 
 			   assign_to_string_array(addrbuf);
         		else
-			if (storage_item->type == shorttype)
-			{
-			   gen("move.l",addrbuf,"a0");
-			   gen("move.w","(sp)+","0(a0,d7.L)");
-			}
-			else
-			  {
-			   /* long or single */
-			   gen("move.l",addrbuf,"a0");
-			   gen("move.l","(sp)+","0(a0,d7.L)");
-			  }
+				if (storage_item->type == shorttype)
+				  {
+					gen_load32a(addrbuf,0);
+					gen_pop_indirect16(0,7);
+				  }
+				else
+				  {
+					/* long or single */
+					gen_load32a(addrbuf,0);
+					gen_pop_indirect_indexed32(0,7);
+				  }
 			break;
      }
  } else _error(5); /* '=' expected */
@@ -717,7 +716,7 @@ do
      enter_BSS(arraylabel,buf);
 
      /* store address of array in stack frame */
-     gen("pea",arrayname,"  ");
+     gen_pea(arrayname);
      gen_pop32_var(addrbuf);	    
     }
     else
@@ -783,7 +782,7 @@ SYM  *storage;
    if (storage->type != stringtype)
    	gen_load_addr(tempstrname,0);
    else
-	gen("pea",tempstrname,"  ");
+	gen_pea(tempstrname);
 
    /* When storing an input value into an array element, must save
       value (d0) first, since array index calculation may be corrupted
@@ -798,19 +797,19 @@ SYM  *storage;
 		      {
 		       if ((storage->shared) && (lev == ONE))
 		       {
-         		gen("move.l",addrbuf,"a0");  /* abs address of store */
-            		gen("move.w","d0","(a0)");
+         		gen_load32a(addrbuf,0);  /* abs address of store */
+				gen_save_indirect16(0,0);
 		       }
 		       else
 			   /* ordinary variable */
- 		           gen("move.w","d0",addrbuf);
+				 gen_save16d(0,addrbuf);
 		      }
 		      else 
 	 		 if (storage->object == array)
 			 {
-			  gen("move.w","d0","_short_input_temp");
+			  gen_save16d(0,"_short_input_temp");
 			  point_to_array(storage,addrbuf);
-			  gen("move.w","_short_input_temp","0(a2,d7.L)");
+			  gen_move_indirect_indexed16("_short_input_temp");
 			  enter_BSS("_short_input_temp:","ds.w 1");
 			 }
 
@@ -822,19 +821,19 @@ SYM  *storage;
 		      {
 		       if ((storage->shared) && (lev == ONE))
 		       {
-         		gen("move.l",addrbuf,"a0");  /* abs address of store */
-            		gen("move.l","d0","(a0)");
+				 gen_load32a(addrbuf,0);   /* abs address of store */
+				 gen_save_indirect32(0,0);
 		       }
 		       else
 			   /* ordinary variable */
-	         	   gen("move.l","d0",addrbuf);
+				 gen_save32d(0,addrbuf);
 		      }
 		      else 
 	 		 if (storage->object == array)
 			 {
-			  gen("move.l","d0","_long_input_temp");
+			  gen_save32d(0,"_long_input_temp");
 			  point_to_array(storage,addrbuf);
-			  gen("move.l","_long_input_temp","0(a2,d7.L)");
+			  gen_move_indirect_indexed32("_long_input_temp");
 			  enter_BSS("_long_input_temp:","ds.l 1");
 			 }
 
@@ -846,19 +845,19 @@ SYM  *storage;
 		      {
 		       if ((storage->shared) && (lev == ONE))
 		       {
-         		gen("move.l",addrbuf,"a0");  /* abs address of store */
-            		gen("move.l","d0","(a0)");
+				 gen_load32a(addrbuf,0);  /* abs address of store */
+				 gen_save_indirect32(0,0);
 		       }
 		       else
 			   /* ordinary variable */
-	         	   gen("move.l","d0",addrbuf);
+				 gen_save32d(0,addrbuf);
 		      }
 		      else 
 	 		 if (storage->object == array)
 			 {
-			  gen("move.l","d0","_long_input_temp");
+			  gen_save32d(0,"_long_input_temp");
 			  point_to_array(storage,addrbuf);
-			  gen("move.l","_long_input_temp","0(a2,d7.L)");
+			  gen_move_indirect_indexed32("_long_input_temp");
 			  enter_BSS("_long_input_temp:","ds.l 1");
 			 }
 
@@ -868,14 +867,13 @@ SYM  *storage;
 
     case stringtype : gen_jsr("_Ustringinput");
 
-		      if (storage->object == variable)
-  	   		 assign_to_string_variable(storage,MAXSTRLEN);
-		      else 
-	 		 if (storage->object == array)
-			 {
-			  point_to_array(storage,addrbuf);
-			  assign_to_string_array(addrbuf);
-			 }
+	  if (storage->object == variable)
+		assign_to_string_variable(storage,MAXSTRLEN);
+	  else 
+		if (storage->object == array) {
+		  point_to_array(storage,addrbuf);
+		  assign_to_string_array(addrbuf);
+		}
 
 		      break;
    }
@@ -888,10 +886,7 @@ SYM  *storage;
  while ((sym==comma) || (sym==semicolon) || (sym==ident));
 }
 
-void point_to_array(storage,addrbuf)
-SYM  *storage;
-char *addrbuf;
-{
+void point_to_array(SYM * storage,char * addrbuf) {
 
     /* get absolute index of array element */
     have_lparen=FALSE;
@@ -899,16 +894,14 @@ char *addrbuf;
     get_abs_ndx(storage);
 
     if (storage->type != stringtype)
-       gen("move.l",addrbuf,"a2");  /* --> pointer to start of array <-- */
+       gen_load32a(addrbuf,2);  /* --> pointer to start of array <-- */
 }
 
 /* -------------- */
 /* DATA functions */
 /* -------------- */
 
-void make_data_const(string)
-char *string;
-{
+void make_data_const(char * string) {
 char *strbuf;
 
  /* actual string constant */
@@ -995,21 +988,11 @@ SYM  *storage;
    strcat(addrbuf,frame_ptr[lev]); 
   
    /* is it an array? (this must already have been dimensioned!) */
-   if (storage->object == array)
-   {
-    /* get absolute index of array element */
-    have_lparen=FALSE;
-    push_indices(storage);
-    get_abs_ndx(storage);
-
-    /* --> get pointer to start of array <-- */
-    if (storage->type != stringtype)
-       gen("move.l",addrbuf,"a2");  
-   }
+   if (storage->object == array) point_to_array(storage, addrbuf);
 
    /* get next item from DATA list */
    if (typ != stringtype) 
-      gen("move.l","_dataptr","a1");   /* for _htol */
+      gen_load32a("_dataptr",1);   /* for _htol */
 
    switch(storage->type)
    {
@@ -1025,17 +1008,15 @@ SYM  *storage;
     case singletype :   gen_jsr("_htol"); /* return LONG from (a1) */
 			if (storage->object == variable)
 			{
-		         if ((storage->shared) && (lev == ONE))
-		         {
-        		  gen("move.l",addrbuf,"a0");  /* abs addr of store */
-            		  gen("move.l","d0","(a0)");
-			 }
-			 else
- 			     gen("move.l","d0",addrbuf);
+		         if ((storage->shared) && (lev == ONE)) {
+				   gen_load32a(addrbuf,0);   /* abs addr of store */
+				   gen_save_indirect32(0,0);
+				 } else
+				   gen_save32d(0,addrbuf);
 			}
  			else 
 			    if (storage->object == array)
-			       gen("move.l","d0","0(a2,d7.L)");
+				  gen_save_indirect_indexed32("d0",2,7);
 			break;
 
     case longtype   :	gen_jsr("_htol");
@@ -1045,15 +1026,15 @@ SYM  *storage;
 			{
 		         if ((storage->shared) && (lev == ONE))
 		         {
-         		  gen("move.l",addrbuf,"a0");  /* abs addr of store */
-            		  gen("move.l","(sp)+","(a0)");
-			 }
-			 else
- 			     gen_pop32_var(addrbuf);
+				   gen_save32a(addrbuf,0);   /* abs addr of store */
+				   gen_pop_indirect32(0);
+				 }
+				 else
+				   gen_pop32_var(addrbuf);
 			}
 	 		else 
 			    if (storage->object == array)
-			       gen("move.l","(sp)+","0(a2,d7.L)");
+				  gen_pop_indirect_indexed32(2,7);
 			break;
 
     case shorttype   :	gen_jsr("_htol");
@@ -1063,27 +1044,27 @@ SYM  *storage;
 			{
 		         if ((storage->shared) && (lev == ONE))
 		         {
-         		  gen("move.l",addrbuf,"a0");  /* abs addr of store */
-            		  gen("move.w","(sp)+","(a0)");
+				   gen_load32a(addrbuf,0);   /* abs addr of store */
+				   gen_pop_indirect16(0);
 			 }
 			 else
  			     gen_pop16_var(addrbuf);
 			}
 	 		else 
 			    if (storage->object == array)
-			       gen("move.w","(sp)+","0(a2,d7.L)");
+				  gen_pop_indirect_indexed16(2,7);
 			break;
    }
   } 
   else _error(19);  /* variable expected */ 			
 			
   /* advance to next DATA item */
-  gen("move.l","_dataptr","a2");
+  gen_load32a("_dataptr",2);
   gen_jsr("_strlen");
-  gen("addq","#1","d0");  /* include EOS in length */
-  gen("move.l","_dataptr","d1");
-  gen("add.l","d0","d1");
-  gen("move.l","d1","_dataptr");
+  gen_add32d_val(1,0); /* include EOS in length */
+  gen_load32d("_dataptr",1);
+  gen_add32dd(0,1);
+  gen_save32d(1,"_dataptr");
 
   insymbol();
   if (sym == lparen && storage->object != array) 

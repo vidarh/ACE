@@ -163,9 +163,9 @@ static int handleident() {
   if (obj == variable) {		 /* variable */
 	/* shared variable in SUB? */
 	if ((fact_item->shared) && (lev == ONE) && (typ != stringtype)) {
-	  gen("move.l",srcbuf,"a0");
-	  if (typ == shorttype) gen("move.w","(a0)","-(sp)");
-	  else gen("move.l","(a0)","-(sp)");
+	  gen_load32a(srcbuf,0);
+	  if (typ == shorttype) gen_push_indirect16(0);
+	  else gen_push_indirect32(0);
 	} else {
 	  /* ordinary variable */ 
 	  if (typ == shorttype) gen_push16_var(srcbuf);
@@ -181,7 +181,7 @@ static int handleident() {
 	ftype=typ;
   } else if (obj == extvar) {  /* external variable */
 	if (typ == shorttype) gen_push16_var(ext_name);
-	else if (typ == stringtype) gen("pea",ext_name,"  ");		 
+	else if (typ == stringtype) gen_pea(ext_name);
 	else gen_push32_var(ext_name); /* long integer, single-precision */
 	ftype=typ;
   } else if (obj == subprogram || obj == definedfunc) { /* subprogram */
@@ -234,14 +234,14 @@ static int handleident() {
   } else if (obj == array) {
 	push_indices(fact_item);
 	get_abs_ndx(fact_item);
-	gen("move.l",srcbuf,"a0");
+	gen_load32a(srcbuf,0);
 	
 	if (arraytype == stringtype) {
 	  /* push start address of string within BSS object */
-	  gen("adda.l","d7","a0");
+	  gen_add32da(7,0);
 	  gen_push_addr(0);
-	} else if (arraytype == shorttype) gen("move.w","0(a0,d7.L)","-(sp)");
-	else gen("move.l","0(a0,d7.L)","-(sp)");
+	} else if (arraytype == shorttype) gen_push_indirect_indexed16();
+	else gen_push_indirect_indexed32();
 	
 	ftype=arraytype;  /* typ killed by push_indices()! */
   }

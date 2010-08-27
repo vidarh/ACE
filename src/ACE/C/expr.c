@@ -90,11 +90,9 @@ CODE *cx[];
  else
  if ((*typ2 == shorttype) && (*typ1 == longtype)) 
  {
-  gen_pop16d(0);
-  gen("ext.l","d0","  ");
-  gen_push32d(0);
-  *typ2=longtype;
-  return(TRUE);
+   make_long();
+   *typ2=longtype;
+   return(TRUE);
  }
  else
      return(TRUE); /* both shorttype, longtype or singletype OR notype! */
@@ -107,7 +105,7 @@ void make_short() {
 
 void make_long() {
  gen_pop16d(0);
- gen("ext.l","d0","  ");
+ gen_ext16to32(0);
  gen_push32d(0);
 }
 
@@ -144,17 +142,17 @@ BOOL dereference=FALSE;
     switch(op)
     {
      /* *%<address> */	
-     case shortpointer : gen("move.w","(a0)","-(sp)");
+	case shortpointer : gen_push_indirect16(0);
  		         localtype=shorttype;
 		         break;
 
      /* *&<address> */	
-     case longpointer  : gen("move.l","(a0)","-(sp)");
+     case longpointer  : gen_push_indirect32(0);
 		         localtype=longtype;
 		         break;
 
      /* *!<address> */	
-     case singlepointer :gen("move.l","(a0)","-(sp)");
+     case singlepointer :gen_push_indirect32(0);
 		         localtype=singletype;
 		         break;
     }
@@ -234,10 +232,8 @@ BOOL negate=FALSE;
  {
   switch(localtype)
   {
-   case shorttype  : gen("neg.w","(sp)","  "); break;
-
-   case longtype   : gen("neg.l","(sp)","  "); break;
-
+   case shorttype  : gen_neg16sp(); break;
+   case longtype   : gen_neg16sp(); break;
    case singletype : gen_pop32d(0); 
        gen_libbase("Math");
        gen_libcall("SPNeg","Math");
@@ -311,7 +307,7 @@ CODE *cx[5];
    {
     case multiply : switch(coercedtype)
 		    {
-		     case shorttype  :  gen("muls","d1","d0");
+		     case shorttype  :  gen_muls();
 					localtype=longtype;
 					break;
 			
@@ -509,10 +505,10 @@ CODE *cx[5];
    {
     case shorttype  : 	gen_pop16d(1);
           		gen_pop16d(0);
-            		gen("add.w","d1","d0");
+            		gen_add16dd(1,0);
                 	break;
  
-    case longtype   :	gen("add.l","d1","d0");
+    case longtype   :	gen_add32dd(1,0);
     		    	break;
 
     case singletype : 	
@@ -527,7 +523,7 @@ CODE *cx[5];
         		gen_load_addr(tempstrname,0);
         		gen_move32aa(2,1);
         		gen_jsr("_strcat");
-        		gen("pea",tempstrname,"  ");
+        		gen_pea(tempstrname);
         		break;
    }
   
@@ -548,10 +544,10 @@ CODE *cx[5];
    {
     case shorttype  : 	gen_pop16d(1);
    		     	gen_pop16d(0);
-        		gen("sub.w","d1","d0");
+        		gen_sub16dd(1,0);
                 	break;
  
-    case longtype   : 	gen("sub.l","d1","d0");
+    case longtype   : 	gen_sub32dd(1,0);
          		break;
 
     case singletype :	
@@ -583,20 +579,6 @@ int op;
      return(TRUE);
  else
      return(FALSE);
-}
-
-char *cond_branch_op(int op)
-{
- switch(op)
- {
-  case equal     : return("beq.s");
-  case notequal  : return("bne.s");
-  case lessthan  : return("blt.s");
-  case gtrthan   : return("bgt.s");
-  case ltorequal : return("ble.s");
-  case gtorequal : return("bge.s");
- }
- return 0;
 }
 
 void make_label(name,lab)
@@ -649,20 +631,20 @@ CODE *cx[5];
    {
     case shorttype  : 	gen_pop16d(1);  /* 2nd */
         		gen_pop16d(0);  /* 1st */
-        		gen("moveq","#-1","d5");     /* assume true */
-        		gen("cmp.w","d1","d0");
+        		gen_load32d_val(-1,5); /* assume true */
+        		gen_cmp16dd(1,0);
         		break;
 
     case longtype   : 	gen_pop32d(1);  /* 2nd */
         		gen_pop32d(0);  /* 1st */
-        		gen("moveq","#-1","d5");     /* assume true */
-        		gen("cmp.l","d1","d0");
+        		gen_load32d_val(-1,5); /* assume true */
+        		gen_cmp32dd(1,0);
         		break;
 
     case singletype : 	
 	  gen_pop32d(1);  /* 2nd */
 	  gen_pop32d(0);  /* 1st */
-	  gen("moveq","#-1","d5");     /* assume true */
+	  gen_load32d_val(-1,5); /* assume true */
 	  gen_libbase("Math");
 	  gen_libcall("SPCmp","Math");
 	  break;
@@ -684,9 +666,8 @@ CODE *cx[5];
     if (simptype != stringtype)
     {	
      make_label(labname,lablabel);
-     strcpy(branch,cond_branch_op(op));
-     gen(branch,labname,"  ");
-     gen("moveq","#0","d5"); /* not true */
+	 gen_bxx(op,labname);
+     gen_load32d_val(0,5);  /* not true */
      gen_label(lablabel);
      gen_push32d(5); /* boolean result on stack */
     }
@@ -708,14 +689,11 @@ int localtype,op;
 
  localtype=relexpr();
 
- if (op == notsym)
- {
-  localtype=make_integer(localtype);
-  if (localtype == notype) return(localtype);
-  if (localtype == shorttype)
-   gen("not.w","(sp)","  ");
-  else
-   gen("not.l","(sp)","  ");
+ if (op == notsym) {
+   localtype=make_integer(localtype);
+   if (localtype == notype) return(localtype);
+   if (localtype == shorttype) gen_not16sp();
+   else gen_not32sp();
  }
  return(localtype);
 }
@@ -752,14 +730,11 @@ CODE *cx[5];
     nottype=make_integer(nottype);
     coerce(&firsttype,&nottype,cx);
     localtype=nottype;
-    if (nottype != notype)
-    {
-     pop_operands(nottype);
-     if (nottype == shorttype) 
-     gen("and.w","d1","d0");
-     else
-     gen("and.l","d1","d0");
-     push_result(nottype);
+    if (nottype != notype) {
+	  pop_operands(nottype);
+	  if (nottype == shorttype)  gen_and16dd(1,0);
+	  else gen_and32dd(1,0);
+	  push_result(nottype);
     } else _error(4);
    }
   } else _error(4);
@@ -806,16 +781,16 @@ CODE *cx[5];
      switch(op)
      {
       case orsym  : if (andtype == shorttype)
-   			gen("or.w","d1","d0");
-            	    else
-   			gen("or.l","d1","d0");
+		gen_or16dd(1,0);
+	  else
+		gen_or32dd(1,0);
                	    break;
 
       case xorsym : if (andtype == shorttype)
-          		gen("eor.w","d1","d0");
-      		    else
-                        gen("eor.l","d1","d0");
-      		    break;
+		gen_eor16dd(1,0);
+	  else
+		gen_eor32dd(1,0);
+		break;
      }
      push_result(andtype);
     } else _error(4);
@@ -957,7 +932,7 @@ int gen_Flt(int typ) {
   if (typ == stringtype) {_error(4); return undefined; } /* can't do it */
   if (typ == shorttype) gen_pop16d(0);
   else gen_pop32d(0);
-  if (typ == shorttype) gen("ext.l","d0","  "); /* extend sign */
+  if (typ == shorttype) gen_ext16to32(0); /* extend sign */
   gen_libbase("Math");
   gen_libcall("SPFlt","Math");
   gen_push32d(0);

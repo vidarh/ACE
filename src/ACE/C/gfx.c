@@ -108,10 +108,8 @@ BOOL colorset=FALSE;
 	   enter_XREF("_RPort");
      }
 
-     if (relative)
-     {
-       gen("add.w","36(a1)","d0");   /* x + RPort->cp_x */
-       gen("add.w","38(a1)","d1");   /* y + RPort->cp_y */
+     if (relative) {
+	   gen_rport_rel_xy();
        gen_libcall("Move","Gfx");
      }
 
@@ -178,10 +176,10 @@ void paint() {
    }
    /* pop parameters */
    if (bordercolor) gen_pop16d(3);
-   else gen("moveq","#-1","d3");  /* flag no border color-id */
+   else gen_load32d(-1,3);  /* flag no border color-id */
 
    if (paintcolor) gen_pop16d(2);
-   else gen("moveq","#-1","d2");  /* flag no paint color-id */
+   else gen_load32d(-1,2);  /* flag no paint color-id */
 
    gen_call_args("_paint","d1.w,d0.w",0);
   }
@@ -290,33 +288,33 @@ BOOL aspect=FALSE;
        gen_load32a("_RPort",1);
 
        gen_load16d("_shortx",0);
-       gen("add.w","36(a1)","d0");   /* x + RPort->cp_x */
-       gen("move.w","d0","_shortx");
+       gen_rport_rel_x(0);  /* x + RPort->cp_x */
+       gen_save16d(0,"_shortx");
 
        gen_load16d("_shorty",0);
-       gen("add.w","38(a1)","d0");   /* y + RPort->cp_y */
-       gen("move.w","d0","_shorty");
+       gen_rport_rel_y(0);   /* y + RPort->cp_y */
+       gen_save16d(0,"_shorty");
      }
 
      /* convert x & y values to floats */
      gen_load16d("_shortx",0);
-     gen("ext.l","d0","  ");
+     gen_ext16to32(0);
      gen_libbase("Math");
      gen_libcall("SPFlt","Math");
-     gen("move.l","d0","_floatx");
+     gen_save32d(0,"_floatx");
 
      gen_load16d("_shorty",0);
-     gen("ext.l","d0","  ");
+     gen_ext16to32(0);
      gen_libbase("Math");
      gen_libcall("SPFlt","Math");
-     gen("move.l","d0","_floaty");
+     gen_save32d(0,"_floaty");
 
      gen_load32d("_floatx",0);
      gen_load32d("_floaty",1);
 
-     if (!start_angle) gen("moveq","#0","d3");  /* default is zero */
-     if (!end_angle)  gen("move.l","#$b3800049","d4");  /* default is 359 */
-     if (!aspect) gen("move.l","#$e147af3f","d5");  /* default is .44 */
+     if (!start_angle) gen_load32d(0,3);   /* default is zero */
+     if (!end_angle)  gen_save32d_val(0xb3800049,4);  /* default is 359 */
+     if (!aspect) gen_save32d_val(0xe147af3f,5);  /* default is .44 */
 
      gen_jsr("_ellipse");
      enter_XREF("_MathTransBase");  /* need these 3 libs for _ellipse */
@@ -364,19 +362,17 @@ CODE *cx,*cx1,*cx2,*cx3,*cx4,*cx5,*cx6;
    make_sure_short(expr()); /* y */
    if (sym != rparen)
       _error(9);
-   else
-   {
+   else {
     gen_pop16d(1);   /* ymin */
     gen_pop16d(0);   /* xmin */
     
     /* save x1 & y1 since they may be changed by expr() calls below. */
-    gen("move.w","d0","_xmin");   cx1=curr_code;
-    gen("move.w","d1","_ymin");   cx2=curr_code;
+    gen_save16d(0,"_xmin");    cx1=curr_code;
+    gen_save16d(1,"_ymin");    cx2=curr_code;
     enter_BSS("_xmin","ds.w 1");
     enter_BSS("_ymin","ds.w 1");
 
-     if (!relative)
-     {
+     if (!relative) {
       /* move to x,y */
       gen_gfxcall("Move");
       cx=curr_code;  /* don't need this Move for boxfill */
@@ -521,7 +517,7 @@ CODE *cx,*cx1,*cx2,*cx3,*cx4,*cx5,*cx6;
  if (colorset)
  {
   /* change back to old pen */
-  gen("move.w","_fgdpen","d0");
+  gen_save16d("_fgdpen",0);
   gen_gfxcall("SetAPen");
   enter_XREF("_fgdpen");
  }
@@ -533,8 +529,8 @@ void color() {
  /* foreground color */
  insymbol();
  gen_pop_as_short(expr(),0);
- gen("move.w","d0","_fg");   /* foreground pen for text color change */
- gen("move.w","d0","_fgdpen");  /* change global foreground color holder */
+ gen_save16d(0,"_fg");    /* foreground pen for text color change */
+ gen_save16d(0,"_fgdpen");  /* change global foreground color holder */
  gen_gfxcall("SetAPen");
  enter_XREF("_fgdpen");
  enter_BSS("_fg","ds.w 1");
@@ -552,7 +548,7 @@ void color() {
  else 
  {
   /* default to current background pen */
-  gen("move.w","_bgpen","_bg");
+  gen_move16("_bgpen","_bg");
   enter_XREF("_bgpen");
   enter_BSS("_bg","ds.w 1");
  }
@@ -603,8 +599,8 @@ BOOL relative;
      /* include point in area info' */
      if (relative)
      {
-       gen("add.w","_last_areaX","d0");   /* d0 = x + lastareaY */
-       gen("add.w","_last_areaY","d1");   /* d1 = y + lastareaY */
+       gen_add16d_var("_last_areaX",0);   /* d0 = x + lastareaY */
+       gen_add16d_var("_last_areaY",1);   /* d1 = y + lastareaY */
        enter_XREF("_last_areaX");
        enter_XREF("_last_areaY");
      }
@@ -620,15 +616,12 @@ void areafill()
 
  if ((sym == shortconst) && ((shortval == 0) || (shortval == 1)))
  { 
-  switch(shortval)
-  {
-   case 0 : gen("move.w","#0","d0"); break;
-   case 1 : gen("move.w","#1","d0"); break;
-  }
-  insymbol();
- }
- else
-     gen("move.w","#0","d0");
+   switch(shortval) {
+   case 0 : gen_load16d(0,0); break;
+   case 1 : gen_load16d(1,0); break;
+   }
+   insymbol();
+ } else gen_load16d(0,0);
   
  gen_jsr("_areafill");
 }
@@ -646,16 +639,16 @@ BOOL linepatterncalled;
  if (sym == restoresym) 
  {
   /* restore default pattern */
-  gen("move.l","#1","d1");	/* RESTORE flag */
+  gen_load32d_val(1,1); 	/* RESTORE flag */
   gen_jsr("_linepattern");
-  gen("move.l","#1","d1");	/* RESTORE flag */
+  gen_load32d_val(1,1); 	/* RESTORE flag */
   gen_jsr("_areapattern");
   insymbol();
  } else {
   if (sym != comma) {
    /* get line-pattern */
 	gen_pop_as_short(expr(), 0); /* line-pattern */
-	gen("move.l","#0","d1");	/* RESTORE flag */
+	gen_load32d_val(0,1); 	/* RESTORE flag */
 	gen_jsr("_linepattern");
 	linepatterncalled=TRUE;
   } else linepatterncalled=FALSE;
@@ -672,7 +665,7 @@ BOOL linepatterncalled;
 	    otherwise area-pattern doesn't
 	    seem to work! 
 	 */
-         gen("move.l","#1","d1");	/* set line-pattern to $FFFF */
+         gen_load32d_val(1,1); 	/* set line-pattern to $FFFF */
          gen_jsr("_linepattern");
 	}
 
@@ -682,10 +675,9 @@ BOOL linepatterncalled;
        	gen_load32a(addrbuf,0);	/* start address of array */
 
        	/* size of array? */
-	sprintf(numbuf,"#%ld",(long)curr_item->size/2);
-	gen("move.l",numbuf,"d0");	/* size of array */
+	gen_load32d_val(curr_item->size / 2, 0); 	/* size of array */
 
-	gen("move.l","#0","d1");	/* RESTORE flag */
+	gen_load32d_val(0,1); 	/* RESTORE flag */
 	gen_jsr("_areapattern");
 	enter_XREF("_MathBase");
 	enter_XREF("_MathTransBase");	/* need to find Log2(size) */
@@ -743,9 +735,9 @@ void scroll()
 
 			 /* pop parameters */
 			 gen_pop16d(1);		/* delta-y */
-			 gen("neg.w","d1","  ");			
+			 gen_neg16d(1);
 			 gen_pop16d(0);		/* delta-x */
-			 gen("neg.w","d0","  ");
+			 gen_neg16d(0);
 			 gen_pop16d(5);  		/* ymax */
 			 gen_pop16d(4);  		/* xmax */
 			 gen_pop16d(3);  		/* ymin */

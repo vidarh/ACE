@@ -124,7 +124,7 @@ void line_input() {
 		 /* allocate a simple string variable */
 		 enter(id,typ,obj,0);
 		 enter_DATA("_nullstring:","dc.b 0");
-		 gen("pea","_nullstring","  ");
+		 gen_pea("_nullstring");
 		 assign_to_string_variable(curr_item,MAXSTRLEN);
 	   }
 
@@ -141,7 +141,7 @@ void line_input() {
 		 if (storage->object == array) {
 		   point_to_array(storage,addrbuf);
 		   gen_load32a(addrbuf,0);
-		   gen("adda.l","d7","a0");
+		   gen_add32da(7,0);
 		 }
 		 else gen_load32a(addrbuf,0);	/* string address */
 		 
@@ -382,18 +382,18 @@ SYM  *storage;
 		       if ((storage->shared) && (lev == ONE))
 		       {
 				 gen_load32a(addrbuf,0); /* abs address of store */
-            		gen("move.w","d0","(a0)");
+				 gen_save_indirect16(0,0);
 		       }
 		       else
-			   /* ordinary variable */
- 		           gen("move.w","d0",addrbuf);
+				 /* ordinary variable */
+				 gen_save16d(0,addrbuf);
 		      }
 		      else 
 	 		 if (storage->object == array)
 			 {
-			  gen("move.w","d0","_short_input_temp");
+			  gen_save16d(0,"_short_input_temp");
 			  point_to_array(storage,addrbuf);
-			  gen("move.w","_short_input_temp","0(a2,d7.L)");
+			  gen_save_indirect_indexed16("_short_input_temp",2,7);
 			  enter_BSS("_short_input_temp:","ds.w 1");
 			 }
 
@@ -401,25 +401,19 @@ SYM  *storage;
 
     case longtype   : gen_jsr("_finputlong");
 
-		      if (storage->object == variable)
-		      {
-		       if ((storage->shared) && (lev == ONE))
-		       {
-         		gen_load32a(addrbuf,0);  /* abs address of store */
-            		gen("move.l","d0","(a0)");
-		       }
-		       else
-			   /* ordinary variable */
-	         	   gen("move.l","d0",addrbuf);
-		      }
-		      else 
-	 		 if (storage->object == array)
-			 {
-			  gen("move.l","d0","_long_input_temp");
-			  point_to_array(storage,addrbuf);
-			  gen("move.l","_long_input_temp","0(a2,d7.L)");
-			  enter_BSS("_long_input_temp:","ds.l 1");
-			 }
+	  if (storage->object == variable) {
+		if ((storage->shared) && (lev == ONE)) {
+		  gen_load32a(addrbuf,0);  /* abs address of store */
+		  gen_save_indirect32(0,0);
+		} else
+		  /* ordinary variable */
+		  gen_save32d(0,addrbuf);
+	  } else  if (storage->object == array) {
+		gen_save32d(0,"_long_input_temp");
+		point_to_array(storage,addrbuf);
+		gen_save_indirect_indexed32("_long_input_temp",2,7);
+		enter_BSS("_long_input_temp:","ds.l 1");
+	  }
 
 		      break;
 
@@ -430,18 +424,18 @@ SYM  *storage;
 		       if ((storage->shared) && (lev == ONE))
 		       {
 				 gen_load32a(addrbuf,0);  /* abs address of store */
-				 gen("move.l","d0","(a0)");
+				 gen_save_indirect32(0,0);
 		       }
 		       else
 			   /* ordinary variable */
-	         	   gen("move.l","d0",addrbuf);
+				 gen_save32d(0,addrbuf);
 		      }
 		      else 
 	 		 if (storage->object == array)
 			 {
-			  gen("move.l","d0","_long_input_temp");
+			  gen_save32d(0,"_long_input_temp");
 			  point_to_array(storage,addrbuf);
-			  gen("move.l","_long_input_temp","0(a2,d7.L)");
+			  gen_save_indirect_indexed32("_long_input_temp",2,7);
 			  enter_BSS("_long_input_temp:","ds.l 1");
 			 }
 
@@ -556,7 +550,7 @@ void push_struct_var_info(SYM * structVar) {
 		** Shared structure variable.
 		*/
 	  gen_load32a(addrbuf,0);	/* struct variable address */
-		gen("move.l","(a0)","-(sp)");	/* start address of struct */
+	  gen_push_indirect32(0);   /* start address of struct */
 	}
 	else
 		/*
@@ -568,8 +562,7 @@ void push_struct_var_info(SYM * structVar) {
 	/*
 	** Push size of structure in bytes.
 	*/
-	sprintf(sizebuf,"#%d",structVar->other->size);
-	gen_push32_var(sizebuf);
+	gen_push32_val(structVar->other->size);
 }
 
 void random_file_get()

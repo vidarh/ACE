@@ -86,6 +86,109 @@ extern	BOOL	narratorused;
 extern	BOOL	end_of_source;
 extern	char 	exit_sub_name[80];
 
+int   statetype; /* Used by randomize and wave */
+
+static void say() {
+  char addrbuf[80];
+  insymbol();
+  if (expr() != stringtype) _error(4);  /* phoneme string on stack */
+  
+  if (sym == comma) {
+	insymbol();
+	if ((sym == ident) && (obj == variable)) {
+	  if (!exist(id,array)) _error(28); 
+	  else if (curr_item->type != shorttype) _error(28); 
+	  else {
+		/* get address of array from stack frame */
+		itoa(-1*curr_item->address,addrbuf,10);
+		strcat(addrbuf,frame_ptr[lev]);
+		gen_push32_var(addrbuf); /* push address of mode-array */
+		/* SIZE of array not checked here! (must be >= 9 elements) */
+	  } 
+	  insymbol();
+	} else _error(28); 
+  } else gen_push32_val(0);  /* no mode-array -> push NULL */
+   
+  gen_call_args("_say","",8);
+  enter_XREF("_cleanup_async_speech");
+  narratorused=TRUE;
+}
+
+static void wave() {
+   /* voice */
+   insymbol();
+   make_sure_short(expr());  /* voice (short) 0..3 */
+   
+   /* wave definition */
+   if (sym != comma) _error(16);
+   else {
+	 insymbol();
+	 if (sym == sinsym) {
+	   gen_load32a_val(0,0);   /* SIN wave = 0 -> flag for _wave */
+	   insymbol();
+	 } else {
+	   /* now expect an address -> pointer to a block of bytes */
+	   if (expr() != longtype) _error(4);
+	   
+	   /* number of bytes? */
+	   if (sym != comma) _error(16);
+	   else {
+		 insymbol();
+		 make_sure_long(expr());
+		 if (statetype == notype) _error(4); /* string -> type mismatch */
+	   }   
+
+	   gen_pop32d(1);  /* pop # of bytes of waveform data */
+	   gen_pop_addr(0);  /* pop address of waveform data */
+	 }
+   }
+   gen_call_args("_wave","d0.w",0); 
+}
+
+static void increment_decrement(int opsym) {
+  char buf[80],ext_name[80];
+  SYM * inc_item;
+  
+  insymbol();
+  if (sym != ident) _error(7);
+  else {
+	/* it may be an external variable */
+	strcpy(buf,ut_id);
+	remove_qualifier(buf);
+	if (buf[0] != '_') sprintf(ext_name,"_%s",buf);
+	else strcpy(ext_name,buf);
+
+	if ((!exist(id,variable)) && (!exist(ext_name,extvar))) _error(19); /* simple variable expected */
+	else {
+	  inc_item=curr_item;
+	  if (inc_item->type == stringtype) _error(4);
+	  else {
+		/* get address of variable */
+		address_of_object();
+		gen_pop_addr(0);
+		
+		if (opsym == increment) {
+		  switch(inc_item->type) {
+		  case shorttype  : gen_incr_indirect16(); break;
+		  case longtype   : gen_incr_indirect32(); break;
+		  case singletype : gen_incr_indirect_float(); break;
+		  }
+		} else {
+		  switch(inc_item->type)
+			{
+			case shorttype: gen_decr_indirect16(); break;
+			case longtype:  gen_decr_indirect32();  break;
+			case singletype : gen_decr_indirect_float(); break;
+			}
+		}
+	  }
+	}
+	insymbol();
+  } 
+}
+
+
+
 /* ------*/
 /* sound */
 /* ------*/
@@ -102,31 +205,24 @@ BOOL volume=FALSE;
  make_sure_short(expr());  /* period (short) 0..32767 */ 
 
  if (sym != comma) _error(16);
- else
- {
+ else {
   insymbol();
   gen_Flt(expr());  /* duration (single) 0..77 */
  }
 
- if (sym == comma)
- {
-  insymbol();
-  if (sym != comma)  /* if comma -> skip volume */
-  {
-   make_sure_short(expr());  /* volume (short) 0..64 */
-   volume=TRUE;
-  }
-  else gen("moveq","#64","d2");  /* default volume = 64 */
- }
- else gen("moveq","#64","d2");  /* default volume = 64 */
+ if (sym == comma) {
+   insymbol();
+   if (sym != comma) {  /* if comma -> skip volume */
+	 make_sure_short(expr());  /* volume (short) 0..64 */
+	 volume=TRUE;
+   } else gen_load32d_val(64,2);   /* default volume = 64 */
+ } else gen_load32d_val(64,2);   /* default volume = 64 */
 
- if (sym == comma)
- {
+ if (sym == comma) {
   insymbol();
   make_sure_short(expr());  /* voice (short) 0..3 */
   voice=TRUE;
- }
- else gen("moveq","#0","d3");  /* default voice = 0 */
+ } else gen_load32d_val(0,3);   /* default voice = 0 */
 
  if (voice)  gen_pop16d(3);  /* pop voice */
  if (volume) gen_pop16d(2);  /* pop volume */
@@ -150,8 +246,7 @@ char label_lab[50];
     strcpy(label_lab,label_name);
     strcat(label_lab,":\0");
 
-    if (!exist(label_lab,label)) 
-    { 
+    if (!exist(label_lab,label))  { 
      /* no, so create it */
      enter(label_lab,notype,label,0); 
      gen_label(label_lab);
@@ -172,7 +267,6 @@ char  func_name[MAXIDSIZE],func_address[MAXIDSIZE+9];
 char  ext_name[MAXIDSIZE+1];
 int   commandsym;
 int   oldobj,oldtyp,stype;
-int   statetype;
 int   oldlevel;
 SYM   *func_item,*sub_item,*mc_item,*inc_item,*dec_item;
 BYTE  libnum;
@@ -182,8 +276,7 @@ SHORT popcount;
 
  /* data object assignment (variable, subprogram or array element), 
     label declaration or subprogram call without CALL? */
- if (sym == ident)
- {
+ if (sym == ident) {
   /* make subprogram name */
   strcpy(sub_name,"_SUB_");
   strcat(sub_name,id);
@@ -192,20 +285,15 @@ SHORT popcount;
   strcpy(func_name,id);
   remove_qualifier(func_name);
 
-  /* make external variable name 
-     by removing qualifier and 
-     adding an underscore prefix 
-     if one is not present. 
+  /* make external variable name by removing qualifier and 
+     adding an underscore prefix if one is not present. 
   */
   strcpy(buf,ut_id);
   remove_qualifier(buf);
-  if (buf[0] != '_')
-  {
+  if (buf[0] != '_') {
    strcpy(ext_name,"_\0");
    strcat(ext_name,buf);
-  }
-  else 
-      strcpy(ext_name,buf);
+  } else strcpy(ext_name,buf);
 
   /* assignment? */
   strcpy(idholder,id);  /* save info for label or assign() */
@@ -251,8 +339,7 @@ SHORT popcount;
      if (need_symbol) insymbol();
     }
     else
-    if (exist(func_name,function)) 
-    {
+    if (exist(func_name,function)) {
      /* call shared library function */
      func_item=curr_item;
      if (func_item->no_of_params != 0)
@@ -261,14 +348,13 @@ SHORT popcount;
      /* call the function */
      if ((libnum=check_for_ace_lib(func_item->libname)) == NEGATIVE) 
         make_library_base(func_item->libname);
-     else
-        strcpy(librarybase,acelib[libnum].base);
+     else strcpy(librarybase,acelib[libnum].base);
      gen_load32a(librarybase,6);
      itoa(func_item->address,func_address,10);
      strcat(func_address,"(a6)");
      gen_jsr(func_address);
-     if (restore_a4) { gen("move.l","_a4_temp","a4"); restore_a4=FALSE; }
-     if (restore_a5) { gen("move.l","_a5_temp","a5"); restore_a5=FALSE; }
+     if (restore_a4) { gen_save32a("_a4_temp",4); restore_a4=FALSE; }
+     if (restore_a5) { gen_save32a("_a5_temp",5); restore_a5=FALSE; }
     }
     else
     {
@@ -278,40 +364,27 @@ SHORT popcount;
       gen_jsr(sub_name);
     }
   }
-  else
-  {
+  else {
    /* label? */
-   if (sym == colon)
-        handle_label(idholder);
-   else 
-       _error(24);   /* colon expected */
+   if (sym == colon) handle_label(idholder);
+   else _error(24);   /* colon expected */
    insymbol();
   }
- }
- else
- /* line number? */
- if (sym == shortconst || sym == longconst)
- {
+ } else if (sym == shortconst || sym == longconst) { /* line number? */
   make_label_from_linenum(sym,idholder);
   handle_label(idholder);
   insymbol();
- }
- else
- /* assign with LET ? */ 
- if (sym == letsym) 
- { 
+ } else if (sym == letsym) {  /* assign with LET ? */ 
   insymbol();
 
-  if (sym == ident)
-  {
+  if (sym == ident) {
    strcpy(idholder,id);  /* save info for assign() */
    oldobj=obj;
    oldtyp=typ;
 
    insymbol();
 
-   if ((sym == equal) || (sym == lparen) || (sym == memberpointer))
-   {
+   if ((sym == equal) || (sym == lparen) || (sym == memberpointer)) {
      strcpy(id,idholder);  /* restore info */
      obj=oldobj;
      typ=oldtyp;
@@ -321,17 +394,13 @@ SHORT popcount;
      have_equal=FALSE;
      have_lparen=FALSE;
    }
-  }
-  else _error(7); 
- }
- else
+  } else _error(7); 
+ } else
  /* multi-statement? */
- if (sym == colon)
- {
+ if (sym == colon) {
   while (sym == colon) { insymbol(); statement(); }
- }
- else
- /* assem */
+ } else
+   /* assem */
  if (sym == assemsym) assem();
  else
  /* area */
@@ -341,8 +410,7 @@ SHORT popcount;
  if (sym == areafillsym) areafill();
  else
  /* back */
- if (sym == backsym)
- {
+ if (sym == backsym) {
   insymbol();
   gen_Flt(expr());
   gen_call_args("_back","d0",0);
@@ -350,8 +418,7 @@ SHORT popcount;
  }
  else
  /* beep */
- if (sym == beepsym) 
- { 
+ if (sym == beepsym)  { 
   gen_jsr("_beep");
   enter_XREF("_MathBase");  /* _sound needs mathffp.library */
   insymbol();
@@ -369,21 +436,17 @@ SHORT popcount;
  if (sym == blocksym) block_statement();
  else
  /* call */
- if (sym == callsym)
- {
+ if (sym == callsym) {
   check_for_event();
 
   insymbol();
-  if (sym != ident) 
-     _error(32);
-  else
-  {
+  if (sym != ident)  _error(32);
+  else {
    /* function? */
    strcpy(func_name,id);
    remove_qualifier(func_name);
 
-   if (exist(func_name,function)) 
-   { 
+   if (exist(func_name,function)) { 
     func_item=curr_item;
     if (func_item->no_of_params != 0)
     { insymbol(); load_func_params(func_item); }
@@ -398,15 +461,12 @@ SHORT popcount;
     gen_jsr(func_address);
     if (restore_a4) { gen_load32a("_a4_temp",4); restore_a4=FALSE; }
     if (restore_a5) { gen_load32a("_a5_temp",5); restore_a5=FALSE; }
-   }
-   else
-   {
+   } else {
     /* subprogram, machine code subroutine or external function? */
     strcpy(sub_name,"_SUB_");
     strcat(sub_name,id);
 
-    if (!exist(sub_name,subprogram)) 
-    {
+    if (!exist(sub_name,subprogram)) {
      /* make external variable name 
         by removing qualifier and 
         adding an underscore prefix 
@@ -414,25 +474,19 @@ SHORT popcount;
      */
      strcpy(buf,ut_id);
      remove_qualifier(buf);
-     if (buf[0] != '_')
-     {
-      strcpy(ext_name,"_\0");
-      strcat(ext_name,buf);
-     }
-     else 
-         strcpy(ext_name,buf);
+     if (buf[0] != '_') {
+	   strcpy(ext_name,"_");
+	   strcat(ext_name,buf);
+     } else 
+	   strcpy(ext_name,buf);
 
-      if (exist(ext_name,extfunc))
-      { 
+      if (exist(ext_name,extfunc)) { 
        /* external function? */
        insymbol();
        call_external_function(ext_name,&need_symbol);
-      }
-     else
-     { 
+      } else { 
       /* machine code subroutine? */
-      if (exist(id,variable) && (curr_item->type == longtype))
-      {
+      if (exist(id,variable) && (curr_item->type == longtype)) {
        mc_item=curr_item;
        insymbol();
        if (sym == lparen) { load_mc_params(mc_item); need_symbol=TRUE; } 
@@ -442,261 +496,129 @@ SHORT popcount;
        /* call routine */
        itoa(-1*mc_item->address,addrbuf,10);
        strcat(addrbuf,frame_ptr[lev]);
-       gen("move.l",addrbuf,"a0");
-       gen_jsr("(a0)");
        /* pop parameters? */
-       if (mc_item->no_of_params != 0)
-       {
+       if (mc_item->no_of_params != 0) {
          popcount=0;
-         for (i=0;i<mc_item->no_of_params;i++) 
-         {
-          if (mc_item->p_type[i] == shorttype) 
-	    popcount += 2;
-    	  else
-	    popcount += 4;
+         for (i=0;i<mc_item->no_of_params;i++) {
+		   if (mc_item->p_type[i] == shorttype) popcount += 2;
+		   else popcount += 4;
          }
-        /* add popcount to sp */
-        strcpy(buf,"#\0");
-        itoa(popcount,numbuf,10);
-        strcat(buf,numbuf);
-        gen("add.l",buf,"sp");
+		 gen_pop_ignore(popcount);
        }
-      }
-      else _error(37); /* undeclared subprogram */
+      } else _error(37); /* undeclared subprogram */
      }
-    }
-    else
-       {
-        /* user-defined subprogram */
-        if (curr_item->no_of_params != 0) 
-           { insymbol(); load_params(curr_item); }
-        gen_jsr(sub_name);
-       }
+    } else {
+	  /* user-defined subprogram */
+	  if (curr_item->no_of_params != 0) 
+		{ insymbol(); load_params(curr_item); }
+	  gen_jsr(sub_name);
+	}
    }
   }
   if (need_symbol) insymbol();
- }
- else
+ } else
  /* case */
  if (sym == casesym) { check_for_event(); case_statement(); }
- else
- /* chdir */
- if (sym == chdirsym) chdir();
- else
- /* circle */
- if (sym == circlesym) circle();
- else
- /* clear */
- if (sym == clearsym) 
- { 
-	insymbol(); 
-	if (sym == allocsym) 
-	   { gen_jsr("_clear_alloc"); }
-	insymbol();
- }
- else
- /* close */
- if (sym == closesym) close_a_file();
- else
- /* cls */
- if (sym == clssym) 
- { 
-  gen_jsr("_cls"); 
-  insymbol(); 
- }
- else
- /* color */
- if (sym == colorsym) color();
- else
- /* common */
- if (sym == commonsym) define_common_or_global_variable(sym);
- else
- /* const */
- if (sym == constsym) define_constant();
- else
- /* data */
- if (sym == datasym) get_data();
- else
- /* declare */
- if (sym == declaresym) declare();
- else
- /* defint,deflng,defsng,defdbl,defstr -> global effects */
- if (sym == defintsym) change_id_type(shorttype);
- else
- if (sym == deflngsym) change_id_type(longtype);
- else
- if (sym == defsngsym) change_id_type(singletype);
- else
- if (sym == defdblsym) change_id_type(singletype);
- else
- if (sym == defstrsym) change_id_type(stringtype);
- else
- /* dim */
- if (sym == dimsym) dim();
- else
- /* end & stop */
- if ((sym == endsym) || (sym == stopsym))
- {
+ else if (sym == chdirsym) chdir();
+ else if (sym == circlesym) circle();
+ else if (sym == clearsym) {
+   insymbol(); 
+   if (sym == allocsym) { gen_jsr("_clear_alloc"); }
+   insymbol();
+ } else if (sym == closesym) close_a_file();
+ else if (sym == clssym) { 
+   gen_jsr("_cls"); 
+   insymbol(); 
+ } else if (sym == colorsym) color();
+ else if (sym == commonsym) define_common_or_global_variable(sym);
+ else if (sym == constsym) define_constant();
+ else if (sym == datasym) get_data();
+ else if (sym == declaresym) declare();
+ else if (sym == defintsym) change_id_type(shorttype);
+ else if (sym == deflngsym) change_id_type(longtype);
+ else if (sym == defsngsym) change_id_type(singletype);
+ else if (sym == defdblsym) change_id_type(singletype);
+ else if (sym == defstrsym) change_id_type(stringtype);
+ else if (sym == dimsym) dim();
+ else if ((sym == endsym) || (sym == stopsym)) {
    gen_jmp("_EXIT_PROG");
    insymbol();
- }
- else
- /* exit (ie: EXIT SUB/FOR) */
- if (sym == exitsym)
- { 
+ } else if (sym == exitsym) { /* exit (ie: EXIT SUB/FOR) */
   insymbol();
-
-  if (sym == forsym)
-  {
+  if (sym == forsym) {
   	/* EXIT FOR */
 	gen_nop();
 	exit_for_cx = curr_code;
 	insymbol();
-  }
-  else
-  if (lev == ONE)
-  {  
+  } else if (lev == ONE) {
 	/* EXIT SUB */
-   	if (sym != subsym) 
-      	   _error(35);
-   	else
-	  gen_jmp(exit_sub_name);
-
+   	if (sym != subsym) _error(35);
+   	else gen_jmp(exit_sub_name);
    	insymbol();
+  } else {
+	_error(36); /* can only use EXIT SUB in a subprogram! */
+	insymbol();
   }
-  else
-     {
-      	_error(36); /* can only use EXIT SUB in a subprogram! */
-      	insymbol();
-     }
- }
- else
- /* external */
- if (sym == externalsym) define_external_object();
- else
- /* files */
- if (sym == filessym) files();
- else
- /* fix */
-   if (sym == fixsym) {
+ } else if (sym == externalsym) define_external_object();
+ else if (sym == filessym) files();
+ else if (sym == fixsym) {
 	 insymbol();
 	 make_sure_long(expr());
 	 gen_call_args("_fix","d0",0);
-   } else 
- /* font */
- if (sym == fontsym) text_font();
- else
- /* for.. */
- if (sym == forsym) for_statement();
- else
- /* forward */
- if (sym == forwardsym)
- {
+ } else if (sym == fontsym) text_font();
+ else if (sym == forsym) for_statement();
+ else if (sym == forwardsym) {
    insymbol();
    gen_Flt(expr());
    gen_call_args("_forward","d0",0);
    enter_XREF("_MathTransBase");
- }  
- else
- /* gadget */
- if (sym == gadgetsym) gadget();
- else
- /* get */
- if (sym == getsym)
- {
+ } else  if (sym == gadgetsym) gadget();
+ else if (sym == getsym) {
  	insymbol();
-	if (sym == lparen) 
-	{
+	if (sym == lparen) {
 		/* Graphics GET */
+	} else {
+	  /* Random File GET */
+	  random_file_get();
 	}
-	else
-	{
-		/* Random File GET */
-		random_file_get();
-	}
- }	
- else
- /* global */
- if (sym == globalsym) define_common_or_global_variable(sym);
- else
- /* goto or gosub */
- if ((sym == gotosym) || (sym == gosubsym))
- {
+ } else if (sym == globalsym) define_common_or_global_variable(sym);
+ else if ((sym == gotosym) || (sym == gosubsym)) {
   check_for_event();
   oldlevel=lev; /* labels are defined at level ZERO only */
   lev=ZERO;
   commandsym=sym;
   insymbol();
-  if (sym == ident || sym == shortconst || sym==longconst)
-  {
+  if (sym == ident || sym == shortconst || sym==longconst) {
    if (sym != ident) make_label_from_linenum(sym,id);   
-   strcpy(buf,id);
-   strcat(buf,":\0");
-   if (!exist(buf,label)) 
-      strcpy(destbuf,"* "); /* mark for later check */
-   else 
-      strcpy(destbuf,"  ");
-
    /* generate approriate branch */
-   switch(commandsym)
-   {
-    case gotosym  : gen("jmp",id,destbuf); break;
-    case gosubsym : gen("jsr",id,destbuf); break;
-   }
+   switch(commandsym) {
+	 case gotosym  : gen_branch("jmp",id); break;
+	 case gosubsym : gen_branch("jsr",id); break;
+	 }
   }
   lev=oldlevel;
   insymbol(); 
- }
- else
- /* home */
- if (sym == homesym)
- {
-  gen_jsr("_home");
-  insymbol();
- }
- else
- /* if...then...else... */
- if (sym == ifsym) { check_for_event(); if_statement(); }
- else
- /* IFF */
- if (sym == iffsym) iff();
- else
- /* kill */
- if (sym == killsym) kill();
- else
- /* input */
- if (sym == inputsym) 
- { 
+ } else if (sym == homesym) { gen_jsr("_home"); insymbol(); }
+ else if (sym == ifsym) { check_for_event(); if_statement(); }
+ else if (sym == iffsym) iff();
+ else if (sym == killsym) kill();
+ else if (sym == inputsym) { 
   check_for_event(); 
   insymbol();
   if (sym == hash) input_from_file(); else input(); 
- }
- else
- /* library */
- if (sym == librarysym) library();
- else
- /* line or line input */
- if (sym == linesym) 
- {
+ } else if (sym == librarysym) library();
+ else if (sym == linesym) {
   insymbol();
   if (sym == inputsym) line_input(); else draw_line();
- }
- else
- /* locate */
- if (sym == locatesym)
- {
+ } else if (sym == locatesym) {
   insymbol();
   make_sure_short(expr());  /* ROW */
-
   if (sym == comma) {
 	insymbol();
 	make_sure_short(expr());
-  } else gen("move.w","#1","-(sp)");  /* COLUMN */
+  } else gen_push16_val(1); /* COLUMN */
   gen_call_args("_locate","d1.w,d0.w",0);
- }
- else
- /* longint */
- if (sym == longintsym || sym == addresssym) declare_variable(longtype);
+ } else if (sym == longintsym || sym == addresssym) declare_variable(longtype);
  else if (sym == menusym) menu();
  else if (sym == messagesym) message();
  else if (sym == msgboxsym) MsgBox();
@@ -716,28 +638,7 @@ SHORT popcount;
  } else if (sym == opensym) open_a_file();
  else if (sym == optionsym) parse_option_list();
  else if (sym == paintsym) paint();
- else if (sym == palettesym) {
-   insymbol();
-   make_sure_short(expr()); /* color-id */
-   if (sym != comma) _error(16);
-   else
-   {
-    insymbol();
-    gen_Flt(expr()); /* red */
-    if (sym != comma) _error(16);
-    else
-    {
-     insymbol();
-     gen_Flt(expr()); /* green */
-     if (sym != comma) _error(16);
-     else {
-       insymbol();
-       gen_Flt(expr()); /* blue */
-       gen_call_args("_palette","d3,d2,d1,d0.w",0);
-     }
-    }
-   }
- }
+ else if (sym == palettesym) { insymbol(); gen_fcall("_palette",expr(),"w,f,f,f",notype,"d3,d2,d1,d0.w",0); }
  else if (sym == patternsym) pattern();
  else if (sym == pendownsym) {
   gen_jsr("_pendown");
@@ -780,39 +681,13 @@ SHORT popcount;
   enter_XREF("_MathBase");
  }
  else if (sym == repeatsym) repeat_statement();
- else if (sym == restoresym) { gen("move.l","#_BASICdata","_dataptr"); insymbol(); }
+ else if (sym == restoresym) { gen_move32("#_BASICdata","_dataptr"); insymbol(); }
  else if (sym == returnsym) {
    check_for_event();
-   gen("rts","  ","  ");
+   gen_rts();
    insymbol();
- } else if (sym == saysym) {
-  insymbol();
-  if (expr() != stringtype) _error(4);  /* phoneme string on stack */
-
-  if (sym == comma) {
-   insymbol();
-   if ((sym == ident) && (obj == variable)) {
-    if (!exist(id,array)) _error(28); 
-    else
-        if (curr_item->type != shorttype) _error(28); 
-        else
-           {
-	    /* get address of array from stack frame */
-            itoa(-1*curr_item->address,addrbuf,10);
-            strcat(addrbuf,frame_ptr[lev]);
-	    gen_push32_var(addrbuf); /* push address of mode-array */
-	    /* SIZE of array not checked here! (must be >= 9 elements) */
-           } 
-   insymbol();
-   }
-   else _error(28); 
-  }
-  else gen_push32_val(0);  /* no mode-array -> push NULL */
-
-  gen_call_args("_say","",8);
-  enter_XREF("_cleanup_async_speech");
-  narratorused=TRUE;
- } else if (sym == screensym) { screen(); check_for_event(); }
+ } else if (sym == saysym) say();
+ else if (sym == screensym) { screen(); check_for_event(); }
  else if (sym == scrollsym) scroll();
  else if (sym == serialsym) { check_for_event(); serial_command(); }
  else if (sym == setheadingsym) {
@@ -838,12 +713,7 @@ SHORT popcount;
     else { 
 	  /* SLEEP FOR <seconds> */ 
 	  insymbol();
-	  stype = expr();
-	  if (stype == stringtype) _error(4);
-	  else {
-		gen_Flt(stype); 
-	  	gen_call_args("_sleep_for_secs","",4);
-	  }
+	  gen_fcall("_sleep_for_secs",expr(),"s",notype,"",4);
     }
  }
  else if (sym == stringsym) declare_variable(stringtype);
@@ -877,118 +747,15 @@ SHORT popcount;
  } else if ((sym == untilsym) && (lastsym == colon)) {
    lastsym=undefined;
    return; /* eg: repeat:..:until i>10 */
- } else if (sym == wavesym) {
-   /* voice */
-   insymbol();
-   make_sure_short(expr());  /* voice (short) 0..3 */
-   
-   /* wave definition */
-   if (sym != comma) _error(16);
-   else {
-	 insymbol();
-	 if (sym == sinsym) {
-	   gen("move.l","#0","a0");  /* SIN wave = 0 -> flag for _wave */
-	   insymbol();
-	 } else {
-	   /* now expect an address -> pointer to a block of bytes */
-	   if (expr() != longtype) _error(4);
-	   
-	   /* number of bytes? */
-	   if (sym != comma) _error(16);
-	   else {
-		 insymbol();
-		 make_sure_long(expr());
-		 if (statetype == notype) _error(4); /* string -> type mismatch */
-	   }   
-
-	   gen_pop32d(1);  /* pop # of bytes of waveform data */
-	   gen_pop_addr(0);  /* pop address of waveform data */
-	 }
-   }
-   gen_call_args("_wave","d0.w",0); 
- } else if (sym == whilesym) while_statement();
+ } else if (sym == wavesym) wave();
+ else if (sym == whilesym) while_statement();
  else if ((sym == wendsym) && (lastsym == colon)) {
    lastsym=undefined;
    return; /* eg: while i>2:wend */
  } else if (sym == windowsym) { window(); check_for_event(); }
  else if (sym == writesym) { check_for_event(); write_to_file(); }
- else if (sym == increment) /* ++ */ {
-   insymbol();
-   if (sym != ident) _error(7);
-   else {
-	 /* it may be an external variable */
-	 strcpy(buf,ut_id);
-	 remove_qualifier(buf);
-	 if (buf[0] != '_') {
-	   sprintf(ext_name,"_%s",buf);
-	 } else 
-	   strcpy(ext_name,buf);
-
-	 if ((!exist(id,variable)) && (!exist(ext_name,extvar))) _error(19); /* simple variable expected */
-	 else {
-	   inc_item=curr_item;
-	   if (inc_item->type == stringtype) _error(4);
-	   else {
-		 /* get address of variable */
-		 address_of_object();
-		 gen_pop_addr(0);
-
-		 /* increment it by 1 */
-		 switch(inc_item->type) {
-		 case shorttype  : gen("add.w","#1","(a0)"); break;
-		 case longtype   : gen("add.l","#1","(a0)"); break;
-		 case singletype : 
-			   gen_libbase("Math");
-			   gen("move.l","(a0)","d0");
-			   gen("move.l","#$80000041","d1");
-			   gen_libcall("SPAdd","Math");
-			   gen("move.l","d0","(a0)");
-			   break;
-		 }
-	   }
-	 }
-	 insymbol();
-   } 
- } else if (sym == decrement) {
-   insymbol();
-   if (sym != ident) _error(7);
-   else {
-	 /* it may be an external variable */
-	 strcpy(buf,ut_id);
-	 remove_qualifier(buf);
-	 if (buf[0] != '_') {
-	   sprintf(ext_name,"_%s",buf);
-	 } else strcpy(ext_name,buf);
-
-	 if ((!exist(id,variable)) && (!exist(ext_name,extvar)))
-	   _error(19); /* simple variable expected */
-	 else {
-	   dec_item=curr_item;
-	   if (dec_item->type == stringtype)
-		 _error(4);
-	   else {
-		 /* get address of variable */
-		 address_of_object();
-		 gen_pop_addr(0);
-		 
-		 /* increment it by 1 */
-		 switch(dec_item->type)
-		   {
-		   case shorttype: gen("sub.w","#1","(a0)"); break;
-		   case longtype:  gen("sub.l","#1","(a0)"); break;
-		   case singletype : 
-			   gen_libbase("Math");
-			   gen("move.l","(a0)","d0");
-			   gen("move.l","#$80000041","d1");
-			   gen_libcall("SPSub","Math");
-			   gen("move.l","d0","(a0)");
-			   break;
-		   }
-	   }
-	 }
-	 insymbol();
-   } 
- } else if (sym == shortpointer) { /* *%<address> = <expr> */
+ else if (sym == increment || sym == decrement) /* ++ | -- */ increment_decrement(sym);
+ else if (sym == shortpointer) { /* *%<address> = <expr> */
    insymbol();
    if (expr() != longtype)  /* address */
 	 _error(4);
@@ -998,7 +765,7 @@ SHORT popcount;
 	   insymbol();
 	   gen_pop_as_short(expr(),0); /* expression */
 	   gen_pop_addr(0);  /* pop address */
-	   gen("move.w","d0","(a0)");   /* store expression */
+	   gen_save_indirect16(0,0);  /* store expression */
 	 }
    }
  } else if (sym == longpointer) { /* *&<address> = <expr> */
@@ -1012,13 +779,12 @@ SHORT popcount;
 	   make_sure_long(expr());
 	   gen_pop32d(0);  /* pop expression */ 
 	   gen_pop_addr(0);  /* pop address */
-	   gen("move.l","d0","(a0)");   /* store expression */
+	   gen_save_indirect32(0,0);  /* store expression */
 	 }
    }
  } else if (sym == singlepointer) { /* *!<address> = <expr> */
    insymbol();
-   if (expr() != longtype)  /* address */
-	 _error(4);
+   if (expr() != longtype) _error(4); /* address */
    else {
 	 if (sym != becomes) _error(5);
 	 else {
@@ -1026,7 +792,7 @@ SHORT popcount;
 	   gen_Flt(expr());
 	   gen_pop32d(0);  /* pop expression */ 
 	   gen_pop_addr(0);  /* pop address */
-	   gen("move.l","d0","(a0)");   /* store expression */
+	   gen_save_indirect32(0,0);  /* store expression */
 	 }
    }
  }

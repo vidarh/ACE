@@ -469,7 +469,7 @@ char lab[80],lablabel[80];
    press and pass control to the
    MOUSE trapping subroutine. */
 
- gen("moveq","#0","d0");
+ gen_load32d_val(0,0);
  gen_jsr("_mouse");
  gen_tst32d(0);
  make_label(lab,lablabel);
@@ -493,7 +493,7 @@ char lab[80],lablabel[80];
    and pass control to the
    TIMER trapping subroutine. */
 
- gen("move.l",ontimer_seconds,"d0");
+ gen_save32d(ontimer_seconds,0);
  gen_jsr("_ontimer");
  gen_tst32d(0);
  make_label(lab,lablabel);

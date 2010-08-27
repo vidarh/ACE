@@ -164,7 +164,7 @@ char *strbuf,buf[80],strlabel[80],strname[80];
  enter_DATA(strlabel,strbuf);
  /*FreeMem(strbuf,strlen(string)+10);*/
  /* push its address onto stack */
- gen("pea",strname,"  ");
+ gen_pea(strname);
 }
 
 void make_label_from_linenum(intconst,buf)
@@ -232,7 +232,7 @@ SYM *curr;
 int  i,ndx_mult=1;
 char mulbuf[40],srcbuf[40];
 
- gen("moveq","#0","d7");
+ gen_load32d_val(0,7);
  
  /* pop indices from stack one at a time */ 
  for (i=curr->dims;i>=0;i--)
@@ -240,11 +240,11 @@ char mulbuf[40],srcbuf[40];
   sprintf(mulbuf,"#%d",ndx_mult);
 
   gen_pop16d(1);  	 
-  gen("ext.l","d1","  "); 
+  gen_ext16to32(1);
   gen_push32d(1);   /* push next index after coercing to long */
   gen_push32_var(mulbuf); /* push cumulative index */
   gen_call_void("lmulu",8);
-  gen("add.l","d0","d7");  
+  gen_add32dd(0,7);
   ndx_mult *= curr->index[i];
  }
 
@@ -260,14 +260,14 @@ char mulbuf[40],srcbuf[40];
   gen_push32d(7);
   gen_push32_var(srcbuf);
   gen_call_void("lmulu",8);	/* d7*MAXSTRLEN */
-  gen("move.l","d0","d7");
+  gen_move32dd(0,7);
  }
  else
  if (curr->type == shorttype)
-    gen("lsl.l","#1","d7");  /* d7*2 */
+    gen_lsl(1,7);   /* d7*2 */
  else
     /* long or single */
-    gen("lsl.l","#2","d7");  /* d7*4 */
+    gen_lsl(2,7);  /* d7*4 */
 }
 
 void push_num_constant(typ,item)
@@ -348,7 +348,7 @@ int    mbr_type=undefined;
 
 	gen_load32a(addrbuf,0);
     if (item->shared && lev == ONE)
-	  gen("movea.l","(a0)","a0");   /* start address of struct */    	
+	  gen_load_indirect_addr(0,0); /* start address of struct */    	
 
     /* offset from struct start */ 
     if (mbr_type != stringtype)
@@ -360,8 +360,8 @@ int    mbr_type=undefined;
     /* push value */
     if (mbr_type == bytetype)
     {
-     gen("move.b",absbuf,"d0");
-     gen("ext.w","d0","  ");
+     gen_load8d(absbuf,0);
+     gen_ext8to16(0);
      gen_push16d(0);
      mbr_type=shorttype;              /* byte */
     }
@@ -371,8 +371,7 @@ int    mbr_type=undefined;
     else
     if (mbr_type == stringtype)
     {
-     sprintf(numbuf,"#%d",member->offset);
-     gen("adda.l",numbuf,"a0");
+     gen_add32a_val(member->offset,0);
      gen_push_addr(0);  /* push string address */
     }
     else
@@ -391,7 +390,7 @@ int    mbr_type=undefined;
   if (item->shared && lev == ONE) 
   {
 	gen_load32a(addrbuf,0);        /* address of structure variable */
-     gen("move.l","(a0)","-(sp)");  /* start address of structure */
+	gen_push_indirect32(0);       /* start address of structure */
   }
   else
       gen_push32_var(addrbuf);
@@ -434,23 +433,6 @@ int i,first,last;
  while (sym == comma);
 }
 
-void gen_branch(branch,labname)
-char *branch,*labname;
-{
-char lablabel[MAXIDSIZE+1],destbuf[3];
-
- /* generate a jsr/jmp instruction */
-
- sprintf(lablabel,"%s:",labname);
-
- if (!exist(lablabel,label))
-    strcpy(destbuf,"* ");  /* for later check */
- else
-    strcpy(destbuf,"  ");  /* label already defined */
-
- gen(branch,labname,destbuf);
-}
-
 void assem()
 {
 /* 
@@ -465,7 +447,7 @@ void assem()
 
   /* generate code? */
   if (sym == endofline && !end_of_source &&
-      lastsym != assemsym) gen(lastline,"  ","  ");  
+      lastsym != assemsym) gen_asm(lastline);
  }
  while (sym != endsym && !end_of_source);
 

@@ -230,7 +230,7 @@ int   formaltype[MAXPARAMS];
     strcat(formaltemp[i],frame_ptr[lev]); 
     
     /* store it */
-    gen("move.w","(sp)+",formaltemp[i]);
+    gen_pop16_var(formaltemp[i]);
    }
    else
    /* long, single, string, array */   
@@ -251,7 +251,7 @@ int   formaltype[MAXPARAMS];
     strcat(formaltemp[i],frame_ptr[lev]); 
     
     /* store it */
-    gen("move.l","(sp)+",formaltemp[i]);
+    gen_pop32_var(formaltemp[i]);
    }
    
    i++;
@@ -271,9 +271,9 @@ int   formaltype[MAXPARAMS];
    for (n=0;n<sub_ptr->no_of_params;n++)
    {
     if (formaltype[n] == shorttype) 
-       gen("move.w",formaltemp[n],formaladdr[n]); /* short */
+       gen_move16(formaltemp[n],formaladdr[n]); /* short */
     else
-       gen("move.l",formaltemp[n],formaladdr[n]); /* long,string,single,array */
+       gen_move32(formaltemp[n],formaladdr[n]); /* long,string,single,array */
    }
   }
 
@@ -437,19 +437,16 @@ BOOL share_it;
        -> get address */
     if ((zero_ptr->type != stringtype) && (zero_ptr->object != array))
     {
-     strcpy(num,"#\0");
-     itoa(zero_ptr->address,buf0,10);
-     strcat(num,buf0);
-     gen("move.l","a4","d0");  /* frame pointer */
-     gen("sub.l",num,"d0");    /* offset from frame top */
-     gen("move.l","d0",buf1);  /* store address in level ONE frame */
+     gen_save32ad(4,0);  /* frame pointer */
+     gen_sub32d_val(zero_ptr->address,0);     /* offset from frame top */
+     gen_save32d(0,buf1);  /* store address in level ONE frame */
     }
     else
     {
      /* array or string -> level ZERO already contains address */
      itoa(-1*zero_ptr->address,buf0,10);
      strcat(buf0,"(a4)");
-     gen("move.l",buf0,buf1);
+     gen_move32(buf0,buf1);
     }
    }
   }

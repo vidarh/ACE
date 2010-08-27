@@ -127,7 +127,7 @@ void modify_gadget() {
 	  make_sure_long(expr());	/* knob-position */
 
 	  /* specify new maximum notches for slider? */
-	  if (sym != comma) gen("move.l","#-1","-(sp)");
+	  if (sym != comma) gen_push32_val(-1);
 	  else {
 		insymbol();
 		make_sure_long(expr());	/* max-position */

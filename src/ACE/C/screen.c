@@ -56,8 +56,8 @@ void	screen() {
 
 		/* forward or back? */
 	  switch(rword) {
-	  case forwardsym : gen("move.w","#1","d1"); break;
-	  case backsym 	: gen("move.w","#2","d1"); break;
+	  case forwardsym : gen_load16d_val(1,1); break;
+	  case backsym 	:   gen_load16d_val(2,1); break;
 	  }
 
 	  gen_jsr("_change_screen_depth");

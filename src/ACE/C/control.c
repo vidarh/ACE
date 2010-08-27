@@ -194,7 +194,7 @@ int  exprtype;
      {
 	   /* NOT an assignment statement */
 	   strcpy(id,idholder);  /* restore id */
-       gen("jmp",id,destbuf);
+       gen_jmp_fwd(id,destbuf);
      }
      else 
        if (lastsym == ident)
@@ -283,7 +283,7 @@ int  exprtype;
  if (exprtype == longtype)
  {
   gen_pop32d(0);
-  gen("cmpi.l","#0","d0");
+  gen_tst32d(0);
   make_label(labname2,lablabel2);
   gen_bne(labname2);
   gen_nop();   /* jump out of loop when condition is FALSE */
@@ -379,7 +379,7 @@ SHORT i;
     statement();
     if (sym == colon) statement(); /* multi-statement */
 
-    gen("jmp","  ","  ");
+    gen_jmp("  ");
     case_ptr[casecount++] = curr_code; /* branch to end of CASE */
     
     /* label for next case */
@@ -506,9 +506,9 @@ int  countertype,limittype,steptype;
    {
     switch(countertype)   /* default step = 1 */
     {
-     case shorttype  : gen("move.w","#1","-(sp)"); break;
+     case shorttype  : gen_push16_val(1); break;
      case longtype   : gen_push32_val(1); break;
-     case singletype : gen("move.l","#$80000041","-(sp)"); break;
+     case singletype : gen_push32_val(0x80000041); break;
     }
     steptype=countertype;
    }
@@ -525,18 +525,18 @@ int  countertype,limittype,steptype;
    
     if (countertype == shorttype)
     {
-     gen("move.w",cntbuf,"d0");   /* counter */
-     gen("move.w",limbuf,"d1");   /* limit */
-     gen("cmpi.w","#0",stepaddr);
+     gen_load16d(cntbuf,0);   /* counter */
+     gen_load16d(limbuf,1); /* limit */
+     gen_cmp16_val(0,stepaddr);
      make_label(labname2,lablabel2);
      gen_blt(labname2);
-     gen("cmp.w","d1","d0");
+     gen_cmp16dd(1,0);
      gen_bgt("  ");	  /* if STEP +ve -> counter>limit? */
      cx1=curr_code;
      make_label(labname3,lablabel3); /* don't want to do -ve step test too! */
      gen_jmp(labname3);
      gen_label(lablabel2);
-     gen("cmp.w","d1","d0");
+     gen_cmp16dd(1,0);
      gen_blt("  ");      /* if STEP -ve -> counter<limit? */
      cx2=curr_code;
      gen_label(lablabel3);    /* label for bypassing -ve step test */
@@ -546,16 +546,16 @@ int  countertype,limittype,steptype;
     {
      gen_load32d(cntbuf,0);   /* counter */
      gen_load32d(limbuf,1);   /* limit */
-     gen("cmpi.l","#0",stepaddr);
+     gen_cmp32_val(0,stepaddr);
      make_label(labname2,lablabel2);
      gen_blt(labname2);
-     gen("cmp.l","d1","d0");
+     gen_cmp32dd(1,0);
      gen_bgt("  ");	  /* if STEP +ve -> counter>limit? */
      cx1=curr_code;
      make_label(labname3,lablabel3); /* don't want to do -ve step test too! */
      gen_jmp(labname3);
      gen_label(lablabel2);
-     gen("cmp.l","d1","d0");
+     gen_cmp32dd(1,0);
      gen_blt("  ");      /* if STEP -ve -> counter<limit? */
      cx2=curr_code;
      gen_label(lablabel3);    /* label for bypassing -ve step test */
@@ -563,7 +563,7 @@ int  countertype,limittype,steptype;
     else
     if (countertype == singletype)
     { 
-     gen("moveq","#0","d1");
+     gen_load32d_val(0,1);
      gen_load32d(stpbuf,0);   /* d0 < d1? (where d1=0) */
      gen_libbase("Math");
      gen_libcall("SPCmp","Math");
@@ -607,17 +607,19 @@ int  countertype,limittype,steptype;
     /* counter=counter+step */
     switch(steptype)
     {
-     case shorttype  : 	gen("move.w",stpbuf,"d0");
-		     	gen("add.w","d0",counteraddr);
-			break;
-	case longtype   : 	gen_load32d(stpbuf,0);
-		     	gen("add.l","d0",counteraddr);
-			break;
+     case shorttype  : 	
+	   gen_load16d(stpbuf,0);
+	   gen_add16d_val(0,counteraddr);
+	   break;
+	case longtype   : 	
+	  gen_load32d(stpbuf,0);
+	  gen_add32d_val(0,counteraddr);
+	  break;
 	case singletype :  gen_load32d(stpbuf,0);
 	  gen_load32d(cntbuf,1);
 	  gen_libbase("Math");
 	  gen_libcall("SPAdd","Math");
-	  gen("move.l","d0",counteraddr);
+	  gen_save32d(0,counteraddr);
 	  break;
     }
 
@@ -680,8 +682,7 @@ long i,opt=0;
 
      opt++;
 
-     sprintf(numbuf,"#%ld",opt);  
-     gen("cmpi.l",numbuf,"(sp)");
+     gen_cmp32sp_val(opt);
      make_label(lab,lablabel);
      gen_bne(lab);  /* is opt equal to value on stack? */
 

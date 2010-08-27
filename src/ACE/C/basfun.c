@@ -104,6 +104,12 @@ BOOL strfunc()
  return(FALSE);
 }
 
+void gen_pop_short_addr(unsigned char tmp,unsigned char dest) {
+  gen_pop16d(tmp);
+  gen_ext16to32(tmp);
+  gen_move32da(tmp,dest);
+}
+
 void load_temp_string(unsigned char reg)
 {
   make_temp_string();
@@ -130,7 +136,7 @@ static int chrstr(int sftype) {
   strcpy(buf,strstorename);
   gen_load_addr(buf,0);
   gen_jsr("_chrstring");
-  gen("pea",strstorename,"  ");
+  gen_pea(strstorename);
   enter_BSS(strstorelabel,"ds.b 2");
   return stringtype;
 }
@@ -138,7 +144,7 @@ static int chrstr(int sftype) {
 int argstr(int sftype) {
   make_sure_long(sftype); /* argument number */
   make_temp_string();  	/* destination buffer */
-  gen("pea",tempstrname,"  ");
+  gen_pea(tempstrname);
   gen_call("_arg",8);
   cli_args=TRUE;
   return stringtype;
@@ -158,6 +164,13 @@ int parse_gen_params(int type, const char * params) {
 	  break;
 	case 'l':
 	  if (make_sure_long(type) == undefined) return undefined;
+	  break;
+	case 'f':
+	  if (type == stringtype) {
+		_error(4); return undefined;
+	  }
+	  gen_Flt(type);
+	  type = singletype;
 	  break;
 	case '#':
 	  if (sym == hash) insymbol();
@@ -268,7 +281,7 @@ BOOL offset_on_stack;
 		   gen_pop_addr(1);		/* Y$ */
 		   gen_pop_addr(0);		/* X$ */
 		   if (offset_on_stack) gen_pop32d(0);	/* I */
-		   else gen("moveq","#1","d0");		/* I=1 */
+		   else gen_load32d_val(1,0); /* I = 1 */
 				  
 		   gen_call("_instr",0); /* returns posn of Y$ in X$ */
 		   sftype=longtype;
@@ -311,9 +324,8 @@ BOOL offset_on_stack;
 	   
 	   if (ntype == stringtype) {
 		 gen_pop_addr(0);
-		 gen("move.b","(a0)","d1");
-		 gen("ext.w","d1","  ");
-		 gen("ext.l","d1","  ");	/* MID$(X$,1,1) */
+		 gen_load_indirect(0,1);
+		 gen_ext8to32(1); /* MID$(X$,1,1) */
 	   } else {
 		 make_sure_long(ntype);
 		 gen_pop32d(1);	/* J */			
@@ -336,7 +348,7 @@ BOOL offset_on_stack;
 			gen_pop_as_short(expr(),1); /* char count */
 		  } else {
 			/* take the full length of the string */
-			gen("move.w","#-1","d1");  
+			gen_load16d_val(-1,1);
 		  }
 
 		  gen_call_args("_midstr","d0.w,a0,t1 : a0",0);
@@ -356,7 +368,7 @@ BOOL offset_on_stack;
 	   gen_load32d_val(MAXSTRLEN,1); /* outlen = MAXSTRLEN */
 	   gen_libbase("Trans");
 	   gen_libcall("Translate","Trans");
-	   gen("pea",tempstrname,"  "); /* outstr on stack */
+	   gen_pea(tempstrname); /* outstr on stack */
 	   sftype=stringtype;
 	 } else { _error(4); sftype=undefined; }
 	 break;
@@ -545,23 +557,20 @@ int numericfunction() {
 	nftype=make_integer(nftype);
 	if ((nftype == longtype) || (nftype == shorttype)) {
 	  /* get address */
-	  if (nftype == shorttype) {
-		gen_pop16d(0);
-		gen("ext.l","d0","  ");
-		gen("move.l","d0","a0");    
-	  } else gen_pop_addr(0); 
+	  if (nftype == shorttype) gen_pop_short_addr(0,0);
+	  else gen_pop_addr(0); 
 	  /* get value */
-	  gen("move.b","(a0)","d0");
-	  gen("ext.w","d0","  ");
+	  gen_load_indirect(0,0);
+	  gen_ext8to16(0);
 	  /* if n<0 n=255-not(n) */
-	  gen("cmp.w","#0","d0");
+	  gen_tst16d(0);
 	  make_label(labname,lablabel);
-	  gen("bge.s",labname,"  ");
-	  gen("not.w","d0","  ");
-	  gen("move.w","#255","d1");
-	  gen("sub.w","d0","d1");
-	  gen("move.w","d1","d0");
-	  gen(lablabel,"  ","  ");
+	  gen_bge(labname);
+	  gen_not16d(0);
+	  gen_load16d_val(255,1);
+	  gen_sub16dd(0,1);
+	  gen_move16dd(1,0);
+	  gen_label(lablabel);
 	  gen_push16d(0);
 	  nftype=shorttype;
 	} else { _error(4); nftype=undefined; }
@@ -571,13 +580,10 @@ int numericfunction() {
 	nftype=make_integer(nftype); 
 	if ((nftype == longtype) || (nftype == shorttype)) {
 	  /* get address */
-	  if (nftype == shorttype) {
-		gen_pop16d(0);
-		gen("ext.l","d0","  ");
-		gen("move.l","d0","a0");    
-	  } else gen_pop_addr(0); 
+	  if (nftype == shorttype) gen_pop_short_addr(0,0);
+	  else gen_pop_addr(0); 
 	  /* get value */
-	  gen("move.w","(a0)","-(sp)");
+	  gen_push_indirect16(0);
 	  nftype=shorttype;
 	}
 	break;
@@ -586,13 +592,10 @@ int numericfunction() {
 	nftype=make_integer(nftype); 
 	if ((nftype == longtype) || (nftype == shorttype)) {
 	  /* get address */
-	  if (nftype == shorttype) {
-		gen_pop16d(0);
-		gen("ext.l","d0","  ");
-		gen("move.l","d0","a0");    
-	  } else gen_pop_addr(0); 
+	  if (nftype == shorttype) gen_pop_short_addr(0,0);
+	  else gen_pop_addr(0); 
 	  /* get value */
-	  gen("move.l","(a0)","-(sp)");
+	  gen_push_indirect32(0);
 	  nftype=longtype;
 	}			
 	break;
@@ -624,19 +627,19 @@ int numericfunction() {
 	
   case shlsym  : /* l,l */
 	if ((nftype = parse_gen_params(nftype,"l,l")) != undefined) {
-	  gen_pop32d(0); /* pop shift factor */
-	  gen_pop32d(1); /* pop value */
-	  gen("asl.l","d0","d1");     /* shift d1 by d0 */
-	  gen_push32d(1); /* push result */
+	  gen_pop32d(0);
+	  gen_pop32d(1);
+	  gen_asl32dd(0,1);
+	  gen_push32d(1);
 	}
 	break;
 	
   case shrsym  : /* l, l */
 	if ((nftype = parse_gen_params(nftype,"l,l")) != undefined) {
-	  gen_pop32d(0); /* pop shift factor */
-	  gen_pop32d(1); /* pop value */
-	  gen("asr.l","d0","d1");     /* shift d1 by d0 */
-	  gen_push32d(1); /* push result */
+	  gen_pop32d(0);
+	  gen_pop32d(1);
+	  gen_asr32dd(0,1);
+	  gen_push32d(1);
 	}
 	break;
 	
@@ -700,10 +703,10 @@ int address_of_object() {
   /* external variable or function? */
   if (exist(extobjid,extvar) || 
 	  exist(extobjid,extfunc)) {
-	gen("pea",extobjid,"  ");
+	gen_pea(extobjid);
 	return(longtype);			      
   } else if (exist(subname,subprogram)) {
-	gen("pea",subname,"  ");
+	gen_pea(subname);
 	return(longtype);
   } else if (exist(id,variable)) { /* ordinary variable? */
 	varptr_item=curr_item;
@@ -711,18 +714,15 @@ int address_of_object() {
 	/* get the frame start address */
 	strcpy(addrbuf,addreg[lev]);
 	
-	/* get the frame offset */
-	sprintf(numbuf,"#%d",varptr_item->address);
-	
 	/* calculate the absolute address */
 	gen_load32d(addrbuf,0);
-	gen("sub.l",numbuf,"d0");
+	gen_sub32d_val(varptr_item->address,0); /* frame offset */
 	if ((varptr_item->type == stringtype)
 		|| ((varptr_item->shared) && (lev == ONE)))
 	  {
 		/* location in frame contains address */  
-		gen("move.l","d0","a0");
-		gen("move.l","(a0)","-(sp)");
+		gen_move32da(0,0);
+		gen_push_indirect32(0);
 	  } else
 		/* absolute address in frame of variable */
 		gen_push32d(0);
@@ -733,21 +733,18 @@ int address_of_object() {
 	/* get the frame start address */
 	strcpy(addrbuf,addreg[lev]);
 	
-	/* get the frame offset */
-	sprintf(numbuf,"#%d",varptr_item->address);
-	
 	/* calculate the absolute address */
 	gen_load32d(addrbuf,0);
-	gen("sub.l",numbuf,"d0");
+	gen_sub32d_val(varptr_item->address,0); /* frame offset */
 	
 	/* location in frame contains array/struct address 
 	   (except for shared structure (see below) */  
-	gen("movea.l","d0","a0");
+	gen_move32da(0,0);
 			    
 	/* address of a structure member? */
 	if (exist(id,structure)) {
 	  /* shared struct? -> get struct variable address */
-	  if (varptr_item->shared && lev == ONE) gen("movea.l","(a0)","a0");
+	  if (varptr_item->shared && lev == ONE) gen_load_indirect_addr(0,0);
 		
 	  insymbol();  
 	  if (sym == memberpointer) {
@@ -764,9 +761,8 @@ int address_of_object() {
 		  if (!found) _error(67);  /* not a valid member */
 		  else {
 			/* push address of struct member */
-			sprintf(numbuf,"#%ld",(long)member->offset);
-			gen("movea.l","(a0)","a0");
-			gen("adda.l",numbuf,"a0");
+			gen_load_indirect_addr(0,0);
+			gen_add32a_val((long)member->offset,0);
 			gen_push_addr(0);
 			/* store type for SWAP command */
 			struct_member_type = member->type;	  	
@@ -782,7 +778,7 @@ int address_of_object() {
 	} else {
 	  /* array or array element address? */
 	  /* push array address */
-	  gen("move.l","(a0)","-(sp)"); 
+	  gen_push_indirect32(0);
 	  
 	  insymbol();
 	  
@@ -792,7 +788,7 @@ int address_of_object() {
 		push_indices(varptr_item);
 		get_abs_ndx(varptr_item); /* offset -> d7 */
 		gen_pop32d(0); /* array start */
-		gen("add.l","d7","d0"); /* start+offset=addr */
+		gen_add32dd(7,0); /* start+offset=addr */
 		gen_push32d(0); /* push address */
 		insymbol(); /* symbol after rparen */
 	  }

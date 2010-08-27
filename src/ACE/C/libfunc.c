@@ -200,7 +200,7 @@ char lab[80],lablabel[80];
      gen_pop_addr(1);   /* address of library name in a1 */
      gen_jsr("_open_library");
      make_library_base(libname);
-     gen("move.l","d0",librarybase);
+     gen_save32d(0,librarybase);
      gen_tst32d(0);
      make_label(lab,lablabel);
      gen_bne(lab);
@@ -234,9 +234,9 @@ int  cc;
    while (otherlib[cc].name[0] != '\0' &&
 	  strcmp(otherlib[cc].name,"SENTINEL") != 0)
    {
-    	gen("move.l",otherlib[cc].base,"a1");  /* library base in a1 */
+    	gen_load32a(otherlib[cc].base,1);  /* library base in a1 */
     	gen_jsr("_close_library");
-	gen("move.l","#0",otherlib[cc].base);
+		gen_save32_val(0,otherlib[cc].base);
         enter_XREF("_close_library");
 	cc++;
    }  	
@@ -249,9 +249,9 @@ int  cc;
   if (check_for_ace_lib(libname) == NEGATIVE)
   {
     make_library_base(libname);
-    gen("move.l",librarybase,"a1");  /* library base in a1 */
+    gen_load32a(librarybase,1);  /* library base in a1 */
     gen_jsr("_close_library");
-    gen("move.l","#0",librarybase);
+    gen_save32_val(0,librarybase);
     enter_XREF("_close_library");
   }
   insymbol();
@@ -609,21 +609,21 @@ char  ptemp[14][80];
     if (func_item->reg[n] == 13)   /* a4 */ 
     { 
      restore_a4=TRUE; 
-     gen("move.l","a4","_a4_temp");
+     gen_save32a(4,"_a4_temp");
      enter_BSS("_a4_temp:","ds.l 1");
     }
     else
     if (func_item->reg[n] == 14)   /* a5 */
     { 
      restore_a5=TRUE; 
-     gen("move.l","a5","_a5_temp");
+     gen_save32a(5,"_a5_temp");
      enter_BSS("_a5_temp:","ds.l 1");
     }
  
     /*
     ** Store value in register.
     */ 
-    gen("move.l",ptemp[n],reg[func_item->reg[n]]);
+    gen_move32(ptemp[n],reg[func_item->reg[n]]);
    }
   }
 
@@ -691,12 +691,12 @@ int   p_type[MAXPARAMS];
   {
    if (p_type[n] == shorttype) 
    { 
-    gen("move.w",p_temp[n],"-(sp)"); /* short */
+    gen_push16_var(p_temp[n]); /* short */
     sub_ptr->p_type[n] = shorttype;
    }
    else
    {
-    gen("move.l",p_temp[n],"-(sp)"); /* long,string,single,array */
+    gen_push32_var(p_temp[n]); /* long,string,single,array */
     sub_ptr->p_type[n] = longtype;
    }
   }

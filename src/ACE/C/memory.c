@@ -41,100 +41,66 @@ extern	char	tempstrname[80];
 /* POKE functions */
 /* -------------- */
 
-void poke()
-{
-int addrtype;
+void poke() {
+  int addrtype;
 
  /* get address */
  insymbol();
  addrtype=make_integer(expr());
- if ((addrtype == longtype) || (addrtype == shorttype))
- {
-  /* make sure address is long */
-  if (addrtype == shorttype)
-  {
-   gen_pop16d(0);
-   gen("ext.l","d0","  ");
-   gen_push32d(0);
-  }
-  if (sym == comma)
-  { 
-   /* get value */
-   insymbol();
-   gen_pop_as_short(expr(),0); /* data to be poked */
-   gen_pop_addr(0);   /* address */
-   gen("move.b","d0","(a0)");    /* poke (a0),d0 */
-  }
- }
- else _error(4);
-}
-
-void pokew()
-{
-int addrtype;
-
- /* get address */
- insymbol();
- addrtype=make_integer(expr());
- if ((addrtype == longtype) || (addrtype == shorttype))
- {
-  /* make sure address is long */
-  if (addrtype == shorttype)
-  {
-   gen_pop16d(0);
-   gen("ext.l","d0","  ");
-   gen_push32d(0);
-  }
-  if (sym == comma)
-  { 
-   /* get value */
-   insymbol();
-   gen_pop_as_short(expr(), 0); /* data to be poked */
-   gen_pop_addr(0);   /* address */
-   gen("move.w","d0","(a0)");    /* pokew (a0),d0 */
-  }
- }
- else _error(4);
-}
-
-void pokel()
-{
-int addrtype,datatype;
-
- /* get address */
- insymbol();
- addrtype=make_integer(expr());
- if ((addrtype == longtype) || (addrtype == shorttype))
- {
-  /* make sure address is long */
-  if (addrtype == shorttype)
-  {
-   gen_pop16d(0);
-   gen("ext.l","d0","  ");
-   gen_push32d(0);
-  }
-  if (sym == comma)
-  { 
-   /* get value */
-   insymbol();
-   datatype=make_integer(expr());
-   if ((datatype == shorttype) || (datatype == longtype))
-   {
-    /* coerce data to long */
-    if (datatype == shorttype)
-    {
-     gen_pop16d(0);
-     gen("ext.l","d0","  ");
-    }
-    else
-        gen_pop32d(0);   /* data to be poked */
-    gen_pop_addr(0);       /* address */
-    gen("move.l","d0","(a0)");	       /* pokel (a0),d0 */
+ if ((addrtype == longtype) || (addrtype == shorttype)) {
+   /* make sure address is long */
+   make_sure_long();
+   if (sym == comma) { 
+	 /* get value */
+	 insymbol();
+	 gen_pop_as_short(expr(),0); /* data to be poked */
+	 gen_pop_addr(0);   /* address */
+	 gen_save_indirect8(0,0);  /* poke (a0),d0 */
    }
-   else _error(4);
-  }
- }
- else _error(4);
+ } else _error(4);
+}
+
+void pokew() {
+  int addrtype;
+  
+  /* get address */
+  insymbol();
+  addrtype=make_integer(expr());
+  if ((addrtype == longtype) || (addrtype == shorttype)) {
+	make_sure_long();
+	if (sym == comma) { 
+	  /* get value */
+	  insymbol();
+	  gen_pop_as_short(expr(), 0); /* data to be poked */
+	  gen_pop_addr(0);   /* address */
+	  gen_save_indirect16(0,0);   /* pokew (a0),d0 */
+	}
+  } else _error(4);
+}
+
+void pokel() {
+  int addrtype,datatype;
+  
+  /* get address */
+  insymbol();
+  addrtype=make_integer(expr());
+  if ((addrtype == longtype) || (addrtype == shorttype)) {
+	make_sure_long();
+	if (sym == comma) { 
+	  /* get value */
+	  insymbol();
+	  datatype=make_integer(expr());
+	  if ((datatype == shorttype) || (datatype == longtype)) {
+		/* coerce data to long */
+		if (datatype == shorttype) {
+		  gen_pop16d(0);
+		  gen_ext16to32(0);
+		} else gen_pop32d(0);   /* data to be poked */
+		gen_pop_addr(0);       /* address */
+		gen_save_indirect32(0,0); /* pokel (a0),d0 */
+	  } else _error(4);
+	}
+  } else _error(4);
 }
 
 /* ---- */
@@ -195,12 +161,10 @@ void swap()
   if (dataobj1 != structure && dataobj1 != array) insymbol();
 
   if (sym != comma) _error(16);
-  else
-  {
+  else {
    insymbol();
    if (sym != ident) _error(7);
-   else
-   {
+   else {
     strcpy(second,id);
     address_of_object();
     get_obj_info(second,&dataobj2,&typ2);
@@ -212,47 +176,13 @@ void swap()
 
     /* if two objects are of same data type -> swap them */
     if (typ1 != typ2) _error(4);
-    else
-    {
+    else {
      gen_pop_addr(2); /* second address */
      gen_pop_addr(1); /* first address */
 
-     if (typ1 == stringtype)
-     {
-      /* make copies of two addresses */
-      gen("move.l","a1","d1"); /* first address */
-      gen("move.l","a2","d2"); /* second address */
-
-      make_temp_string();
-
-      /* copy first to temp */
-      gen("movea.l","d1","a1");    /* source */ 
-      gen_load_addr(tempstrname,0); /* dest */ 
-      gen_jsr("_strcpy");   /* temp = first */
-
-      /* copy second to first */
-      gen("movea.l","d2","a1");    /* source */ 
-      gen("movea.l","d1","a0");    /* dest */ 
-      gen_jsr("_strcpy");   /* first = second */ 
-
-      /* copy temp to second */
-      gen_load_addr(tempstrname,1); /* source */ 
-      gen("movea.l","d2","a0");    /* dest */
-      gen_jsr("_strcpy");   /* second = temp */
-     }
-     else
-     if (typ1 == shorttype)
-     {
-      gen("move.w","(a1)","d0");   /* temp = [first] */
-      gen("move.w","(a2)","(a1)"); /* [first] = [second] */
-      gen("move.w","d0","(a2)");   /* [second] =temp */     
-     }
-     else
-     {
-      gen("move.l","(a1)","d0");   /* temp = [first] */
-      gen("move.l","(a2)","(a1)"); /* [first] = [second] */
-      gen("move.l","d0","(a2)");   /* [second] =temp */     
-     }
+     if (typ1 == stringtype) gen_swapstr(tempstrname);
+	 else if (typ1 == shorttype) gen_swap16();
+     else gen_swap32();
     }
    }
   }

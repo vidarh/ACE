@@ -180,7 +180,7 @@ int  sub_type,def_expr_type;
     gen_label(sub_label);
 
     /* all SUBs need link instruction -- add # of bytes later */
-    gen("link","a5","  ");
+    gen_link();
     link=curr_code;
 
     /* parse formal parameter list */
@@ -255,8 +255,8 @@ int  sub_type,def_expr_type;
 
     /* exit code */
     if (subprog == subsym) gen_label(exit_sub_label);
-    gen("unlk","a5","  ");
-    gen("rts","  ","  ");
+    gen_unlk();
+	gen_rts();
     gen_label(end_of_sub_label);
 
     kill_symtab();

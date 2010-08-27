@@ -459,7 +459,7 @@ unsigned int  i,n;
   if (!end_of_source)
   {
    /* use source code line as a comment? */
-   if (asm_comments) gen("; *** ",line,"  ");
+   if (asm_comments) gen_comment(line);
 
    /* show each source code line before compilation? */
    if (list_source) printf("%ld: %s\n",(long)lineno,line);

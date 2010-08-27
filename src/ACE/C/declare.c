@@ -251,7 +251,7 @@ char   strsize[20],bss_spec[40];
          a BSS object.
       */
       if (struct_pointer)
-         gen("move.l","#0",addrbuf); /* pointer to structure */
+		gen_load32d_val(0,addrbuf); /* pointer to structure */
       else
       {
        /* BSS structure name */
@@ -292,7 +292,7 @@ char   strsize[20],bss_spec[40];
        /* store address of BSS object 
           in stack frame.
        */
-       gen("pea",structname,"  ");
+       gen_pea(structname);
        gen_pop32_var(addrbuf); 
       }
      }     
@@ -447,13 +447,10 @@ SYM  *str_item;
 
     switch(vartype)
     {
-     case shorttype  :  gen("move.w","#0",addrbuf); break;
-
-     case longtype   :  gen("move.l","#0",addrbuf); break;
-
-     case singletype :  gen("move.l","#0",addrbuf); break; 
-
-     case stringtype :  str_item = curr_item;
+	case shorttype  :  gen_load16_val(0,addrbuf); break;
+	case singletype: /* intentional fallthrough */
+	case longtype   :  gen_load32_val(0,addrbuf); break;
+	case stringtype :  str_item = curr_item;
 			if (sym == addresssym)
 			{
 			 normal_string_variable=FALSE;
@@ -500,7 +497,7 @@ SYM  *str_item;
 			{
 			 /* initialise with the NULL string */
 			 enter_DATA("_nullstring:","dc.b 0");
-			 gen("pea","_nullstring","  ");
+			 gen_pea("_nullstring");
 			 assign_to_string_variable(str_item,string_size);
 			}
 			
@@ -665,8 +662,7 @@ char  buf[40],numbuf[40];
 
   if (exist(extfuncid,extfunc)) /* preserve case */
   {
-   /* save registers */
-   gen("movem.l","d1-d7/a0-a6","-(sp)");
+	gen_save_registers();
 
    extfunc_item=curr_item;
    /* insymbol() is called before entry to this function */
@@ -674,8 +670,8 @@ char  buf[40],numbuf[40];
    else
       { extfunc_item->no_of_params=0; *need_symbol=FALSE; }
 
-     /* call routine */
-     gen("jsr",extfunc_item->name,"  ");
+   /* call routine */
+   gen_jsr(extfunc_item->name);
 
      /* pop parameters? */
      if (extfunc_item->no_of_params != 0)
@@ -688,15 +684,10 @@ char  buf[40],numbuf[40];
        else
 	   popcount += 4;
       }
-      /* add popcount to sp */
-      strcpy(buf,"#\0");
-      itoa(popcount,numbuf,10);
-      strcat(buf,numbuf);
-      gen("add.l",buf,"sp");
+      gen_pop_ignore(popcount);
      }
 
-     /* restore registers */
-     gen("movem.l","(sp)+","d1-d7/a0-a6"); 
+     gen_restore_registers();
   }
 }
 
@@ -770,16 +761,13 @@ char bss_size[20];
 		switch(vartype)
 		{
 			case shorttype:	 enter_BSS(extvarlabel,"ds.w 1"); 
-					 gen("move.w","#0",extvarid);
+					 gen_load16_val(0,extvarid);
 					 insymbol(); break;
 
-			case longtype: 	 enter_BSS(extvarlabel,"ds.l 1");
-					 gen("move.l","#0",extvarid); 
-					 insymbol(); break;
-
-			case singletype: enter_BSS(extvarlabel,"ds.l 1"); 
-					 gen("move.l","#0",extvarid); 
-					 insymbol(); break;
+		case singletype: /* intentional fallthrough */
+		case longtype: 	 enter_BSS(extvarlabel,"ds.l 1");
+		  gen_load16_val(0,extvarid);
+		  insymbol(); break;
 
 			case stringtype: insymbol();
 				 	 if (sym == sizesym)

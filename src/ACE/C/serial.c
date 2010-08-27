@@ -129,7 +129,7 @@ void read_serial() {
 		/* allocate a simple string variable */
 		enter(id,typ,obj,0);
 		enter_DATA("_nullstring:","dc.b 0");
-		gen("pea","_nullstring","  ");
+		gen_pea("_nullstring");
 		assign_to_string_variable(curr_item,MAXSTRLEN);
 	  }
 
@@ -145,8 +145,8 @@ void read_serial() {
 		/* pass string address to function (on stack) */
 		if (storage->object == array) {
 		  point_to_array(storage,addrbuf);
-		  gen("move.l",addrbuf,"d0");
-		  gen("add.l","d7","d0");
+		  gen_load32d(addrbuf,0);
+		  gen_add32dd(7,0);
 		  gen_push32d(0);
 		} else gen_push32_var(addrbuf);
 
