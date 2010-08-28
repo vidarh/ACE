@@ -56,9 +56,14 @@ static const char *cond_branch_op(int op) {
  *
  **/
 
+char cur_libbase[200];
+
 /* For inline ASM, and hence completely arch. specific */
 void gen_asm(const char * line) { gen(line,"  ","  "); }
-void gen_label(const char * label) { gen(label,"  ","  "); }
+void gen_label(const char * label) { 
+  gen(label,"  ","  "); 
+ cur_libbase[0] = 0; 
+}
 
 void gen_bxx(int op, const char * label) {
   gen(cond_branch_op(op),label,"  ");
@@ -114,7 +119,10 @@ void gen_pea(const char * target) { gen("pea",target,"  "); }
 /* Used to create ops to possibly cange later */
 void gen_nop() { gen("nop","  ","  "); }
 
-void gen_jsr(const char * label) { gen("jsr",label,"  "); enter_XREF(label); }
+void gen_jsr(const char * label) { 
+  gen("jsr",label,"  "); enter_XREF(label);
+  cur_libbase[0] = 0;
+}
 void gen_move16(const char * src, const char * dest) { gen("move.w",src,dest); }
 void gen_move32(const char * src, const char * dest) { gen("move.l",src,dest); }
 
@@ -496,11 +504,15 @@ void gen_add32da(unsigned char srcreg, unsigned char destreg) {
 
 /***** "Mid level" code generation functions *****/
 
+
 void gen_libbase(const char * base) {
   char buf[200];
   strcpy(buf,"_");
   strncat(buf,base,sizeof(buf)-1);
   strncat(buf,"Base",sizeof(buf)-strlen(buf));
+  if (strncmp(buf,cur_libbase,200) == 0) return;
+  strncpy(cur_libbase,buf,199);
+  cur_libbase[199] = 0;
   gen_load32a(buf,6);
   enter_XREF(buf);
 }
