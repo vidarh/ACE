@@ -41,21 +41,125 @@ SHORT peep=0;
 extern	CODE	*code;
 
 /* functions */
-BOOL is_a_move(opcode)
-char *opcode;
-{
- if (opcode[0] == 'm')
- {
+BOOL is_a_move(char * opcode) {
+ if (opcode[0] == 'm') {
    if (strcmp(opcode,"move.b") == 0) return(TRUE);
-   else
-   if (strcmp(opcode,"move.w") == 0) return(TRUE);
-   else
-   if (strcmp(opcode,"move.l") == 0) return(TRUE);
-   else
-       return(FALSE);
+   else if (strcmp(opcode,"move.w") == 0) return(TRUE);
+   else if (strcmp(opcode,"move.l") == 0) return(TRUE);
+   else if (strcmp(opcode,"movea.l") == 0) return(TRUE);
+   else if (strcmp(opcode,"moveq") == 0) return(TRUE);
+   else return(FALSE);
  }
  else
      return(FALSE);
+}
+
+static BOOL is_arit(char * opcode) {
+  if (is_a_move(opcode)) return TRUE;
+  if (!strncmp(opcode,"add",3)) return TRUE;
+  if (!strncmp(opcode,"sub",3)) return TRUE;
+  if (!strncmp(opcode,"ext",3)) return TRUE;
+  if (!strncmp(opcode,"not",3)) return TRUE;
+  if (!strncmp(opcode,"neg",3)) return TRUE;
+  if (!strncmp(opcode,"and",3)) return TRUE;
+  if (!strncmp(opcode,"eor",3)) return TRUE;
+  if (!strncmp(opcode,"swap",4)) return TRUE;
+  if (!strncmp(opcode,"or",2)) return TRUE;
+  return FALSE;
+}
+
+
+void swap_code(CODE * first, CODE * second) {
+  strcpy(opcode,first->opcode);
+  strcpy(srcopr,first->srcopr);
+  strcpy(destopr,first->destopr);
+  
+  change(first,second->opcode,second->srcopr,second->destopr);
+  change(second,opcode,srcopr,destopr);
+}
+
+/* In general it is safe to move a move to A6 up if
+ * - It does not move past a label.
+ * - It does not move past any instructions operating on A6.
+ *
+ * If at any point first and second are equal, we can eliminate the second.
+ */
+BOOL float_libbase() {
+  if (first->opcode[0] == '_') return FALSE;
+  if (strcmp(second->destopr,"a6")) return FALSE;
+  if (!is_a_move(second->opcode)) return FALSE;
+  if (strcmp(first->srcopr,"a6") == 0) return FALSE;
+  if (strcmp(first->opcode,"jsr") == 0) return FALSE;
+  /* FIXME: This makes this op useless at the moment.
+	 To make it work, we need to make sure a we're dealing
+	 with a library call to the same library. Check LVO's, or
+	 trace A6 in more detail
+ &&
+	  strstr(first->srcopr,"(a6)") == 0) return FALSE;
+  */
+  if (strcmp(first->opcode,second->opcode) == 0 &&
+	  strcmp(first->srcopr,second->srcopr) == 0 &&
+	  strcmp(first->destopr,second->destopr) == 0) {
+
+	change(first,"nop","  ","  ");	   				   
+	peep++;
+	curr = second->next;
+	return TRUE;
+  }
+
+  swap_code(first,second);
+  curr = second->next;
+  return TRUE;
+}
+
+/* The goal of this "optimization" is to reorder push operations down if they don't need to
+ * be executed right away. The purpose of this is to make it easier for following optimizations
+ * by increasing clustering of operations that touches the same registers and/or the stack.
+ *
+ * Examples:
+ *    move.w d0,-(sp)
+ *    moveq  #0,d7
+ *    move.w (sp)+,d1
+ * ->
+ *    moveq  #0,d7
+ *    move.w d0,-(sp)
+ *    move.w (sp)+,d1
+ * 
+ * This is safe because moveq #0,d7 does not touch the source or dest operands of the first
+ * instruction and/or touch the stack.
+ * 
+ * In this case it allows the push_pop_pair() optimization to subsequently 
+ * reduce the last two instructions to move.w d0,d1
+ *
+ * We do extensive safety checks:
+ *  - Only move move's.
+ *  - Only swap with a well defined set of arithmetic operators and move
+ *  - Don't swap past any stack manipulations (NOTE: This is not generic - it depends
+ *    on knowledge of the ACE code generator.
+ *  - Only swap when the first src is a data register or a constant
+ *  - Don't swap if the same data register occurs on either side in the second instruction.
+ *
+ * Some of these rules may be stricter than needed.
+ */
+
+BOOL reorder() {
+  if (strcmp(first->destopr,"-(sp)") ||
+	  !is_a_move(first->opcode) ||
+	  ((first->srcopr[0] != 'd' ||
+	  first->srcopr[1] < '0' || first->srcopr[1] > '7' ||
+		first->srcopr[2] != 0) &&
+	   (first->srcopr[0] != '#'))) return FALSE;
+  if (strcmp(second->srcopr,"(sp)+") == 0 ||
+	  strcmp(second->destopr,"-(sp)") == 0 ||
+	  strcmp(second->srcopr,"sp") == 0 ||
+	  strcmp(second->destopr,"sp") == 0) return FALSE;
+  if (!is_arit(second->opcode)) return FALSE;
+  if (strcmp(first->srcopr,second->srcopr) == 0) return FALSE;
+  if (strcmp(first->srcopr,second->destopr) == 0) return FALSE;
+
+  swap_code(first,second);
+  curr = second->next;
+  return TRUE;
 }
 
 BOOL push_pop_pair()
@@ -256,12 +360,18 @@ SHORT peephole()
 ** Perform a series of peephole 
 ** optimisations on the code list.
 */
-BOOL past_head;
-int  opt_type;
+  BOOL past_head;
+ int  opt_type;
+ BOOL cont = TRUE;
+ BOOL ret;
+ int iter = 0;
 
   if (code == NULL) return 0;
 
-    for (opt_type=1;opt_type<=4;opt_type++)
+  while (iter++ < 100 && cont) {
+	cont = FALSE;
+	printf ("Iteration %d\n",iter);
+    for (opt_type=1;opt_type<=7;opt_type++)
     {
 	/* Start of code list */
 	curr = code;
@@ -293,27 +403,27 @@ int  opt_type;
  		** code list but haven't yet reached the end of 
 		** this list.
 		*/
+		ret = FALSE;
   		if (past_head && second != NULL)
 		switch(opt_type)
 		{
-			case 1 : negate_constant();
-				 break;
-
- 			case 2 : push_pop_pair();
-				 break;
-
-			case 3 : sign_bit_extension();
-				 break;
-
-			case 4 : push_pop_pair();
-				 break;
+		case 1 : ret = float_libbase(); break;
+		case 2 : ret = reorder(); break;
+		case 3 : ret = negate_constant(); break;
+		case 4 : ret = push_pop_pair(); break;
+		case 5 : ret = reorder(); break;
+		case 6 : ret = sign_bit_extension(); break;
+		case 7 : ret = push_pop_pair();
+		  break;
 		}
 
+		if (ret) cont = TRUE;
+		
 		if (!past_head) past_head = TRUE;
  	}
  	while (curr != NULL);
     }
-
+  }
   /* total # of removals */
   return(peep);
 }
