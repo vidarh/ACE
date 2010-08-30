@@ -440,14 +440,11 @@ BOOL  need_symbol=TRUE;
      itoa(func_item->address,func_address,10);
      strcat(func_address,"(a6)");
      gen_jsr(func_address);
-     if (restore_a4) { gen_save32a("_a4_temp",4); restore_a4=FALSE; }
-     if (restore_a5) { gen_save32a("_a5_temp",5); restore_a5=FALSE; }
-    }
-    else
-    {
+     if (restore_a4) { gen_load32a("_a4_temp",4); restore_a4=FALSE; }
+     if (restore_a5) { gen_load32a("_a5_temp",5); restore_a5=FALSE; }
+    } else {
       /* call SUB */
-      if (sub_item->no_of_params != 0) 
-         { load_params(sub_item); insymbol(); }
+      if (sub_item->no_of_params != 0)  { load_params(sub_item); insymbol(); }
       gen_jsr(sub_name);
     }
   } else {
@@ -464,7 +461,7 @@ BOOL  need_symbol=TRUE;
    return; /* eg: repeat:..:until i>10 */
  } else if (sym == sharedsym && lev == ZERO) { _error(69); insymbol(); } /* shared */
  else if ((sym == nextsym) &&
-			(lastsym == colon))  /* next */ {
+		  (lastsym == colon))  /* next */ {
    lastsym=undefined;
    return;  /* eg: for i=1 to 10:next */
  } else { 

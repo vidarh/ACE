@@ -52,477 +52,367 @@ void kill_all_lists()
 /* -- symbol table functions -- */
 void new_symtab()
 {
-/* create a new symbol table
-   at current level.
-*/
- 
- if ((tab_head[lev] = (SYM *)sym_alloc(sizeof(SYM))) == NULL)
- {
-  printf("Can't allocate memory for symbol table!\n");
-  early_exit=TRUE;
-  kill_all_lists();
-  cleanup();
- }
- tab_head[lev]->next = NULL;
+  /* create a new symbol table at current level. */
+  
+  if ((tab_head[lev] = (SYM *)sym_alloc(sizeof(SYM))) == NULL) {
+	printf("Can't allocate memory for symbol table!\n");
+	early_exit=TRUE;
+	kill_all_lists();
+	cleanup();
+  }
+  tab_head[lev]->next = NULL;
 }
 
-void kill_symtab()
-{
 /* free memory held by symbol table. */
- free_sym_alloc();
-}
+void kill_symtab() { free_sym_alloc(); }
 
+/* find the end of the symbol table at current level. */
 void find_tab_tail()
 {
-/* find the end of the 
-   symbol table at current
-   level.
-*/
-   
  tab_tail = tab_head[lev];
  while (tab_tail->next != NULL) tab_tail = tab_tail->next;
 }
 
-BOOL exist(name,obj)
-char  *name;
-int   obj;
+BOOL exist(const char * name,int obj)
 {
-int oldlevel;
+  int oldlevel;
 
- oldlevel=lev;
-
- if ((obj == subprogram) || (obj == function) || 
-     (obj == definedfunc) || (obj == extfunc) || (obj == extvar) || 
-     (obj == constant) || (obj == structdef)) lev=ZERO; 
-
- curr_item = tab_head[lev]->next;
- while (curr_item != NULL) 
- {
-  if ((strcmp(curr_item->name,name) == 0) && (curr_item->object == obj))
-     { lev=oldlevel; return(TRUE); }
-  else
-     curr_item = curr_item->next;
- }
-
- lev=oldlevel;
- return(FALSE);
+  oldlevel=lev;
+  
+  if ((obj == subprogram) || (obj == function) || 
+	  (obj == definedfunc) || (obj == extfunc) || (obj == extvar) || 
+	  (obj == constant) || (obj == structdef)) lev=ZERO; 
+  
+  curr_item = tab_head[lev]->next;
+  while (curr_item != NULL)  {
+	if ((strcmp(curr_item->name,name) == 0) && (curr_item->object == obj))
+	  { lev=oldlevel; return(TRUE); }
+	else curr_item = curr_item->next;
+  }
+  
+  lev=oldlevel;
+  return(FALSE);
 }
  
-void enter(name,typ,obj,dims)
 /* enter a symbol into symbol table */
-char  *name;
-int   typ,obj;
-int   dims;
+void enter(const char * name,int typ,int obj,int dims)
 {
-int i;
+  int i;
 
- /* allocate memory for info' */
- if ((new_item = (SYM *)sym_alloc(sizeof(SYM))) == NULL)
-{
-  printf("Can't allocate memory for symbol table item!\n");
-  early_exit=TRUE;
-  kill_all_lists();
-  cleanup();
- }
-
- if ((new_item->name = (char *)sym_alloc(strlen(name)+1)) == NULL)
- {  
-  printf("Can't allocate memory for symbol table item!\n");
-  early_exit=TRUE;
-  kill_all_lists();
-  cleanup();
- }
-
- /* fill the node with info' */
- strcpy(new_item->name,name);
- new_item->type = typ;
- new_item->object = obj;
- new_item->dims = dims;
-
- /* string defaults */
- if ((typ == stringtype) && (obj != array)) 
- {
-  new_item->new_string_var=TRUE;
-  new_item->decl=undeclared;
-  new_item->size=MAXSTRLEN;
- }
-
- if ((obj != label) && (obj != function) && (obj != constant) &&
-     (obj != extvar) && (obj != extfunc) && (obj != structdef))
- {
-  /* how many bytes to reserve? */
-  if ((typ == shorttype) && (obj != array)) 
-     addr[lev] += 2;
-  else
-     addr[lev] += 4; /* long, single, string, array, sub, structure */
-
-  new_item->address = addr[lev];
- }
- else 
-     new_item->address = 0; 
-
- new_item->level = lev; 
- new_item->shared = FALSE;  /* shared may be explicitly SET later */
-
- /* array? -> store index maxima */
- if (obj == array)
- {
-  if ((new_item->index = (SHORT *)sym_alloc((dims+1)*2)) == NULL)
-  {
-   printf("Array index storage allocation error.\n");
-   early_exit=TRUE;
-   kill_all_lists();  
-   cleanup();
+  /* allocate memory for info' */
+  if ((new_item = (SYM *)sym_alloc(sizeof(SYM))) == NULL) {
+	printf("Can't allocate memory for symbol table item!\n");
+	early_exit=TRUE;
+	kill_all_lists();
+	cleanup();
   }
-  else
+
+  if ((new_item->name = (char *)sym_alloc(strlen(name)+1)) == NULL) {  
+	printf("Can't allocate memory for symbol table item!\n");
+	early_exit=TRUE;
+	kill_all_lists();
+	cleanup();
+  }
+
+  /* fill the node with info' */
+  strcpy(new_item->name,name);
+  new_item->type = typ;
+  new_item->object = obj;
+  new_item->dims = dims;
+  
+  /* string defaults */
+  if ((typ == stringtype) && (obj != array)) {
+	new_item->new_string_var=TRUE;
+	new_item->decl=undeclared;
+	new_item->size=MAXSTRLEN;
+  }
+  
+  if ((obj != label) && (obj != function) && (obj != constant) &&
+	  (obj != extvar) && (obj != extfunc) && (obj != structdef))
+	{
+	  /* how many bytes to reserve? */
+	  if ((typ == shorttype) && (obj != array)) addr[lev] += 2;
+	  else addr[lev] += 4; /* long, single, string, array, sub, structure */
+
+	  new_item->address = addr[lev];
+	} else new_item->address = 0; 
+  
+  new_item->level = lev; 
+  new_item->shared = FALSE;  /* shared may be explicitly SET later */
+
+  /* array? -> store index maxima */
+  if (obj == array) {
+	if ((new_item->index = (SHORT *)sym_alloc((dims+1)*2)) == NULL) {
+	  printf("Array index storage allocation error.\n");
+	  early_exit=TRUE;
+	  kill_all_lists();  
+	  cleanup();
+	} else
       for (i=0;i<=dims;i++) new_item->index[i] = dimsize[i];
  }
 
- /* setup for structure definition */
- if (obj == structdef)
- {
-  if ((new_item->structmem = 
-                 (STRUCM *)sym_alloc(sizeof(STRUCM))) == NULL)
-  {
-   printf("Can't allocate memory for an initial structdef node!\n");
-   early_exit=TRUE;
-   kill_all_lists();  
-   cleanup();
+  /* setup for structure definition */
+  if (obj == structdef) {
+	if ((new_item->structmem = 
+		 (STRUCM *)sym_alloc(sizeof(STRUCM))) == NULL)
+	  {
+		printf("Can't allocate memory for an initial structdef node!\n");
+		early_exit=TRUE;
+		kill_all_lists();  
+		cleanup();
+	  } else {
+		new_item->structmem->next = NULL;
+		new_item->size = 0;
+	  }
   }
-  else
-  {
-   new_item->structmem->next = NULL;
-   new_item->size = 0;
-  }
- }
  
- /* link item into symbol table */
- find_tab_tail(tab_head[lev]);
- tab_tail->next = new_item;
- new_item->next = NULL;
- curr_item = new_item;
+  /* link item into symbol table */
+  find_tab_tail(tab_head[lev]);
+  tab_tail->next = new_item;
+  new_item->next = NULL;
+  curr_item = new_item;
 }
-
-/*
-void show_table_item(item)
-SYM *item;
-{
- printf("%10s\t",item->name);
- showtyp(item->type);
- showobj(item->object);
- printf("%5d\t%5d\t%5d\n",item->dims,item->address,item->level);
-}
-*/
 
 /* --code generator functions-- */
 
 void create_lists()
 {
-/* create code, DATA, BSS, XREF and BASIC DATA lists */
+  /* create code, DATA, BSS, XREF and BASIC DATA lists */
 
- data = (DATA *)alloc(sizeof(DATA));
- if (data == NULL) 
- { 
-  cleanup(); 
- }
- else
-    { curr_data = data; data->next = NULL; }
+  data = (DATA *)alloc(sizeof(DATA));
+  if (data == NULL) cleanup(); 
+  else { curr_data = data; data->next = NULL; }
 
- bss = (BSS *)alloc(sizeof(BSS));
- if (bss == NULL) 
- { 
-  cleanup(); 
- } 
- else
-    { curr_bss = bss; bss->next = NULL; }
+  bss = (BSS *)alloc(sizeof(BSS));
+  if (bss == NULL) cleanup(); 
+  else { curr_bss = bss; bss->next = NULL; }
 
- xref = (XREF *)alloc(sizeof(XREF));
- if (xref == NULL)
- {
-  cleanup();
- }
- else 
-     { curr_xref = xref; xref->next = NULL; }
+  xref = (XREF *)alloc(sizeof(XREF));
+  if (xref == NULL) cleanup();
+  else  { curr_xref = xref; xref->next = NULL; }
 
- basdata = (BASDATA *)alloc(sizeof(BASDATA));
- if (basdata == NULL)
- {
-  cleanup();
- }
- else
-    { curr_basdata = basdata; basdata->next = NULL; }
+  basdata = (BASDATA *)alloc(sizeof(BASDATA));
+  if (basdata == NULL) cleanup();
+  else { curr_basdata = basdata; basdata->next = NULL; }
 
- code = (CODE *)alloc_code("  ","  ","  ");  /* first node is a dummy */
- if (code == NULL) 
- {
-    cleanup();
- }
- else
-     { curr_code = code; code->next = NULL; }
+  code = (CODE *)alloc_code("  ","  ","  ");  /* first node is a dummy */
+  if (code == NULL) cleanup();
+  else { curr_code = code; code->next = NULL; }
 }
 
-BOOL is_a_label(opc)
-char *opc;
+BOOL is_a_label(const char *opc) 
 {
-int cc=0;
-
- while (opc[cc] != '\0') cc++;
- if (opc[cc-1] == ':') 
-    return(TRUE);
- else
-    return(FALSE);
+  int cc=0;
+  
+  while (opc[cc] != '\0') cc++;
+  if (opc[cc-1] == ':') return(TRUE);
+  else return(FALSE);
 }
 
-void write_code(line)
-CODE *line;
+void write_code(CODE * line)
 {
- if (strcmp(line->opcode,"nop") != 0)
- {
-  if (!is_a_label(line->opcode))
-  {
-   fprintf(dest,"\t%s",line->opcode);  
-   fprintf(dest,"\t%s",line->srcopr); 
-   if (line->destopr[0] != ' ')  
-      fprintf(dest,",%s\n",line->destopr);  /* comma & destopr */
-   else
-      fprintf(dest,"\n");  /* no destopr, so just LF */
+  if (strcmp(line->opcode,"nop") != 0) {
+	if (!is_a_label(line->opcode)) {
+	  fprintf(dest,"\t%s",line->opcode);  
+	  fprintf(dest,"\t%s",line->srcopr); 
+	  if (line->destopr[0] != ' ')  
+		fprintf(dest,",%s\n",line->destopr);  /* comma & destopr */
+	  else
+		fprintf(dest,"\n");  /* no destopr, so just LF */
+	} else fprintf(dest,"%s\n",line->opcode);  /* label starts in 1st column */
   }
-  else fprintf(dest,"%s\n",line->opcode);  /* label starts in 1st column */
- }
 }
 
-BOOL label_undef(node)
-CODE *node;
+BOOL label_undef(CODE * node)
 {
-char buf[50];
+  char buf[50];
 
- if ((strcmp(node->opcode,"jmp") == 0) ||
-    (strcmp(node->opcode,"jsr") == 0))
- {
-  if (strcmp(node->destopr,"* ")==0)
-  {
-   /* undefined label at time of jmp/jsr */
-   strcpy(buf,node->srcopr);
-   strcat(buf,":\0");
-   /* has it been defined since jmp/jsr? */
-   if (exist(buf,label)) 
-      { 
+  if ((strcmp(node->opcode,"jmp") == 0) || (strcmp(node->opcode,"jsr") == 0)) {
+	if (strcmp(node->destopr,"* ")==0) {
+	  /* undefined label at time of jmp/jsr */
+	  strcpy(buf,node->srcopr);
+	  strcat(buf,":\0");
+	  /* has it been defined since jmp/jsr? */
+	  if (exist(buf,label)) { 
         strcpy(node->destopr,"  "); 
         return(FALSE); 
       }               /* not UNdefined */
-   else
-   {
-      early_exit = TRUE;
-      return(TRUE);   /* undefined */
-   }
-  }
-  else return(FALSE); /* not UNdefined */
- }
- else return(FALSE);  /* not a branch instruction */
+	  else
+		{
+		  early_exit = TRUE;
+		  return(TRUE);   /* undefined */
+		}
+	} else return(FALSE); /* not UNdefined */
+  } else return(FALSE);  /* not a branch instruction */
 }
 
 void undef_label_check()
 {
-BOOL past_head=FALSE;
+  BOOL past_head=FALSE;
  
- /* check for undefined labels */
- curr_code = code;
- while (curr_code->next != NULL) 
- {
-  if (past_head)
-  {
-   if (label_undef(curr_code)) 
-      { _error(8); printf("'%s'\n",curr_code->srcopr); }
+  /* check for undefined labels */
+  curr_code = code;
+  while (curr_code->next != NULL) {
+	if (past_head) {
+	  if (label_undef(curr_code)) 
+		{ _error(8); printf("'%s'\n",curr_code->srcopr); }
+	}
+	curr_code = curr_code->next;
+	if (!past_head) past_head=TRUE;
   }
-  curr_code = curr_code->next;
-  if (!past_head) past_head=TRUE;
- }
- if (label_undef(curr_code)) 
+  if (label_undef(curr_code)) 
     { _error(8); printf("'%s'\n",curr_code->srcopr); }
 }
   
 void kill_code()
 {
-BOOL past_head=FALSE;
-CODE *curr,*temp;
+  BOOL past_head=FALSE;
+  CODE *curr,*temp;
  
- curr=code;
+  curr=code;
 
- do
- {
-  temp=curr;
-  curr=curr->next;
-  if (past_head) 
-  {
-   if (!early_exit) write_code(temp);
+  do {
+	temp=curr;
+	curr=curr->next;
+	if (past_head) {
+	  if (!early_exit) write_code(temp);
 
-   /* free all the struct's memory */
-   free_code(temp);
-  }
+	  /* free all the struct's memory */
+	  free_code(temp);
+	}
 
-  if (!past_head) past_head=TRUE;
- }
- while (curr != NULL);
+	if (!past_head) past_head=TRUE;
+  } while (curr != NULL);
 
- /* free the dummy head node's memory */
- free_code(code);
+  /* free the dummy head node's memory */
+  free_code(code);
 }
 
 
-void change(cx,opcode,srcopr,destopr)
-CODE *cx;
-char *opcode;
-char *srcopr;
-char *destopr;
+void change(CODE * cx,const char * opcode,const char * srcopr,const char * destopr)
 {
- /* free the old fields */
- free_code_members(cx);
+  /* free the old fields */
+  free_code_members(cx);
 
- /* allocate memory & insert new instruction & operands */
- if ((BOOL)alloc_code_members(cx,opcode,srcopr,destopr))
- {
+  /* allocate memory & insert new instruction & operands */
+  if ((BOOL)alloc_code_members(cx,opcode,srcopr,destopr)) {
  	strcpy(cx->opcode,opcode);
  	strcpy(cx->srcopr,srcopr);
  	strcpy(cx->destopr,destopr);
- }
- else
- {
-  printf("Can't allocate memory for CODE node fields!\n");
-  early_exit=TRUE;
-  kill_all_lists();
-  cleanup();
- }
+  } else {
+	printf("Can't allocate memory for CODE node fields!\n");
+	early_exit=TRUE;
+	kill_all_lists();
+	cleanup();
+  }
 }
 
 /* --DATA list functions-- */
 
-BOOL exist_DATA(name)
-char *name;
+BOOL exist_DATA(const char * name)
 {
-DATA *curr;
- curr = data->next;
- while (curr != NULL) 
- {
-  if (strcmp(curr->name,name) == 0)
-     return(TRUE);
-  else
-     curr = curr->next;
+  DATA *curr;
+  curr = data->next;
+  while (curr != NULL) {
+	if (strcmp(curr->name,name) == 0) return(TRUE);
+	else curr = curr->next;
  }
  return(FALSE);
 }
 
-void enter_DATA(name,literal)
-char *name;
-char *literal;
-{
- if (exist_DATA(name)) return;  /* already exists */
-
- /* allocate memory for a new node & each field */
- if ((new_data = (DATA *)alloc(sizeof(DATA))) == NULL)
- {
-  printf("Can't allocate memory for DATA node!\n");
-  early_exit=TRUE;
-  kill_all_lists();
-  cleanup();
- }
+void enter_DATA(const char * name,const char * literal) {
+  if (exist_DATA(name)) return;  /* already exists */
+  
+  /* allocate memory for a new node & each field */
+  if ((new_data = (DATA *)alloc(sizeof(DATA))) == NULL) {
+	printf("Can't allocate memory for DATA node!\n");
+	early_exit=TRUE;
+	kill_all_lists();
+	cleanup();
+  }
  
- if ((new_data->name=(char *)alloc(strlen(name)+1))==NULL)
- {
-  printf("Can't allocate memory for DATA node name field!\n");
-  early_exit=TRUE;
-  kill_all_lists();
-  cleanup();
- }
+  if ((new_data->name=(char *)alloc(strlen(name)+1))==NULL) {
+	printf("Can't allocate memory for DATA node name field!\n");
+	early_exit=TRUE;
+	kill_all_lists();
+	cleanup();
+  }
 
- if ((new_data->literal=(char *)alloc(strlen(literal)+1))==NULL)
- {
-  printf("Can't allocate memory for DATA node literal field!\n");
-  early_exit=TRUE;
-  kill_all_lists();
-  cleanup();
- }
+  if ((new_data->literal=(char *)alloc(strlen(literal)+1))==NULL) {
+	printf("Can't allocate memory for DATA node literal field!\n");
+	early_exit=TRUE;
+	kill_all_lists();
+	cleanup();
+  }
 
- /* fill DATA struct */
- strcpy(new_data->name,name);
- strcpy(new_data->literal,literal);
- 
- new_data->next = NULL;
- curr_data->next = new_data;
- curr_data = curr_data->next;
+  /* fill DATA struct */
+  strcpy(new_data->name,name);
+  strcpy(new_data->literal,literal);
+  
+  new_data->next = NULL;
+  curr_data->next = new_data;
+  curr_data = curr_data->next;
 }
 
 void write_data()
 {
-BOOL past_head=FALSE;
-DATA *curr,*temp;
+  BOOL past_head=FALSE;
+  DATA *curr,*temp;
 
- curr=data;
- if (curr->next != NULL)
- {
-  fprintf(dest,"\n\tSECTION data,DATA\n\n");
- }
-
- do
- {
-  temp=curr;
-  curr=curr->next;
-  if (past_head) 
-  {
-   fprintf(dest,"%s\t%s\n",temp->name,temp->literal);
+  curr=data;
+  if (curr->next != NULL) {
+	fprintf(dest,"\n\tSECTION data,DATA\n\n");
   }
-  if (!past_head) past_head=TRUE; 
- }
- while (curr != NULL);
+
+  do {
+	temp=curr;
+	curr=curr->next;
+	if (past_head) {
+	  fprintf(dest,"%s\t%s\n",temp->name,temp->literal);
+	}
+	if (!past_head) past_head=TRUE; 
+  } while (curr != NULL);
 }
       
 /* --BSS list functions-- */
 
-BOOL exist_BSS(name)
-char *name;
+BOOL exist_BSS(const char * name)
 {
-BSS *curr;
- curr = bss->next;
- while (curr != NULL) 
- {
-  if (strcmp(curr->name,name) == 0)
-     return(TRUE);
-  else
-     curr = curr->next;
+  BSS *curr;
+  curr = bss->next;
+  while (curr != NULL) {
+	if (strcmp(curr->name,name) == 0) return(TRUE);
+	else curr = curr->next;
  }
  return(FALSE);
 }
 
-void enter_BSS(name,store)
-char *name;
-char *store;
+void enter_BSS(const char * name,const char * store)
 {
- /* ignore if already exists, except if name is "  " 
-    which is used for structure declarations */ 
- if ((exist_BSS(name)) && (strcmp(name,"  ") != 0)) return; 
+  /* ignore if already exists, except if name is "  " 
+	 which is used for structure declarations */ 
+  if ((exist_BSS(name)) && (strcmp(name,"  ") != 0)) return; 
+  
+  /* allocate memory for a new node & each field */
+  if ((new_bss = (BSS *)alloc(sizeof(BSS))) == NULL) {
+	printf("Can't allocate memory for BSS node!\n");
+	early_exit=TRUE;
+	kill_all_lists();
+	cleanup();
+  }
+  
+  if ((new_bss->name=(char *)alloc(strlen(name)+1))==NULL) {
+	printf("Can't allocate memory for BSS node name field!\n");
+	early_exit=TRUE;
+	kill_all_lists();
+	cleanup();
+  }
 
- /* allocate memory for a new node & each field */
- if ((new_bss = (BSS *)alloc(sizeof(BSS))) == NULL)
- {
-  printf("Can't allocate memory for BSS node!\n");
-  early_exit=TRUE;
-  kill_all_lists();
-  cleanup();
- }
- 
- if ((new_bss->name=(char *)alloc(strlen(name)+1))==NULL)
- {
-  printf("Can't allocate memory for BSS node name field!\n");
-  early_exit=TRUE;
-  kill_all_lists();
-  cleanup();
- }
-
- if ((new_bss->store=(char *)alloc(strlen(store)+1))==NULL)
- {
-  printf("Can't allocate memory for BSS node literal field!\n");
-  early_exit=TRUE;
-  kill_all_lists();
-  cleanup();
+ if ((new_bss->store=(char *)alloc(strlen(store)+1))==NULL) {
+   printf("Can't allocate memory for BSS node literal field!\n");
+   early_exit=TRUE;
+   kill_all_lists();
+   cleanup();
  }
 
  /* fill BSS struct */
@@ -536,256 +426,210 @@ char *store;
 
 void write_bss()
 {
-BOOL past_head=FALSE;
-BSS  *curr,*temp;
-
- curr=bss;
- if (curr->next != NULL)
- { 
-  fprintf(dest,"\n\tSECTION mem,BSS\n\n");
- }
-
- do
- {
-  temp=curr;
-  curr=curr->next;
-  if (past_head) 
-  {
-   fprintf(dest,"%s\t%s\n",temp->name,temp->store);
+  BOOL past_head=FALSE;
+  BSS  *curr,*temp;
+  
+  curr=bss;
+  if (curr->next != NULL) {
+	fprintf(dest,"\n\tSECTION mem,BSS\n\n");
   }
-  if (!past_head) past_head=TRUE; 
- }
- while (curr != NULL);
+
+  do {
+	temp=curr;
+	curr=curr->next;
+	if (past_head) {
+	  fprintf(dest,"%s\t%s\n",temp->name,temp->store);
+	}
+	if (!past_head) past_head=TRUE; 
+  } while (curr != NULL);
 }
 
 /* --XREF list functions-- */
 
-BOOL exist_XREF(name)
-char *name;
+BOOL exist_XREF(const char * name)
 {
-XREF *curr;
+  XREF *curr;
 
- curr = xref->next;
- while (curr != NULL) 
- {
-  if (strcmp(curr->name,name) == 0)
-     return(TRUE);
-  else
-     curr = curr->next;
- }
- return(FALSE);
+  curr = xref->next;
+  while (curr != NULL) {
+	if (strcmp(curr->name,name) == 0) return(TRUE);
+	else curr = curr->next;
+  }
+  return(FALSE);
 }
 
-void enter_XREF(name)
-char *name;
+void enter_XREF(const char * name)
 {
- if (exist_XREF(name)) return;   /* already exists */
-
- if (strcmp(name,"_DOSBase") == 0) dosused=TRUE;
- if (strcmp(name,"_MathBase") == 0) mathffpused=TRUE;
- if (strcmp(name,"_MathTransBase") == 0) mathtransused=TRUE;
- if (strcmp(name,"_GfxBase") == 0) gfxused=TRUE;
- if (strcmp(name,"_IntuitionBase") == 0) intuitionused=TRUE;
- if (strcmp(name,"_TransBase") == 0) translateused=TRUE;
- 
- /* allocate memory for a new node & name field */
- if ((new_xref = (XREF *)alloc(sizeof(XREF))) == NULL)
- {
-  printf("Can't allocate memory for XREF node!\n");
-  early_exit=TRUE;
-  kill_all_lists();
-  cleanup();
- }
- 
- if ((new_xref->name=(char *)alloc(strlen(name)+1))==NULL)
- {
-  printf("Can't allocate memory for XREF node name field!\n");
-  early_exit=TRUE;
-  kill_all_lists();
-  cleanup();
- }
-
- /* fill XREF struct */
- strcpy(new_xref->name,name);
- 
- new_xref->next = NULL;
- curr_xref->next = new_xref;
- curr_xref = curr_xref->next;
+  if (exist_XREF(name)) return;   /* already exists */
+  
+  if (strcmp(name,"_DOSBase") == 0) dosused=TRUE;
+  if (strcmp(name,"_MathBase") == 0) mathffpused=TRUE;
+  if (strcmp(name,"_MathTransBase") == 0) mathtransused=TRUE;
+  if (strcmp(name,"_GfxBase") == 0) gfxused=TRUE;
+  if (strcmp(name,"_IntuitionBase") == 0) intuitionused=TRUE;
+  if (strcmp(name,"_TransBase") == 0) translateused=TRUE;
+  
+  /* allocate memory for a new node & name field */
+  if ((new_xref = (XREF *)alloc(sizeof(XREF))) == NULL) {
+	printf("Can't allocate memory for XREF node!\n");
+	early_exit=TRUE;
+	kill_all_lists();
+	cleanup();
+  }
+  
+  if ((new_xref->name=(char *)alloc(strlen(name)+1))==NULL) {
+	printf("Can't allocate memory for XREF node name field!\n");
+	early_exit=TRUE;
+	kill_all_lists();
+	cleanup();
+  }
+  
+  /* fill XREF struct */
+  strcpy(new_xref->name,name);
+  
+  new_xref->next = NULL;
+  curr_xref->next = new_xref;
+  curr_xref = curr_xref->next;
 }
 
 void write_xrefs()
 {
-BOOL past_head=FALSE;
-XREF *curr,*temp;
+  BOOL past_head=FALSE;
+  XREF *curr,*temp;
 
- fprintf(dest,"\n");
-
- curr=xref;
- do
- {
-  temp=curr;
-  curr=curr->next;
-  if (past_head)
-  { 
-   /* xdef or xref? */
-   if (temp->name[0] != '*')
-   {
-	/* XREF */
-   	fprintf(dest,"\txref %s\n",temp->name);
-   }
-   else
-   {
-	/* XDEF -> first replace '*' with '_' */
-	temp->name[0] = '_';
-	fprintf(dest,"\txdef %s\n",temp->name);
-   }
-  }
-  if (!past_head) past_head=TRUE; 
- }
- while (curr != NULL);
+  fprintf(dest,"\n");
+  
+  curr=xref;
+  do {
+	temp=curr;
+	curr=curr->next;
+	if (past_head) { 
+	  /* xdef or xref? */
+	  if (temp->name[0] != '*') {
+		/* XREF */
+		fprintf(dest,"\txref %s\n",temp->name);
+	  } else {
+		/* XDEF -> first replace '*' with '_' */
+		temp->name[0] = '_';
+		fprintf(dest,"\txdef %s\n",temp->name);
+	  }
+	}
+	if (!past_head) past_head=TRUE; 
+  } while (curr != NULL);
 }
 
 /* --BASIC DATA list functions-- */
 
-void enter_BASDATA(literal)
-char *literal;
+void enter_BASDATA(const char * literal)
 {
- basdatapresent=TRUE;
+  basdatapresent=TRUE;
+  
+  /* allocate memory for a new node & data */
+  if ((new_basdata = (BASDATA *)alloc(sizeof(BASDATA))) == NULL) {
+	printf("Can't allocate memory for BASIC DATA node!\n");
+	early_exit=TRUE;  
+	kill_all_lists();
+	cleanup();
+  }
+  
+  if ((new_basdata->literal=(char *)alloc(strlen(literal)+1))==NULL) {
+	printf("Can't allocate memory for BASIC DATA node literal field!\n");
+	early_exit=TRUE;
+	kill_all_lists();
+	cleanup();
+  }
 
- /* allocate memory for a new node & data */
- if ((new_basdata = (BASDATA *)alloc(sizeof(BASDATA))) == NULL)
- {
-  printf("Can't allocate memory for BASIC DATA node!\n");
-  early_exit=TRUE;  
-  kill_all_lists();
-  cleanup();
- }
-
- if ((new_basdata->literal=(char *)alloc(strlen(literal)+1))==NULL)
- {
-  printf("Can't allocate memory for BASIC DATA node literal field!\n");
-  early_exit=TRUE;
-  kill_all_lists();
-  cleanup();
- }
-
- /* fill BASDATA struct */
- strcpy(new_basdata->literal,literal);
- 
- new_basdata->next = NULL;
- curr_basdata->next = new_basdata;
- curr_basdata = curr_basdata->next;
+  /* fill BASDATA struct */
+  strcpy(new_basdata->literal,literal);
+  
+  new_basdata->next = NULL;
+  curr_basdata->next = new_basdata;
+  curr_basdata = curr_basdata->next;
 }
 
 void write_basdata()
 {
-BOOL	past_head=FALSE;
-BASDATA *curr,*temp;
-
- curr=basdata;
-
- if (curr->next != NULL)
- {
-  fprintf(dest,"\n_BASICdata:\n");
- }
-
- do
- {
-  temp=curr;
-  curr=curr->next;
-  if (past_head) 
-  {
-   fprintf(dest,"\t%s\n",temp->literal);
+  BOOL	past_head=FALSE;
+  BASDATA *curr,*temp;
+  
+  curr=basdata;
+  
+  if (curr->next != NULL) {
+	fprintf(dest,"\n_BASICdata:\n");
   }
-  if (!past_head) past_head=TRUE; 
- }
- while (curr != NULL);
+
+ do {
+   temp=curr;
+   curr=curr->next;
+   if (past_head) {
+	 fprintf(dest,"\t%s\n",temp->literal);
+   }
+   if (!past_head) past_head=TRUE; 
+ } while (curr != NULL);
 }
 
 
 /* --structure functions-- */
 
-void find_structmem_tail(symtabitem)
-SYM *symtabitem;
+void find_structmem_tail(SYM * symtabitem)
 {
-/* find end of structdef member list. */
- tail_structmem = symtabitem->structmem;
- while (tail_structmem->next != NULL) tail_structmem = tail_structmem->next;
+  /* find end of structdef member list. */
+  tail_structmem = symtabitem->structmem;
+  while (tail_structmem->next != NULL) tail_structmem = tail_structmem->next;
 }
 
-BOOL structmem_exist(symtabitem,name)
-SYM  *symtabitem;
-char *name;
+BOOL structmem_exist(SYM * symtabitem,const char * name)
 {
-/* seek a structure 
-   member. 
-*/
+  /* seek a structure member. */
 
- curr_structmem = symtabitem->structmem->next; /* head has no member data */
+  curr_structmem = symtabitem->structmem->next; /* head has no member data */
 
- while (curr_structmem != NULL)
- {
-  if (strcmp(curr_structmem->name,name) == 0) 
-     return(TRUE);
-  else
-     curr_structmem = curr_structmem->next;
+  while (curr_structmem != NULL) {
+	if (strcmp(curr_structmem->name,name) == 0) return(TRUE);
+	else curr_structmem = curr_structmem->next;
  }
 
  return(FALSE);   
 }
 
-void add_struct_member(symtabitem,name,mtype,structtype)
-SYM  *symtabitem;
-char *name;
-int  mtype;
-SYM  *structtype;
+void add_struct_member(SYM * symtabitem, const char * name, int mtype, SYM * structtype)
 {
-/* add a member to a
-   structure definition.
-*/
+  /* add a member to a structure definition. */
 
- if (structmem_exist(symtabitem,name))
-    _error(61);
- else
- {
-  /* add a unique member */
-  if ((new_structmem = (STRUCM *)alloc(sizeof(STRUCM))) == NULL)
-  {
-   printf("Can't allocate memory for structdef node!\n");
-   early_exit=TRUE;
-   kill_all_lists();  
-   cleanup();
-  }
-  else
-  {
-   /* enter member data */
-   strcpy(new_structmem->name,name);
-   new_structmem->type = mtype;
-   new_structmem->offset = symtabitem->size;
-   
-   /* link member into list */
-   find_structmem_tail(symtabitem);
-
-   new_structmem->next = NULL;
-   tail_structmem->next = new_structmem;
-   curr_structmem = new_structmem;
+  if (structmem_exist(symtabitem,name)) _error(61);
+  else {
+	/* add a unique member */
+	if ((new_structmem = (STRUCM *)alloc(sizeof(STRUCM))) == NULL) {
+	  printf("Can't allocate memory for structdef node!\n");
+	  early_exit=TRUE;
+	  kill_all_lists();  
+	  cleanup();
+	} else {
+	  /* enter member data */
+	  strcpy(new_structmem->name,name);
+	  new_structmem->type = mtype;
+	  new_structmem->offset = symtabitem->size;
+	  
+	  /* link member into list */
+	  find_structmem_tail(symtabitem);
+	  
+	  new_structmem->next = NULL;
+	  tail_structmem->next = new_structmem;
+	  curr_structmem = new_structmem;
       
-   /* increment size of structure 
-      and hence, find next offset. 
-   */
-   switch(mtype)
-   {
-    case bytetype   : symtabitem->size += 1; break;
-    case shorttype  : symtabitem->size += 2; break;
-    case longtype   : symtabitem->size += 4; break;
-    case singletype : symtabitem->size += 4; break;
-    case stringtype : symtabitem->size += MAXSTRLEN; 
-		      curr_structmem->strsize = MAXSTRLEN;
-		      break;
-    case structure  : symtabitem->size += structtype->size; 
-		      curr_structmem->strsize = structtype->size;
-		      break;
-   }
-  }     
- }
+	  /* increment size of structure and hence, find next offset. */
+	  switch(mtype) {
+	  case bytetype   : symtabitem->size += 1; break;
+	  case shorttype  : symtabitem->size += 2; break;
+	  case longtype   : symtabitem->size += 4; break;
+	  case singletype : symtabitem->size += 4; break;
+	  case stringtype : symtabitem->size += MAXSTRLEN; 
+		curr_structmem->strsize = MAXSTRLEN;
+		break;
+	  case structure  : symtabitem->size += structtype->size; 
+		curr_structmem->strsize = structtype->size;
+		break;
+	  }
+	}     
+  }
 }

@@ -594,28 +594,24 @@ char num[40];
  strcat(lab,":\0");
 } 
 
-int relexpr()
-{
-/* relational expression -> pass through this only ONCE */
-int  i,op=undefined;
-int  firsttype,localtype;
-char labname[80],lablabel[80],branch[6];
-BOOL coercion;
-CODE *cx[5];
+int relexpr() {
+  /* relational expression -> pass through this only ONCE */
+  int  i,op=undefined;
+  int  firsttype,localtype;
+  char labname[80],lablabel[80],branch[6];
+  BOOL coercion;
+  CODE *cx[5];
 
  firsttype=simple_expr();
  localtype=firsttype;
 
- if (relop(sym))
- {
-  if ((firsttype == shorttype) || (firsttype == longtype))
-  {
+ if (relop(sym)) {
+   if ((firsttype == shorttype) || (firsttype == longtype)) {
    /* may need to coerce */
-   for (i=0;i<=4;i++)
-   {
-    gen_nop();
-    cx[i]=curr_code;
-   }
+	for (i=0;i<=4;i++) {
+	  gen_nop();
+	  cx[i]=curr_code;
+	}
   }
   op=sym;
   insymbol();
@@ -623,23 +619,22 @@ CODE *cx[5];
   if (simptype == undefined) return(simptype);
   coercion=coerce(&firsttype,&simptype,cx);
   localtype=simptype;
-  if (coercion)
-  {
-   
+  if (coercion) {
    /* compare on basis of type -> d5 = d0 op d1 */
-   switch(simptype)
-   {
-    case shorttype  : 	gen_pop16d(1);  /* 2nd */
-        		gen_pop16d(0);  /* 1st */
-        		gen_load32d_val(-1,5); /* assume true */
-        		gen_cmp16dd(1,0);
-        		break;
+   switch(simptype) {
+    case shorttype  : 	
+	  gen_pop16d(1);  /* 2nd */
+	  gen_pop16d(0);  /* 1st */
+	  gen_load32d_val(-1,5); /* assume true */
+	  gen_cmp16dd(1,0);
+	  break;
 
-    case longtype   : 	gen_pop32d(1);  /* 2nd */
-        		gen_pop32d(0);  /* 1st */
-        		gen_load32d_val(-1,5); /* assume true */
-        		gen_cmp32dd(1,0);
-        		break;
+    case longtype:
+	  gen_pop32d(1);  /* 2nd */
+	  gen_pop32d(0);  /* 1st */
+	  gen_load32d_val(-1,5); /* assume true */
+	  gen_cmp32dd(1,0);
+	  break;
 
     case singletype : 	
 	  gen_pop32d(1);  /* 2nd */
@@ -661,27 +656,22 @@ CODE *cx[5];
 	  break;
     }
 
-    /* leave result on stack according to operator (-1 = true, 0 = false) */
-    /* (this code for short,long & single comparisons only) */
-    if (simptype != stringtype)
-    {	
+   /* leave result on stack according to operator (-1 = true, 0 = false) */
+   /* (this code for short,long & single comparisons only) */
+   if (simptype != stringtype) {	
      make_label(labname,lablabel);
 	 gen_bxx(op,labname);
      gen_load32d_val(0,5);  /* not true */
      gen_label(lablabel);
      gen_push32d(5); /* boolean result on stack */
-    }
-   } else _error(4);
-  }
-
- if (op == undefined) 
-    return(localtype);
- else
-    return(longtype);  /* BOOLEAN! */  
+   }
+  } else _error(4);
+ }
+ 
+ return (op == undefined) ? localtype : longtype; /* BOOLEAN! */
 }
 
-int notexpr()
-{
+int notexpr() {
 int localtype,op;
 
  op=sym;
@@ -697,31 +687,25 @@ int localtype,op;
  }
  return(localtype);
 }
-  
-int andexpr()
-{
-int  op,i;
-int  firsttype,localtype;
-CODE *cx[5];
- 
- firsttype=notexpr();
- localtype=firsttype;
 
- if (sym == andsym)
- {
+int andexpr() {
+  int  op,i;
+  int  firsttype,localtype;
+  CODE *cx[5];
+  
+  firsttype=notexpr();
+  localtype=firsttype;
+  
+  if (sym == andsym) {
   firsttype=make_integer(firsttype);  
-  if (firsttype != notype)
-  {
-   while (sym == andsym)
-   {
-    if ((firsttype == shorttype) || (firsttype == longtype))
-    {
-     /* may need to coerce */
-     for (i=0;i<=4;i++)
-     {
-      gen_nop();
-      cx[i]=curr_code;
-     }
+  if (firsttype != notype) {
+   while (sym == andsym) {
+    if ((firsttype == shorttype) || (firsttype == longtype)) {
+	  /* may need to coerce */
+	  for (i=0;i<=4;i++) {
+		gen_nop();
+		cx[i]=curr_code;
+	  }
     }
     op=sym;
     insymbol();
@@ -739,158 +723,133 @@ CODE *cx[5];
    }
   } else _error(4);
   firsttype=localtype;
- }
+  }
  return(localtype);
 }
 
-int orexpr()
-{
-int  op,i;
-int  firsttype,localtype;
-CODE *cx[5];
- 
- firsttype=andexpr();
- localtype=firsttype;
-
- if ((sym == orsym) || (sym == xorsym))
- {
-  firsttype=make_integer(firsttype);  
-  if (firsttype != notype)
-  {
-   while ((sym == orsym) || (sym == xorsym))
-   {
-   if ((firsttype == shorttype) || (firsttype == longtype))
-    {
-     /* may need to coerce */
-     for (i=0;i<=4;i++)
-     {
-      gen_nop();
-      cx[i]=curr_code;
-     }
-    }
-    op=sym;
-    insymbol();
-    andtype=andexpr();
-    if (andtype == undefined) return(andtype); 
-    andtype=make_integer(andtype);
-    coerce(&firsttype,&andtype,cx);
-    localtype=andtype;
-    if (andtype != notype)
-    {
-     pop_operands(andtype);  
-     switch(op)
-     {
-      case orsym  : if (andtype == shorttype)
-		gen_or16dd(1,0);
-	  else
-		gen_or32dd(1,0);
-               	    break;
-
-      case xorsym : if (andtype == shorttype)
-		gen_eor16dd(1,0);
-	  else
-		gen_eor32dd(1,0);
-		break;
-     }
-     push_result(andtype);
-    } else _error(4);
-   }
-  } else _error(4);
-  firsttype=localtype;
- }
- return(localtype);
+int orexpr() {
+  int  op,i;
+  int  firsttype,localtype;
+  CODE *cx[5];
+  
+  firsttype=andexpr();
+  localtype=firsttype;
+  
+  if ((sym == orsym) || (sym == xorsym)) {
+	firsttype=make_integer(firsttype);  
+	if (firsttype != notype) {
+	  while ((sym == orsym) || (sym == xorsym)) {
+		if ((firsttype == shorttype) || (firsttype == longtype)) {
+		  /* may need to coerce */
+		  for (i=0;i<=4;i++) {
+			gen_nop();
+			cx[i]=curr_code;
+		  }
+		}
+		op=sym;
+		insymbol();
+		andtype=andexpr();
+		if (andtype == undefined) return(andtype); 
+		andtype=make_integer(andtype);
+		coerce(&firsttype,&andtype,cx);
+		localtype=andtype;
+		if (andtype != notype) {
+		  pop_operands(andtype);  
+		  switch(op) {
+		  case orsym  : 
+			if (andtype == shorttype) gen_or16dd(1,0);
+			else gen_or32dd(1,0);
+			break;
+		  case xorsym : 
+			if (andtype == shorttype) gen_eor16dd(1,0);
+			else gen_eor32dd(1,0);
+			break;
+		  }
+		  push_result(andtype);
+		} else _error(4);
+	  }
+	} else _error(4);
+	firsttype=localtype;
+  }
+  return(localtype);
 }
 
-int eqvexpr()
-{
-int  op,i;
-int  firsttype,localtype;
-CODE *cx[5];
- 
- firsttype=orexpr();
- localtype=firsttype;
+int eqvexpr() {
+  int  op,i;
+  int  firsttype,localtype;
+  CODE *cx[5];
+  
+  firsttype=orexpr();
+  localtype=firsttype;
 
- if (sym == eqvsym)
- {
-  firsttype=make_integer(firsttype);  
-  if (firsttype != notype)
-  {
-   while (sym == eqvsym)
-   {
-   if ((firsttype == shorttype) || (firsttype == longtype))
-    {
-     /* may need to coerce */
-     for (i=0;i<=4;i++)
-     {
-      gen_nop();
-      cx[i]=curr_code;
-     }
-    }
-    op=sym;
-    insymbol();
-    ortype=orexpr(); 
-    if (ortype == undefined) return(ortype);
-    ortype=make_integer(ortype);
-    coerce(&firsttype,&ortype,cx);
-    localtype=ortype;
-    if (ortype != notype)
-    {
-     pop_operands(ortype);
-     if (ortype == shorttype) gen_jsr("_eqvw");
-     else gen_jsr("_eqvl");
-	 push_result(ortype);
-    } else _error(4);
-   }
-  } else _error(4);
-  firsttype=localtype;
- }
- return(localtype);
+  if (sym == eqvsym) {
+	firsttype=make_integer(firsttype);  
+	if (firsttype != notype) {
+	  while (sym == eqvsym) {
+		if ((firsttype == shorttype) || (firsttype == longtype)) {
+		  /* may need to coerce */
+		  for (i=0;i<=4;i++) {
+			gen_nop();
+			cx[i]=curr_code;
+		  }
+		}
+		op=sym;
+		insymbol();
+		ortype=orexpr(); 
+		if (ortype == undefined) return(ortype);
+		ortype=make_integer(ortype);
+		coerce(&firsttype,&ortype,cx);
+		localtype=ortype;
+		if (ortype != notype) {
+		  pop_operands(ortype);
+		  if (ortype == shorttype) gen_jsr("_eqvw");
+		  else gen_jsr("_eqvl");
+		  push_result(ortype);
+		} else _error(4);
+	  }
+	} else _error(4);
+	firsttype=localtype;
+  }
+  return(localtype);
 }
 
-int expr()
-{
-int  op,i;
-int  firsttype,localtype;
-CODE *cx[5];
- 
- firsttype=eqvexpr();
- localtype=firsttype;
-
- if (sym == impsym)
- {
-  firsttype=make_integer(firsttype);  
-  if (firsttype != notype)
-  {
-   while (sym == impsym)
-   {
-   if ((firsttype == shorttype) || (firsttype == longtype))
-   {
-     /* may need to coerce */
-     for (i=0;i<=4;i++)
-     {
-      gen_nop();
-      cx[i]=curr_code;
-     }
-    }
-    op=sym;
-    insymbol();
-    eqvtype=eqvexpr(); 
-    if (eqvtype == undefined) return(eqvtype);
-    eqvtype=make_integer(eqvtype);
-    coerce(&firsttype,&eqvtype,cx);
-    localtype=eqvtype;
-    if (eqvtype != notype)
-    {
-     pop_operands(eqvtype);
-     if (eqvtype == shorttype) gen_jsr("_impw");
-     else gen_jsr("_impl");
-     push_result(eqvtype);
-    } else _error(4);
-   }
-  } else _error(4);
-  firsttype=localtype;
- }
- return(localtype);
+int expr() {
+  int  op,i;
+  int  firsttype,localtype;
+  CODE *cx[5];
+  
+  firsttype=eqvexpr();
+  localtype=firsttype;
+  
+  if (sym == impsym) {
+	firsttype=make_integer(firsttype);  
+	if (firsttype != notype) {
+	  while (sym == impsym) {
+		if ((firsttype == shorttype) || (firsttype == longtype)) {
+		  /* may need to coerce */
+		  for (i=0;i<=4;i++) {
+			gen_nop();
+			cx[i]=curr_code;
+		  }
+		}
+		op=sym;
+		insymbol();
+		eqvtype=eqvexpr(); 
+		if (eqvtype == undefined) return(eqvtype);
+		eqvtype=make_integer(eqvtype);
+		coerce(&firsttype,&eqvtype,cx);
+		localtype=eqvtype;
+		if (eqvtype != notype) {
+		  pop_operands(eqvtype);
+		  if (eqvtype == shorttype) gen_jsr("_impw");
+		  else gen_jsr("_impl");
+		  push_result(eqvtype);
+		} else _error(4);
+	  }
+	} else _error(4);
+	firsttype=localtype;
+  }
+  return(localtype);
 }
 
 void pop_operands(int typ) {
@@ -909,10 +868,10 @@ void push_result(int typ) {
 }
 
 void gen_round(int type) {  
-/*
-** Convert float to integer
-** with rounding.
-*/
+  /*
+  ** Convert float to integer
+  ** with rounding.
+  */
   gen_call_args("_round","d0:d0",0);
   enter_XREF("_MathBase");
 
@@ -926,8 +885,8 @@ void gen_round(int type) {
   }
 }  
  
-int gen_Flt(int typ) {
 /* convert an integer to a single-precision float */
+int gen_Flt(int typ) {
   if (typ == singletype) return singletype;  /* already a float! */
   if (typ == stringtype) {_error(4); return undefined; } /* can't do it */
   if (typ == shorttype) gen_pop16d(0);
@@ -939,15 +898,10 @@ int gen_Flt(int typ) {
   return singletype;
 }
 
-void change_Flt(exptyp,cx)
-int  exptyp;
-CODE *cx[];
-{
-/* convert an integer to a float */
-  if (exptyp == shorttype)
-     change(cx[0],"move.w","(sp)+","d0");
-  else
-     change(cx[0],"move.l","(sp)+","d0");
+void change_Flt(int exptyp,CODE * cx[]) {
+  /* convert an integer to a float */
+  if (exptyp == shorttype) change(cx[0],"move.w","(sp)+","d0");
+  else change(cx[0],"move.l","(sp)+","d0");
   if (exptyp == shorttype) change(cx[1],"ext.l","d0","  ");
   change(cx[2],"move.l","_MathBase","a6");
   change(cx[3],"jsr","_LVOSPFlt(a6)","  ");
@@ -957,12 +911,12 @@ CODE *cx[];
 }
 
 int make_integer(int oldtyp) {
- if (oldtyp == stringtype) return(notype); /* can't do it! */
- else if (oldtyp == singletype) { 
-  gen_round(oldtyp);
-  return(longtype); 
- }
- return(oldtyp);  /* already an integer */
+  if (oldtyp == stringtype) return(notype); /* can't do it! */
+  else if (oldtyp == singletype) { 
+	gen_round(oldtyp);
+	return(longtype); 
+  }
+  return(oldtyp);  /* already an integer */
 }
 
 int make_sure_short(int type) {

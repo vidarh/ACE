@@ -41,7 +41,7 @@ SHORT peep=0;
 extern	CODE	*code;
 
 /* functions */
-BOOL is_a_move(char * opcode) {
+BOOL is_a_move(const char * opcode) {
  if (opcode[0] == 'm') {
    if (strcmp(opcode,"move.b") == 0) return(TRUE);
    else if (strcmp(opcode,"move.w") == 0) return(TRUE);
@@ -49,12 +49,10 @@ BOOL is_a_move(char * opcode) {
    else if (strcmp(opcode,"movea.l") == 0) return(TRUE);
    else if (strcmp(opcode,"moveq") == 0) return(TRUE);
    else return(FALSE);
- }
- else
-     return(FALSE);
+ } else return(FALSE);
 }
 
-static BOOL is_arit(char * opcode) {
+static BOOL is_arit(const char * opcode) {
   if (is_a_move(opcode)) return TRUE;
   if (!strncmp(opcode,"add",3)) return TRUE;
   if (!strncmp(opcode,"sub",3)) return TRUE;
@@ -76,40 +74,6 @@ void swap_code(CODE * first, CODE * second) {
   
   change(first,second->opcode,second->srcopr,second->destopr);
   change(second,opcode,srcopr,destopr);
-}
-
-/* In general it is safe to move a move to A6 up if
- * - It does not move past a label.
- * - It does not move past any instructions operating on A6.
- *
- * If at any point first and second are equal, we can eliminate the second.
- */
-BOOL float_libbase() {
-  if (first->opcode[0] == '_') return FALSE;
-  if (strcmp(second->destopr,"a6")) return FALSE;
-  if (!is_a_move(second->opcode)) return FALSE;
-  if (strcmp(first->srcopr,"a6") == 0) return FALSE;
-  if (strcmp(first->opcode,"jsr") == 0) return FALSE;
-  /* FIXME: This makes this op useless at the moment.
-	 To make it work, we need to make sure a we're dealing
-	 with a library call to the same library. Check LVO's, or
-	 trace A6 in more detail
- &&
-	  strstr(first->srcopr,"(a6)") == 0) return FALSE;
-  */
-  if (strcmp(first->opcode,second->opcode) == 0 &&
-	  strcmp(first->srcopr,second->srcopr) == 0 &&
-	  strcmp(first->destopr,second->destopr) == 0) {
-
-	change(first,"nop","  ","  ");	   				   
-	peep++;
-	curr = second->next;
-	return TRUE;
-  }
-
-  swap_code(first,second);
-  curr = second->next;
-  return TRUE;
 }
 
 /* The goal of this "optimization" is to reorder push operations down if they don't need to
@@ -356,46 +320,41 @@ BOOL negate_constant()
 
 SHORT peephole()
 {
-/* 
-** Perform a series of peephole 
-** optimisations on the code list.
-*/
+  /* 
+  ** Perform a series of peephole 
+  ** optimisations on the code list.
+  */
   BOOL past_head;
- int  opt_type;
- BOOL cont = TRUE;
- BOOL ret;
- int iter = 0;
-
+  int  opt_type;
+  BOOL cont = TRUE;
+  BOOL ret;
+  int iter = 0;
+  
   if (code == NULL) return 0;
-
+  
   while (iter++ < 100 && cont) {
 	cont = FALSE;
 	printf ("Iteration %d\n",iter);
-    for (opt_type=1;opt_type<=7;opt_type++)
-    {
-	/* Start of code list */
-	curr = code;
-
-	past_head = FALSE;
-
-	do
- 	{
+    for (opt_type=1;opt_type<=7;opt_type++) {
+	  /* Start of code list */
+	  curr = code;
+	  
+	  past_head = FALSE;
+	  
+	  do {
 		/* get next two lines of code (skipping nops) */
 		first = curr;
-		if (first != NULL) 
-		{
-			second = first->next;
-
-			while (second && strcmp(second->opcode,"nop") == 0)
-			      second = second->next; 
-
-			curr = second;
+		if (first != NULL) {
+		  second = first->next;
+		  
+		  while (second && strcmp(second->opcode,"nop") == 0)
+			second = second->next; 
+		  
+		  curr = second;
+		} else {
+		  curr = second = NULL;
 		}
-		else
-		{
-			curr = second = NULL;
-		}
-
+		
 		/* 
 		** Remove redundant code in current peephole.
 		**
@@ -404,24 +363,21 @@ SHORT peephole()
 		** this list.
 		*/
 		ret = FALSE;
-  		if (past_head && second != NULL)
-		switch(opt_type)
-		{
-		case 1 : ret = float_libbase(); break;
-		case 2 : ret = reorder(); break;
-		case 3 : ret = negate_constant(); break;
-		case 4 : ret = push_pop_pair(); break;
-		case 5 : ret = reorder(); break;
-		case 6 : ret = sign_bit_extension(); break;
-		case 7 : ret = push_pop_pair();
-		  break;
+  		if (past_head && second != NULL) {
+		  switch(opt_type) {
+		  case 1 : ret = reorder(); break;
+		  case 2 : ret = negate_constant(); break;
+		  case 3 : ret = push_pop_pair(); break;
+		  case 4 : ret = reorder(); break;
+		  case 5 : ret = sign_bit_extension(); break;
+		  case 6 : ret = push_pop_pair(); break;
+		  }
 		}
-
+		
 		if (ret) cont = TRUE;
 		
 		if (!past_head) past_head = TRUE;
- 	}
- 	while (curr != NULL);
+	  } while (curr != NULL);
     }
   }
   /* total # of removals */
@@ -430,13 +386,11 @@ SHORT peephole()
 
 void optimise()
 {
-SHORT peep;
-
- printf("\noptimising...\n");
- peep = peephole();
- printf("%d peephole ",peep);
- if (peep == 1) 
-    printf("removal.");  
- else
-    printf("removals."); /* peep==0 or peep>1 */
+  SHORT peep;
+  
+  printf("\noptimising...\n");
+  peep = peephole();
+  printf("%d peephole ",peep);
+  if (peep == 1)  printf("removal.");  
+  else printf("removals.");
 }

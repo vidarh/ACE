@@ -60,337 +60,279 @@ extern	BOOL	have_equal;
 extern	BOOL	have_lparen;
 
 /* functions */
-void block_if(cx1)
-CODE *cx1;
-{
-char labname1[80],lablabel1[80];
-char labname2[80],lablabel2[80];
-char labname3[80],lablabel3[80];
-CODE *cx2;
+void block_if(CODE * cx1) {
+  char labname1[80],lablabel1[80];
+  char labname2[80],lablabel2[80];
+  char labname3[80],lablabel3[80];
+  CODE *cx2;
 
- /* statement block after THEN */
- insymbol();
- do
- {
-  statement();
- }
- while ((sym != elsesym) && (sym != endsym) && (!end_of_source));  
-       /* ELSE or END IF */
-
-   /* ELSE? */
-   if (sym == elsesym)
-   {
+  /* statement block after THEN */
+  insymbol();
+  do { statement(); }
+  while ((sym != elsesym) && (sym != endsym) && (!end_of_source));  
+  /* ELSE or END IF */
+ 
+  /* ELSE? */
+  if (sym == elsesym) {
     gen_nop();  /* jump after THEN statement block */
     cx2=curr_code;
-
+	
     /* execute ELSE code section if expression false */
     make_label(labname1,lablabel1);
     gen_label(lablabel1);
     change(cx1,"jmp",labname1,"  ");
     
     insymbol();
-    do
-    {	
-     statement();
-    }
+    do { statement(); }
     while ((sym != endsym) && (!end_of_source));
 
     insymbol();
-    if (sym == ifsym)
-    {
-     /* branch after THEN */
-     make_label(labname2,lablabel2);
-     gen_label(lablabel2);
-     change(cx2,"jmp",labname2,"  ");
-     insymbol();
-    }
-    else _error(15);  /* END IF expected */
-   }
-   else  
-       /* no ELSE */
-       {
-	insymbol();
-	if (sym == ifsym)
-        {
- 	 make_label(labname3,lablabel3);
- 	 gen_label(lablabel3);
- 	 change(cx1,"jmp",labname3,"  ");
+    if (sym == ifsym) {
+	  /* branch after THEN */
+	  make_label(labname2,lablabel2);
+	  gen_label(lablabel2);
+	  change(cx2,"jmp",labname2,"  ");
+	  insymbol();
+    } else _error(15);  /* END IF expected */
+   } else { /* no ELSE */
 	 insymbol();
-        }
-	else _error(15);  /* END IF expected */
-       }
-}   
-
-void if_statement()
-{
-/* IF..THEN..ELSE..
-   IF..GOTO..ELSE..
-   IF..THEN..ELSE..END IF  [block IF]
-*/
-CODE *cx1,*cx2,*cx[3];
-char labname1[80],lablabel1[80];
-char labname2[80],lablabel2[80];
-char labname3[80],lablabel3[80];
-char labname4[80],lablabel4[80];
-char buf[50],destbuf[3],idholder[50];
-int  targettype=longtype;
-int  i,oldobj,oldtyp;
-int  exprtype;
-
- insymbol();
- exprtype=expr();
-
- /* make sure it's a LONG! */
- exprtype=make_integer(exprtype);
- for (i=0;i<=2;i++) 
- {
-  gen_nop();
-  cx[i]=curr_code;
- }
- coerce(&exprtype,&targettype,cx);
- 
- if (exprtype == longtype)
- {
-  if ((sym == thensym) || (sym == gotosym))
-  {
-   gen_pop32d(0);
-   gen_tst32d(0);
-   make_label(labname1,lablabel1);
-   gen_bne(labname1);
-   gen_nop();  /* jump past THEN code section */
-   cx1=curr_code;
-   gen_label(lablabel1); /* execute THEN code */
-
-  if (sym == gotosym) 
-     statement();  /* IF..GOTO */
-  else  /* IF..THEN */ 
-  {	
-   /* block-if, implied GOTO or assignment statement? */   
-   insymbol();
-   if (sym == endofline) { block_if(cx1); return; } /* block IF statement */
-   
-   if (sym==ident || sym==shortconst || sym==longconst)  /* label? */ 
-   {
-     /* assume implied GOTO at first */
-     if (sym != ident) make_label_from_linenum(sym,id);
-     strcpy(buf,id);
-     strcat(buf,":\0");
- 
-     if (!exist(buf,label)) 
-        strcpy(destbuf,"* "); /* mark for later label check (see sym.c) */
-     else 
-        strcpy(destbuf,"  "); /* it's a declared label */
-
-     strcpy(idholder,id);  /* save info for possible "jmp" or assign */
-     oldobj=obj;
-     oldtyp=typ;
-
-     insymbol();
-    
-     /* variable or array element or implicit branch? */
-     if (lastsym != ident ||
-        (lastsym == ident && 
-         sym != equal && sym != lparen && sym != memberpointer)) 
-     {
-	   /* NOT an assignment statement */
-	   strcpy(id,idholder);  /* restore id */
-       gen_jmp_fwd(id,destbuf);
-     }
-     else 
-       if (lastsym == ident)
-       {
-	/* assignment */
-	strcpy(id,idholder); /* restore info for assign() */
-	obj=oldobj;
-	typ=oldtyp;
-	if (sym == equal) have_equal=TRUE;
-	if (sym == lparen) { 
-	  if (!exist(id,array)) { _error(71); insymbol(); return; } 
-	  else have_lparen=TRUE;
-	}
- 	assign();	   
-	have_lparen=FALSE;
-	have_equal=FALSE;
-        if (sym == colon) statement();  /* multi-statement */
-       }
-    }
-    else
-       /* not an ident or line number */
-       {
-        statement();	
-        if (sym == colon) statement();  /* multi-statement */
-       }  
-   } /* END THEN code */
-
-   if (sym == elsesym)
-   {
-    gen_nop(); /* jump past ELSE code section */
-    cx2=curr_code;
-
-    /* execute ELSE code section if expression false */
-    make_label(labname2,lablabel2);
-    gen_label(lablabel2);
-    change(cx1,"jmp",labname2,"  ");
-    
-    insymbol();
-    statement();
-    if (sym == colon) statement();  /* multi-statement */
-
-    /* unconditional branch after THEN */
-    make_label(labname3,lablabel3);
-    gen_label(lablabel3);
-    change(cx2,"jmp",labname3,"  ");
+	 if (sym == ifsym) {
+	   make_label(labname3,lablabel3);
+	   gen_label(lablabel3);
+	   change(cx1,"jmp",labname3,"  ");
+	   insymbol();
+	 } else _error(15);  /* END IF expected */
    }
-   else
-       {
- 	make_label(labname4,lablabel4);
- 	gen_label(lablabel4);
- 	change(cx1,"jmp",labname4,"  ");
-       }
-  }
-   else _error(11);
- }
-  else _error(4);
 }   
 
-void while_statement()
-{
-/* WHILE...WEND */
-CODE *cx1,*cx2,*cx[3];
-char labname1[80],lablabel1[80];
-char labname2[80],lablabel2[80];
-char labname3[80],lablabel3[80];
-int  targettype=longtype;
-int  i;
-int  exprtype;
-
- make_label(labname1,lablabel1);
- gen_label(lablabel1);
- cx1=curr_code;
- 
- insymbol();
- exprtype=expr();
-
- /* make sure it's a LONG! */
- exprtype=make_integer(exprtype);
- for (i=0;i<=2;i++) 
- {
-  gen_nop();
-  cx[i]=curr_code;
- }
- coerce(&exprtype,&targettype,cx);  /* cx necessary if change from SHORT */
-
- if (exprtype == longtype)
- {
-  gen_pop32d(0);
-  gen_tst32d(0);
-  make_label(labname2,lablabel2);
-  gen_bne(labname2);
-  gen_nop();   /* jump out of loop when condition is FALSE */
-  cx2=curr_code;
-  gen_label(lablabel2);
-
-  while ((sym != wendsym) && (!end_of_source)) statement();
-
-  if (sym != wendsym) _error(12);
-
-  check_for_event();
-
-  gen_jmp(labname1);
-
-  make_label(labname3,lablabel3);
-  gen_label(lablabel3);
-  change(cx2,"jmp",labname3,"  ");
- }
- else _error(4);
-
- insymbol();
-}
-
-void repeat_statement()
-{
-/* REPEAT...UNTIL */
-char labname1[80],lablabel1[80];
-char labname2[80],lablabel2[80];
-int  exprtype;
-
- make_label(labname1,lablabel1);
- gen_label(lablabel1);
-
- insymbol();
- while ((sym != untilsym) && (!end_of_source)) statement();
-
- /* UNTIL condition */
- if (sym == untilsym)
- {
-  check_for_event();
+void if_statement() {
+  /* IF..THEN..ELSE..
+	 IF..GOTO..ELSE..
+	 IF..THEN..ELSE..END IF  [block IF]
+  */
+  CODE *cx1,*cx2,*cx[3];
+  char labname1[80],lablabel1[80];
+  char labname2[80],lablabel2[80];
+  char labname3[80],lablabel3[80];
+  char labname4[80],lablabel4[80];
+  char buf[50],destbuf[3],idholder[50];
+  int  targettype=longtype;
+  int  i,oldobj,oldtyp;
+  int  exprtype;
+  
   insymbol();
-  exprtype = make_integer(expr());
-  if (exprtype == shorttype) { make_long(); exprtype=longtype; }
+  exprtype=expr();
+  
+  /* make sure it's a LONG! */
+  exprtype=make_integer(exprtype);
+  for (i=0;i<=2;i++) {
+	gen_nop();
+	cx[i]=curr_code;
+  }
+  coerce(&exprtype,&targettype,cx);
+ 
+  if (exprtype == longtype) {
+	if ((sym == thensym) || (sym == gotosym)) {
+	  gen_pop32d(0);
+	  gen_tst32d(0);
+	  make_label(labname1,lablabel1);
+	  gen_bne(labname1);
+	  gen_nop();  /* jump past THEN code section */
+	  cx1=curr_code;
+	  gen_label(lablabel1); /* execute THEN code */
+	  
+	  if (sym == gotosym) statement();  /* IF..GOTO */
+	  else {  /* IF..THEN */ 
+		/* block-if, implied GOTO or assignment statement? */   
+		insymbol();
+		if (sym == endofline) { block_if(cx1); return; } /* block IF statement */
+		
+		if (sym==ident || sym==shortconst || sym==longconst) { /* label? */ 
+		  /* assume implied GOTO at first */
+		  if (sym != ident) make_label_from_linenum(sym,id);
+		  strcpy(buf,id);
+		  strcat(buf,":\0");
+ 
+		  if (!exist(buf,label)) 
+			strcpy(destbuf,"* "); /* mark for later label check (see sym.c) */
+		  else strcpy(destbuf,"  "); /* it's a declared label */
 
-  if (exprtype == longtype)
-  {
-   gen_pop32d(0);
-   gen_tst32d(0);
-   make_label(labname2,lablabel2);
-   gen_bne(labname2);
-   gen_jmp(labname1); 	/* loop until condition is TRUE */
-   gen_label(lablabel2); 
+		  strcpy(idholder,id);  /* save info for possible "jmp" or assign */
+		  oldobj=obj;
+		  oldtyp=typ;
+		  
+		  insymbol();
+    
+		  /* variable or array element or implicit branch? */
+		  if (lastsym != ident ||
+			  (lastsym == ident && 
+			   sym != equal && sym != lparen && sym != memberpointer)) {
+			/* NOT an assignment statement */
+			strcpy(id,idholder);  /* restore id */
+			gen_jmp_fwd(id,destbuf);
+		  } else if (lastsym == ident) {
+			/* assignment */
+			strcpy(id,idholder); /* restore info for assign() */
+			obj=oldobj;
+			typ=oldtyp;
+			if (sym == equal) have_equal=TRUE;
+			if (sym == lparen) { 
+			  if (!exist(id,array)) { _error(71); insymbol(); return; } 
+			  else have_lparen=TRUE;
+			}
+			assign();	   
+			have_lparen=FALSE;
+			have_equal=FALSE;
+			if (sym == colon) statement();  /* multi-statement */
+		  }
+		} else { /* not an ident or line number */
+		  statement();	
+		  if (sym == colon) statement();  /* multi-statement */
+		}  
+	  } /* END THEN code */
+
+	  if (sym == elsesym) {
+		gen_nop(); /* jump past ELSE code section */
+		cx2=curr_code;
+		
+		/* execute ELSE code section if expression false */
+		make_label(labname2,lablabel2);
+		gen_label(lablabel2);
+		change(cx1,"jmp",labname2,"  ");
+    
+		insymbol();
+		statement();
+		if (sym == colon) statement();  /* multi-statement */
+
+		/* unconditional branch after THEN */
+		make_label(labname3,lablabel3);
+		gen_label(lablabel3);
+		change(cx2,"jmp",labname3,"  ");
+	  } else {
+		make_label(labname4,lablabel4);
+		gen_label(lablabel4);
+		change(cx1,"jmp",labname4,"  ");
+	  }
+	} else _error(11);
+  } else _error(4);
+}   
+
+void while_statement() {
+  /* WHILE...WEND */
+  CODE *cx1,*cx2,*cx[3];
+  char labname1[80],lablabel1[80];
+  char labname2[80],lablabel2[80];
+  char labname3[80],lablabel3[80];
+  int  targettype=longtype;
+  int  i;
+  int  exprtype;
+  
+  make_label(labname1,lablabel1);
+  gen_label(lablabel1);
+  cx1=curr_code;
+  
+  insymbol();
+  exprtype=expr();
+  
+  /* make sure it's a LONG! */
+  exprtype=make_integer(exprtype);
+  for (i=0;i<=2;i++)  {
+	gen_nop();
+	cx[i]=curr_code;
+  }
+  coerce(&exprtype,&targettype,cx);  /* cx necessary if change from SHORT */
+
+  if (exprtype == longtype) {
+	gen_pop32d(0);
+	gen_tst32d(0);
+	make_label(labname2,lablabel2);
+	gen_bne(labname2);
+	gen_nop();   /* jump out of loop when condition is FALSE */
+	cx2=curr_code;
+	gen_label(lablabel2);
+	
+	while ((sym != wendsym) && (!end_of_source)) statement();
+	
+	if (sym != wendsym) _error(12);
+	
+	check_for_event();
+	
+	gen_jmp(labname1);
+	
+	make_label(labname3,lablabel3);
+	gen_label(lablabel3);
+	change(cx2,"jmp",labname3,"  ");
   }
   else _error(4);
- }
- else _error(51);
+  
+  insymbol();
 }
 
-void case_statement()
-{
+/* REPEAT...UNTIL */
+void repeat_statement() {
+  char labname1[80],lablabel1[80];
+  char labname2[80],lablabel2[80];
+  int  exprtype;
+  
+  make_label(labname1,lablabel1);
+  gen_label(lablabel1);
+
+  insymbol();
+  while ((sym != untilsym) && (!end_of_source)) statement();
+
+  /* UNTIL condition */
+  if (sym == untilsym) {
+	check_for_event();
+	insymbol();
+	make_sure_long(expr());
+	gen_pop32d(0);
+	gen_tst32d(0);
+	make_label(labname2,lablabel2);
+	gen_bne(labname2);
+	gen_jmp(labname1); 	/* loop until condition is TRUE */
+	gen_label(lablabel2); 
+  } else _error(51);
+}
+
 /* CASE...END CASE */
-CODE  *cx;
-CODE  *case_ptr[MAXCASES];
-char  labname1[80],lablabel1[80];
-char  labname2[80],lablabel2[80];
-char  case_end_labname[80],case_end_lablabel[80];
-SHORT casecount=0;
-int   exprtype=undefined;
-SHORT i;
+void case_statement() {
+  CODE  *cx;
+  CODE  *case_ptr[MAXCASES];
+  char  labname1[80],lablabel1[80];
+  char  labname2[80],lablabel2[80];
+  char  case_end_labname[80],case_end_lablabel[80];
+  SHORT casecount=0;
+  int   exprtype=undefined;
+  SHORT i;
 
- insymbol();
- while (sym == endofline) insymbol(); /* skip blank line(s) */
+  insymbol();
+  while (sym == endofline) insymbol(); /* skip blank line(s) */
  
- do
- {
-  exprtype = make_integer(expr());
-  if (exprtype == shorttype) { make_long(); exprtype=longtype; }
-
-  if (sym == colon) 
-  {
-   insymbol();
+  do {
+	if (make_sure_long(expr()) != undefined) {
+	  if (sym == colon) {
+		insymbol();
    
-   if (exprtype == longtype)
-   {
-    gen_pop32d(0);
-    gen_tst32d(0);
-    make_label(labname1,lablabel1);
-    gen_bne(labname1);
-    gen_nop();	/* try next case */
-    cx = curr_code;
-    gen_label(lablabel1);   /* execute code for THIS case */
-    
-    statement();
-    if (sym == colon) statement(); /* multi-statement */
-
-    gen_jmp("  ");
-    case_ptr[casecount++] = curr_code; /* branch to end of CASE */
-    
-    /* label for next case */
-    make_label(labname2,lablabel2);
-    gen_label(lablabel2);
-    change(cx,"jmp",labname2,"  ");
-   }
-   else _error(4); /* type mismatch */
-  }
-  else _error(24); /* colon expected */
-
+		gen_pop32d(0);
+		gen_tst32d(0);
+		make_label(labname1,lablabel1);
+		gen_bne(labname1);
+		gen_nop();	/* try next case */
+		cx = curr_code;
+		gen_label(lablabel1);   /* execute code for THIS case */
+		
+		statement();
+		if (sym == colon) statement(); /* multi-statement */
+		
+		gen_jmp("  ");
+		case_ptr[casecount++] = curr_code; /* branch to end of CASE */
+		
+		/* label for next case */
+		make_label(labname2,lablabel2);
+		gen_label(lablabel2);
+		change(cx,"jmp",labname2,"  ");
+	  } else _error(24); /* colon expected */
+	}
   while (sym == endofline) insymbol(); /* skip empty line(s) */
  }
  while ((exprtype == longtype) && (sym != endsym) &&

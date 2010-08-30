@@ -3,6 +3,13 @@
 
 /* Low level code generation functions */
 
+void gen_rts();
+void gen_move32(const char * src, const char * dest);
+void gen_incr_indirect16();
+void gen_incr_indirect32();
+void gen_incr_indirect_float();
+void gen_decr_indirect16();
+void gen_decr_indirect32();
 void gen_jsr(const char * label);
 void gen_push32d(unsigned char reg);
 void gen_push32_val(long val);
@@ -32,7 +39,12 @@ void gen_load16d(const char * label, unsigned char reg);
 void gen_move16dd(unsigned char srcreg, unsigned char destreg);
 void gen_move32dd(unsigned char srcreg, unsigned char destreg);
 void gen_move32aa(unsigned char srcreg, unsigned char destreg);
+void gen_save32a(unsigned char reg, const char * label);
+void gen_save32d(unsigned char reg, const char * label);
 void gen_load32d_val(signed long val, unsigned char reg);
+void gen_save32a(unsigned char reg, const char * label);
+void gen_not16d(unsigned char reg);
+void gen_neg16d(unsigned char r);
 void gen_pea(const char * target);
 
 /* Mid level */

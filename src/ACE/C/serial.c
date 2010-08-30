@@ -38,19 +38,20 @@ extern	SYM	*curr_item;
 extern	char   	id[MAXIDSIZE]; 
 
 /* functions */
-void serial_command() {
+void serial_command()
+{
   /* parse a serial command */
 
- insymbol();
+  insymbol();
  
- switch(sym) {
- case opensym:	open_serial(); break;
- case closesym:	close_serial();	break;
- case readsym:	read_serial(); break;
- case writesym:	write_serial();	break;
- default:	_error(75);	/* open,close etc expected */
-   break;
- }
+  switch(sym) {
+  case opensym:	open_serial(); break;
+  case closesym:	close_serial();	break;
+  case readsym:	read_serial(); break;
+  case writesym:	write_serial();	break;
+  default:	_error(75);	/* open,close etc expected */
+	break;
+  }
 }
 
 void open_serial() {
@@ -107,7 +108,8 @@ void open_serial() {
 }
 
 /* SERIAL CLOSE [#] channel */
-void close_serial() {
+void close_serial()
+{
   parse_channel();
   gen_call_void("_CloseSerial",4);
 }
@@ -115,7 +117,8 @@ void close_serial() {
 /* read a specified number of bytes into a buffer.
    SERIAL READ [#] channel,buffer,length
 */
-void read_serial() {
+void read_serial()
+{
   SYM  *storage;
   char addrbuf[40];
 

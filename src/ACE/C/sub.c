@@ -54,20 +54,20 @@ extern	int  	addr[2];
 /* functions */
 void forward_ref()
 {
-char  sub_name[80];
-SYM   *sub_ptr;
-short param_count=0;
-int   param_type;
-int   sub_type=undefined;
-/* declare a forward reference to a SUB -- see declare() 
-   NO checking against symbol table is carried out */
-
- insymbol();
-
- /* type identifiers */
- if (sym == shortintsym || sym == longintsym || sym == addresssym ||
-     sym == singlesym || sym == stringsym) {
-   switch(sym) {
+  char  sub_name[80];
+  SYM   *sub_ptr;
+  short param_count=0;
+  int   param_type;
+  int   sub_type=undefined;
+  /* declare a forward reference to a SUB -- see declare() 
+	 NO checking against symbol table is carried out */
+  
+  insymbol();
+  
+  /* type identifiers */
+  if (sym == shortintsym || sym == longintsym || sym == addresssym ||
+	  sym == singlesym || sym == stringsym) {
+	switch(sym) {
    case shortintsym : sub_type = shorttype;  break;
    case longintsym  : sub_type = longtype;   break;
    case addresssym  : sub_type = longtype;   break;

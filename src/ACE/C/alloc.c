@@ -80,9 +80,8 @@ struct Remember *SymRememberList[2] = { NULL, NULL };
 /* functions */
 void *alloc(ULONG bytes)
 {
-/* allocate memory as requested */
-
- return((void *)AllocRemember(&GenRememberList,bytes,MEMF_ANY));     
+  /* allocate memory as requested */
+  return((void *)AllocRemember(&GenRememberList,bytes,MEMF_ANY));     
 }
 
 void *sym_alloc(ULONG bytes)
@@ -96,8 +95,7 @@ void free_alloc()
 {
 /* free all memory allocated by alloc */
 
- if (GenRememberList != NULL) 
- {
+ if (GenRememberList != NULL) {
 	puts("freeing memory...");
 	FreeRemember(&GenRememberList,TRUE);
 	GenRememberList = NULL;
@@ -108,27 +106,25 @@ void free_sym_alloc()
 {
 /* free all memory allocated by sym_alloc for current level */
 
- if (SymRememberList[lev] != NULL) 
- {
+ if (SymRememberList[lev] != NULL) {
 	FreeRemember(&SymRememberList[lev],TRUE);
 	SymRememberList[lev] = NULL;
  }
 }
 
-CODE  *alloc_code(opcode,srcopr,destopr)
-char  *opcode,*srcopr,*destopr;
+CODE  *alloc_code(const char * opcode,const char * srcopr,const char * destopr)
 {
-/*
-** Allocate memory for a CODE node plus its 
-** opcode, srcopr and destopr fields.
-**
-** If an allocation fails, any memory 
-** allocated is freed and a NULL CODE 
-** pointer is returned.
-*/
-CODE  *cnode;
-ULONG opcode_size,srcopr_size,destopr_size;
-
+  /*
+  ** Allocate memory for a CODE node plus its 
+  ** opcode, srcopr and destopr fields.
+  **
+  ** If an allocation fails, any memory 
+  ** allocated is freed and a NULL CODE 
+  ** pointer is returned.
+  */
+  CODE  *cnode;
+  ULONG opcode_size,srcopr_size,destopr_size;
+  
   /* node */
   if ((cnode=(CODE *)malloc(sizeof(CODE))) == NULL) return(NULL);
 
@@ -153,34 +149,30 @@ ULONG opcode_size,srcopr_size,destopr_size;
   return(cnode);
 }
 
-void free_code(cnode)
-CODE *cnode;
+void free_code(CODE * cnode)
 {
-/* 
-** Frees all the memory associated with
-** a CODE node, including its members.
-*/
+  /* 
+  ** Frees all the memory associated with
+  ** a CODE node, including its members.
+  */
 
-  if (cnode)
-  {
+  if (cnode) {
 	if (cnode->opcode) free(cnode->opcode);
 	free(cnode);
   }
 }
 
-BOOL  alloc_code_members(cnode,opcode,srcopr,destopr)
-CODE  *cnode;
-char  *opcode,*srcopr,*destopr;
+BOOL  alloc_code_members(CODE * cnode,char * opcode, char * srcopr,char * destopr)
 {
-/*
-** Allocate memory for a CODE node's
-** opcode, srcopr and destopr fields.
-**
-** If the allocation fails, a boolean 
-** FALSE value is returned.
-*/
-ULONG opcode_size,srcopr_size,destopr_size;
-
+  /*
+  ** Allocate memory for a CODE node's
+  ** opcode, srcopr and destopr fields.
+  **
+  ** If the allocation fails, a boolean 
+  ** FALSE value is returned.
+  */
+  ULONG opcode_size,srcopr_size,destopr_size;
+  
   /* is the CODE node non-NULL? */
   if (cnode == NULL) return(FALSE);
 
@@ -190,8 +182,8 @@ ULONG opcode_size,srcopr_size,destopr_size;
   destopr_size = strlen(destopr)+1;
 
   if ((cnode->opcode=(char *)
-		     malloc((opcode_size+srcopr_size+destopr_size))) == NULL)
-  return(FALSE);
+	   malloc((opcode_size+srcopr_size+destopr_size))) == NULL)
+	return(FALSE);
   	
   /* set src and dest operand pointers */
   cnode->srcopr = cnode->opcode + opcode_size; 	
@@ -201,16 +193,14 @@ ULONG opcode_size,srcopr_size,destopr_size;
   return(TRUE);
 }
 
-void free_code_members(cnode)
-CODE *cnode;
+void free_code_members(CODE * cnode)
 {
-/* 
-** Frees all the memory associated with
-** a CODE node's members.
-*/
+  /* 
+  ** Frees all the memory associated with
+  ** a CODE node's members.
+  */
 
-  if (cnode)
-  {
+  if (cnode) {
 	if (cnode->opcode) free(cnode->opcode);
 	cnode->opcode  = NULL;
 	cnode->srcopr  = NULL;
