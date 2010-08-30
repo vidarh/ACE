@@ -309,7 +309,7 @@ void case_statement() {
   while (sym == endofline) insymbol(); /* skip blank line(s) */
  
   do {
-	if (make_sure_long(expr()) != undefined) {
+	if ((exprtype = make_sure_long(expr())) != undefined) {
 	  if (sym == colon) {
 		insymbol();
    
@@ -333,10 +333,10 @@ void case_statement() {
 		change(cx,"jmp",labname2,"  ");
 	  } else _error(24); /* colon expected */
 	}
-  while (sym == endofline) insymbol(); /* skip empty line(s) */
- }
- while ((exprtype == longtype) && (sym != endsym) &&
-        (casecount < MAXCASES) && (!end_of_source));
+	while (sym == endofline) insymbol(); /* skip empty line(s) */
+  }
+  while ((exprtype == longtype) && (sym != endsym) &&
+		 (casecount < MAXCASES) && (!end_of_source));
 
  /* END CASE */
  if (sym != endsym) 
