@@ -10,6 +10,7 @@ struct codegen_target {
   /* Simple, low level functions that are reasonably common on many
 	 architectures, in alphabetic order */
 
+  void (* cmp)(int,int);
   void (* eor)(int);
   int (* muls)(int);
   void (* neg)(int type);
@@ -31,6 +32,7 @@ static inline void gen_eor(int type) { target->eor(type); }
 static inline void gen_or(int type) { target->or(type); }
 static inline void gen_neg(int type) { target->neg(type); }
 static inline int gen_muls(int type) { return target->muls(type); }
+static inline void gen_cmp(int type,int op) { target->cmp(type,op); }
 
 void gen_move32(const char * src, const char * dest);
 void gen_incr_indirect16();

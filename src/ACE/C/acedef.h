@@ -613,24 +613,10 @@ void	parse_option_list();
 BOOL	factorfunc();
 int	factor();
 BOOL	coerce();
-
 void	make_short();
 void	make_long();
 
-int	ptr_term();
-int	expterm();
-int	negterm();
-int	prodterm();
-int	idivterm();
-int	modterm();
-int	simple_expr();
-BOOL	relop();
 void	make_label();
-int	relexpr();
-int	notexpr();
-int	andexpr();
-int	orexpr();
-int	eqvexpr();
 int	expr();
 
 void	pop_operands();

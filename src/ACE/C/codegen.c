@@ -70,7 +70,7 @@ void gen_label(const char * label) {
  cur_libbase[0] = 0; 
 }
 
-void gen_bxx(int op, const char * label) {
+static void gen_bxx(int op, const char * label) {
   gen(cond_branch_op(op),label,"  ");
   enter_XREF(label);
 }
@@ -536,6 +536,107 @@ void gen_add32da(unsigned char srcreg, unsigned char destreg) {
 
 /***** "Mid level" code generation functions *****/
 
+void gen_round(int type) {  
+  /*
+  ** Convert float to integer
+  ** with rounding.
+  */
+  gen_call_args("_round","d0:d0",0);
+  enter_XREF("_MathBase");
+
+  /*
+  ** Only relevant when called from
+  ** assign_coerce() and STOREType=shorttype.
+  */
+  if (type == shorttype) {
+   gen_pop32d(0);
+   gen_push16d(0);
+  }
+}  
+ 
+
+/* convert an integer to a single-precision float */
+int gen_Flt(int typ) {
+  if (typ == singletype) return singletype;  /* already a float! */
+  if (typ == stringtype) {_error(4); return undefined; } /* can't do it */
+  if (typ == shorttype) gen_pop16d(0);
+  else gen_pop32d(0);
+  if (typ == shorttype) gen_ext16to32(0); /* extend sign */
+  gen_libbase("Math");
+  gen_libcall("SPFlt","Math");
+  gen_push32d(0);
+  return singletype;
+}
+
+
+void pop_operands(int typ) {
+  if (typ == shorttype) {
+	gen_pop16d(0);  /* 2nd operand */
+	gen_pop16d(1);  /* 1st operand -> d0 = d1 op d0 */
+  } else {
+	gen_pop32d(0);  /* 2nd operand */
+	gen_pop32d(1);  /* 1st operand -> d0 = d1 op d0 */
+  } 
+}
+
+void push_result(int typ) {
+ if (typ == shorttype) gen_push16d(0);
+ else gen_push32d(0);
+}
+
+void change_Flt(int exptyp,CODE * cx[]) {
+  /* convert an integer to a float */
+  if (exptyp == shorttype) change(cx[0],"move.w","(sp)+","d0");
+  else change(cx[0],"move.l","(sp)+","d0");
+  if (exptyp == shorttype) change(cx[1],"ext.l","d0","  ");
+  change(cx[2],"move.l","_MathBase","a6");
+  change(cx[3],"jsr","_LVOSPFlt(a6)","  ");
+  change(cx[4],"move.l","d0","-(sp)");
+  enter_XREF("_LVOSPFlt");
+  enter_XREF("_MathBase");
+}
+
+int make_integer(int oldtyp) {
+  if (oldtyp == stringtype) return(notype); /* can't do it! */
+  else if (oldtyp == singletype) { 
+	gen_round(oldtyp);
+	return(longtype); 
+  }
+  return(oldtyp);  /* already an integer */
+}
+
+int make_sure_short(int type) {
+ if (type == longtype) make_short();
+ else if (type == singletype) { make_integer(type); make_short(); }
+ else if (type == stringtype) { _error(4); return undefined; }
+ return shorttype;
+}
+
+int gen_pop_as_short(int type, unsigned char reg) {
+  if (type == singletype) type = make_integer(type);
+  if (type == longtype) gen_pop32d(reg);
+  else if (type == shorttype) { gen_pop16d(reg); }
+  else if (type == stringtype) { _error(4); return undefined; }
+  return shorttype;
+}
+
+int make_sure_long(int type) {
+ if      (type == shorttype) make_long();
+ else if (type == singletype) make_integer(type);
+ else if (type == stringtype) { _error(4); return undefined; }
+ return longtype;
+}
+
+void make_short() {
+ gen_pop32d(0);
+ gen_push16d(0);
+}
+
+void make_long() {
+ gen_pop16d(0);
+ gen_ext16to32(0);
+ gen_push32d(0);
+}
 
 void gen_libbase(const char * base) {
   char buf[200];
@@ -642,9 +743,60 @@ static int m68k_muls(int type)
   return notype;
 }
 
+static void m68k_cmp(int simptype, int op)
+{
+  /* compare on basis of type -> d5 = d0 op d1 */
+  char labname[80],lablabel[80];
+   switch(simptype) {
+    case shorttype  : 	
+	  gen_pop16d(1);  /* 2nd */
+	  gen_pop16d(0);  /* 1st */
+	  gen_load32d_val(-1,5); /* assume true */
+	  gen_cmp16dd(1,0);
+	  break;
+
+    case longtype:
+	  gen_pop32d(1);  /* 2nd */
+	  gen_pop32d(0);  /* 1st */
+	  gen_load32d_val(-1,5); /* assume true */
+	  gen_cmp32dd(1,0);
+	  break;
+
+    case singletype : 	
+	  gen_pop32d(1);  /* 2nd */
+	  gen_pop32d(0);  /* 1st */
+	  gen_load32d_val(-1,5); /* assume true */
+	  gen_libbase("Math");
+	  gen_libcall("SPCmp","Math");
+	  break;
+
+    case stringtype :
+	  switch(op) {
+	  case equal     : gen_call_args("_streq","a1,a0:d0",0); break;
+	  case notequal  : gen_call_args("_strne","a1,a0:d0",0); break;
+	  case lessthan  : gen_call_args("_strlt","a1,a0:d0",0); break;
+	  case gtrthan   : gen_call_args("_strgt","a1,a0:d0",0); break;
+	  case ltorequal : gen_call_args("_strle","a1,a0:d0",0); break;
+	  case gtorequal : gen_call_args("_strge","a1,a0:d0",0); break;
+	  }
+	  break;
+    }
+   /* leave result on stack according to operator (-1 = true, 0 = false) */
+   /* (this code for short,long & single comparisons only) */
+   if (simptype != stringtype) {	
+     make_label(labname,lablabel);
+	 gen_bxx(op,labname);
+     gen_load32d_val(0,5);  /* not true */
+     gen_label(lablabel);
+     gen_push32d(5); /* boolean result on stack */
+   }
+}
+
+
 /* The m68k target */
 
 struct codegen_target m68k_target = {
+  m68k_cmp,
   m68k_eor,
   m68k_muls,
   m68k_neg,

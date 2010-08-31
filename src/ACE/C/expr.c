@@ -41,208 +41,165 @@
 
 /* externals */
 extern	int	sym;
-extern	int	factype;
-extern	int	negtype;
-extern	int	prodtype;
-extern	int	idivtype;
-extern	int	modtype;
-extern	int	simptype;
-extern	int	nottype;
-extern	int	andtype;
-extern	int	ortype;
-extern	int	eqvtype;
 extern	CODE	*curr_code;
 extern	int	labelcount;
 extern	char	tempstrname[80];
 
 /* functions */
-BOOL coerce(typ1,typ2,cx)
-int  *typ1;
-int  *typ2;
-CODE *cx[];
+BOOL coerce(int * typ1,int * typ2,CODE * cx[])
 {
  if ((*typ1 == stringtype) && (*typ2 != stringtype)) return(FALSE);
- else
  if ((*typ2 == stringtype) && (*typ1 != stringtype)) return(FALSE);
- else
- if (((*typ1 == shorttype) || (*typ1 == longtype)) && (*typ2 == singletype))
- {
-  change_Flt(*typ1,cx);
-  *typ1=singletype;
-  return(TRUE);
+ if (((*typ1 == shorttype) || (*typ1 == longtype)) && (*typ2 == singletype)) {
+   change_Flt(*typ1,cx);
+   *typ1=singletype;
+   return(TRUE);
  }
- else
- if (((*typ2 == shorttype) || (*typ2 == longtype)) && (*typ1 == singletype))
- {
-  gen_Flt(*typ2);
-  *typ2=singletype;
-  return(TRUE);
+ if (((*typ2 == shorttype) || (*typ2 == longtype)) && (*typ1 == singletype)) {
+   gen_Flt(*typ2);
+   *typ2=singletype;
+   return(TRUE);
  }
- else
- if ((*typ1 == shorttype) && (*typ2 == longtype)) 
- {
-  change(cx[0],"move.w","(sp)+","d0");
-  change(cx[1],"ext.l","d0","  ");
-  change(cx[2],"move.l","d0","-(sp)");
-  *typ1=longtype;
-  return(TRUE);
+ if ((*typ1 == shorttype) && (*typ2 == longtype))  {
+   change(cx[0],"move.w","(sp)+","d0");
+   change(cx[1],"ext.l","d0","  ");
+   change(cx[2],"move.l","d0","-(sp)");
+   *typ1=longtype;
+   return(TRUE);
  }
- else
- if ((*typ2 == shorttype) && (*typ1 == longtype)) 
- {
+ if ((*typ2 == shorttype) && (*typ1 == longtype))  {
    make_long();
    *typ2=longtype;
    return(TRUE);
  }
- else
-     return(TRUE); /* both shorttype, longtype or singletype OR notype! */
+ return(TRUE); /* both shorttype, longtype or singletype OR notype! */
 }
 
-void make_short() {
- gen_pop32d(0);
- gen_push16d(0);
-}
-
-void make_long() {
- gen_pop16d(0);
- gen_ext16to32(0);
- gen_push32d(0);
-}
-
-int ptr_term()
+static int ptr_term()
 {
-/* pointer operators -- higher precedence
-   than unary negation and exponentiation. */
+  /* pointer operators -- higher precedence
+	 than unary negation and exponentiation. */
 
-int  localtype,op;
-BOOL dereference=FALSE;
+  int  localtype,op;
+  BOOL dereference=FALSE;
 
-  if (sym == shortpointer || sym == longpointer || sym == singlepointer)
-  {
-   op=sym;
-   dereference=TRUE;
-   insymbol();
+  if (sym == shortpointer || sym == longpointer || sym == singlepointer) {
+	op=sym;
+	dereference=TRUE;
+	insymbol();
   }
   
   localtype=factor();
 
-  if (dereference)
-  {
-   if (localtype != longtype)
-   {
-    _error(4);
-    localtype=undefined;
-   }
-   else
-   {
-    /* store address into a0 */
-    gen_pop_addr(0);
+  if (dereference) {
+   if (localtype != longtype) {
+	 _error(4);
+	 localtype=undefined;
+   } else {
+	 /* store address into a0 */
+	 gen_pop_addr(0);
 
-    /* get value at address in a0 */    
-    switch(op)
-    {
-     /* *%<address> */	
-	case shortpointer : gen_push_indirect16(0);
- 		         localtype=shorttype;
-		         break;
+	 /* get value at address in a0 */    
+	 switch(op) {
+	   /* *%<address> */	
+	 case shortpointer : 
+	   gen_push_indirect16(0);
+	   localtype=shorttype;
+	   break;
 
-     /* *&<address> */	
-     case longpointer  : gen_push_indirect32(0);
-		         localtype=longtype;
-		         break;
+	   /* *&<address> */	
+     case longpointer  : 
+	   gen_push_indirect32(0);
+	   localtype=longtype;
+	   break;
 
      /* *!<address> */	
-     case singlepointer :gen_push_indirect32(0);
-		         localtype=singletype;
-		         break;
-    }
+     case singlepointer :
+	   gen_push_indirect32(0);
+	   localtype=singletype;
+	   break;
+	 }
    }
   }
   
- return(localtype);
+  return(localtype);
 }
 
-int expterm()
+static int expterm()
 {
-/* exponentiation -> ALWAYS returns single */
-int  i;
-int  firsttype,original_firsttype,localtype,coercedtype;
-BOOL coercion;
-CODE *cx[5];
+  /* exponentiation -> ALWAYS returns single */
+  int  i;
+  int  firsttype,original_firsttype,localtype,coercedtype, factype;
+  BOOL coercion;
+  CODE *cx[5];
 
- firsttype=ptr_term();
- localtype=firsttype;
+  firsttype=ptr_term();
+  localtype=firsttype;
  
- while (sym == raiseto)
- {
-  if ((firsttype == shorttype) || (firsttype == longtype))
-  {
-   /* may need to coerce to singletype */
-   for (i=0;i<=4;i++)
-   {
-    gen_nop();
-    cx[i]=curr_code;
-   }
-  }
+  while (sym == raiseto) {
+	if ((firsttype == shorttype) || (firsttype == longtype)) {
+	  /* may need to coerce to singletype */
+	  for (i=0;i<=4;i++) {
+		gen_nop();
+		cx[i]=curr_code;
+	  }
+	}
 
-  insymbol();
-  factype=ptr_term();
-  if (factype == undefined) return(factype);
-  original_firsttype=firsttype; /* in case of SHORT->single coerce later */
-  coercion=coerce(&firsttype,&factype,cx);
+	insymbol();
+	factype=ptr_term();
+	if (factype == undefined) return(factype);
+	original_firsttype=firsttype; /* in case of SHORT->single coerce later */
+	coercion=coerce(&firsttype,&factype,cx);
     
-  if (coercion)
-  {
-   coercedtype=factype;
+	if (coercion) {
+	  coercedtype=factype;
 
-   /* already singletype? */
-   if (coercedtype != singletype)
-   {
-    /* neither operands are singletype */ 
-    change_Flt(original_firsttype,cx); /* handles SHORT->single coerce */
-    gen_Flt(factype);
-   }
+	  /* already singletype? */
+	  if (coercedtype != singletype) {
+		/* neither operands are singletype */ 
+		change_Flt(original_firsttype,cx); /* handles SHORT->single coerce */
+		gen_Flt(factype);
+	  }
 
-   gen_call("_power",8);	/* - Call exponentiation function. */
-   enter_XREF("_MathTransBase"); /* opens FFP+IEEE SP transcendental libraries */
+	  gen_call("_power",8);	/* - Call exponentiation function. */
+	  enter_XREF("_MathTransBase"); /* opens FFP+IEEE SP transcendental libraries */
 
-   localtype=singletype;  /* MUST always return a single-precision value
-			     because exponent might be -ve! */ 
-  } 
-  else _error(4); /* type mismatch */
+	  localtype=singletype;  /* MUST always return a single-precision value
+								because exponent might be -ve! */ 
+	} else _error(4); /* type mismatch */
 
-  firsttype=localtype;  /* moving record of last sub-expression type */
- }
- return(localtype);
+	firsttype=localtype;  /* moving record of last sub-expression type */
+  }
+  return(localtype);
 }
 
-int negterm()
+static int negterm()
 {
-int  localtype;
-BOOL negate=FALSE;
+  int  localtype;
+  BOOL negate=FALSE;
 
- /* unary negation? */
- if (sym == minus) negate=TRUE;
- if ((sym == minus) || (sym == plus)) insymbol();
- 
- localtype=expterm();
- if (localtype == undefined) return(localtype);
-
- if (negate) {
-   if (localtype == stringtype) _error(4);
-   else gen_neg(localtype);
- }
- return(localtype);
+  /* unary negation? */
+  if (sym == minus) negate=TRUE;
+  if ((sym == minus) || (sym == plus)) insymbol();
+  
+  localtype=expterm();
+  if (localtype == undefined) return(localtype);
+  
+  if (negate) {
+	if (localtype == stringtype) _error(4);
+	else gen_neg(localtype);
+  }
+  return(localtype);
 }
 
-int prodterm()
+static int prodterm()
 {
   /*
 	multiplication     	    -> returns long or single
 	floating-point division  -> returns single
   */
   int  op,i;
-  int  firsttype,original_firsttype,localtype,coercedtype;
+  int  firsttype,original_firsttype,localtype,coercedtype,negtype;
   BOOL coercion;
   CODE *cx[5];
   
@@ -305,264 +262,205 @@ int prodterm()
  return(localtype);
 }
 
-int idivterm()
+static int idivterm()
 {
-/* integer division -- LONG = LONG \ LONG */
-int  i;
-int  firsttype,localtype;
-int  targettype=longtype;
-CODE *cx[5];
-
- firsttype=prodterm();
- localtype=firsttype;
-
- while (sym == idiv) 
- {
-  firsttype=make_integer(firsttype);  /* short or long -> 1st approximation */ 
-
-  /* may need to coerce to long */
-  for (i=0;i<=2;i++)
-  {
-   gen_nop();
-   cx[i]=curr_code;
-  }
-
-  if (firsttype == undefined) return(firsttype);
-
-  coerce(&firsttype,&targettype,cx);  /* make sure it's a long dividend */
+  /* integer division -- LONG = LONG \ LONG */
+  int  i;
+  int  firsttype,localtype,prodtype;
+  int  targettype=longtype;
+  CODE *cx[5];
+  
+  firsttype=prodterm();
   localtype=firsttype;
-
-  insymbol();
-  prodtype=prodterm();
-  if (prodtype == undefined) return(prodtype); 
-  prodtype=make_integer(prodtype);  /* short or long at first */
-
-  if ((firsttype != notype) && (prodtype != notype) &&
-      (firsttype != stringtype) && (prodtype != stringtype))
-  {
-   if (prodtype == shorttype) make_long();  /* ensure that divisor is LONG! */
-   prodtype=longtype;
-   localtype=prodtype;
-
-   /* integer division - args on stack */
-   gen_call("ace_ldiv",8);
+  
+  while (sym == idiv) {
+	firsttype=make_integer(firsttype);  /* short or long -> 1st approximation */ 
+	
+	/* may need to coerce to long */
+	for (i=0;i<=2;i++) {
+	  gen_nop();
+	  cx[i]=curr_code;
+	}
+	
+	if (firsttype == undefined) return(firsttype);
+	
+	coerce(&firsttype,&targettype,cx);  /* make sure it's a long dividend */
+	localtype=firsttype;
+	
+	insymbol();
+	prodtype=prodterm();
+	if (prodtype == undefined) return(prodtype); 
+	prodtype=make_integer(prodtype);  /* short or long at first */
+	
+	if ((firsttype != notype) && (prodtype != notype) &&
+		(firsttype != stringtype) && (prodtype != stringtype))
+	  {
+		if (prodtype == shorttype) make_long();  /* ensure that divisor is LONG! */
+		prodtype=longtype;
+		localtype=prodtype;
+		
+		/* integer division - args on stack */
+		gen_call("ace_ldiv",8);
+	  } else _error(4); /* notype -> type mismatch */
+	firsttype=localtype;  /* moving record of last sub-expression type */
   }
-  else _error(4); /* notype -> type mismatch */
-  firsttype=localtype;  /* moving record of last sub-expression type */
- }
- return(localtype);
+  return(localtype);
 }
 
-int modterm()
+static int modterm()
 {
-/* modulo arithmetic -> returns remainder of long integer or FFP division */
-int  i;
-int  firsttype,localtype;
-int  targettype=longtype;
-CODE *cx[5];
+  /* modulo arithmetic -> returns remainder of long integer or FFP division */
+  int  i;
+  int  firsttype,localtype,idivtype;
+  int  targettype=longtype;
+  CODE *cx[5];
+  
+  firsttype=idivterm();
+  localtype=firsttype;
+  
+  while (sym == modsym)  {
+	/* may need to coerce to single */
+	for (i=0;i<=4;i++)
+	  {
+		gen_nop();
+		cx[i]=curr_code;
+	  }
 
- firsttype=idivterm();
- localtype=firsttype;
-
- while (sym == modsym) 
- {
-  /* may need to coerce to single */
-  for (i=0;i<=4;i++)
-  {
-   gen_nop();
-   cx[i]=curr_code;
-  }
-
-  if (firsttype == undefined) return(firsttype);
-
-  insymbol();
-  idivtype=idivterm();
-
-  if (idivtype == undefined) return(idivtype);
-
-  /* perform integer or FFP modulo operation */
-  if ((firsttype != notype) && (idivtype != notype) &&
-      (firsttype != stringtype) && (idivtype != stringtype))
-  {
-   /* dividend (firsttype) is either short, long or single */
-
-   if ((firsttype == singletype) || (idivtype == singletype))
-   {
-    /* single MOD */
-    coerce(&firsttype,&idivtype,cx);
-    /***************/
-   }
-   else 
-   {
-    /* integer MOD */
-    if (idivtype == shorttype)
-    {
-     make_long();  /* ensure that divisor is LONG! */
-     idivtype=longtype;
-    }
+	if (firsttype == undefined) return(firsttype);
+	
+	insymbol();
+	idivtype=idivterm();
+	
+	if (idivtype == undefined) return(idivtype);
+	
+	/* perform integer or FFP modulo operation */
+	if ((firsttype != notype) && (idivtype != notype) &&
+		(firsttype != stringtype) && (idivtype != stringtype))
+	  {
+		/* dividend (firsttype) is either short, long or single */
+		
+		if ((firsttype == singletype) || (idivtype == singletype)) {
+		  /* single MOD */
+		  coerce(&firsttype,&idivtype,cx);
+		  /***************/
+		} else {
+		  /* integer MOD */
+		  if (idivtype == shorttype) {
+			make_long();  /* ensure that divisor is LONG! */
+			idivtype=longtype;
+		  }
     
-    if (firsttype == shorttype)
-       coerce(&firsttype,&targettype,cx);
-    /***************/
-   }
-
-   localtype=idivtype;  /* short or single */
-
-   if (localtype == longtype) {
-    /* integer MOD - args on stack */
-    gen_call("ace_lrem",8);
-   } else {
-    /* single MOD */
-    gen_pop32d(1);   /* divisor */
-    gen_pop32d(0);   /* dividend */
-    gen_call("_modffp",0);
-    enter_XREF("_MathBase");
-    localtype=singletype;
-   }
+		  if (firsttype == shorttype)
+			coerce(&firsttype,&targettype,cx);
+		  /***************/
+		}
+		
+		localtype=idivtype;  /* short or single */
+		
+		if (localtype == longtype) {
+		  /* integer MOD - args on stack */
+		  gen_call("ace_lrem",8);
+		} else {
+		  /* single MOD */
+		  gen_pop32d(1);   /* divisor */
+		  gen_pop32d(0);   /* dividend */
+		  gen_call("_modffp",0);
+		  enter_XREF("_MathBase");
+		  localtype=singletype;
+		}
+	  } else _error(4); /* notype -> type mismatch */
+	firsttype=localtype;  /* moving record of last sub-expression type */
   }
-  else _error(4); /* notype -> type mismatch */
-  firsttype=localtype;  /* moving record of last sub-expression type */
- }
- return(localtype);
+  return(localtype);
 }
 
-int simple_expr()
+static int simple_expr()
 {
-int  op,i;
-int  firsttype,localtype;
-BOOL coercion;
-CODE *cx[5];
-
- firsttype=modterm();
- localtype=firsttype;
-
- while ((sym == plus) || (sym == minus))
- {
-  if ((firsttype == shorttype) || (firsttype == longtype))
-  {
-   /* may need to coerce */
-   for (i=0;i<=4;i++)
-   {
-    gen_nop();
-    cx[i]=curr_code;
-   }
-  }
-  op=sym;
-  insymbol();
-  modtype=modterm();
-  if (modtype == undefined) return(modtype);
-  coercion=coerce(&firsttype,&modtype,cx);
-  localtype=modtype;
-  if (coercion)
-  {
-   switch(op)
-   {
-    case plus :  if ((modtype != stringtype) && (modtype != shorttype))
-   {
-      gen_pop32d(1);
-    gen_pop32d(0);
-   }
-
-   switch(modtype)
-   {
-    case shorttype  : 	gen_pop16d(1);
-          		gen_pop16d(0);
-            		gen_add16dd(1,0);
-                	break;
- 
-    case longtype   :	gen_add32dd(1,0);
-    		    	break;
-
-    case singletype : 	
-	  gen_libbase("Math");
-	  gen_libcall("SPAdd","Math");
-	  break;
-
-    case stringtype : 	/* copy source to temp string */
-        		gen_pop_addr(2); /* 2nd */
-        		gen_call_args("_strcpy","a1,t0",0);
-        		/* prepare for strcat */
-        		gen_load_addr(tempstrname,0);
-        		gen_move32aa(2,1);
-        		gen_jsr("_strcat");
-        		gen_pea(tempstrname);
-        		break;
-   }
+  int  op,i;
+  int  firsttype,localtype;
+  BOOL coercion;
+  CODE *cx[5];
   
-   if (modtype == shorttype)
-            gen_push16d(0);
-   else
-   if (modtype != stringtype)
-      gen_push32d(0);
-                 break;
-
-    case minus : if ((modtype != stringtype) && (modtype != shorttype))
-   {
-    gen_pop32d(1);
-    gen_pop32d(0);
-   }
-
-   switch(modtype)
-   {
-    case shorttype  : 	gen_pop16d(1);
-   		     	gen_pop16d(0);
-        		gen_sub16dd(1,0);
-                	break;
- 
-    case longtype   : 	gen_sub32dd(1,0);
-         		break;
-
-    case singletype :	
-	  gen_libbase("Math");
-	  gen_libcall("SPSub","Math");
-	  break;
-
-    case stringtype : 	_error(4); break;
-  }
+  firsttype=modterm();
+  localtype=firsttype;
   
-   	if (modtype == shorttype)
-     		gen_push16d(0);
-   	else
-   	    if (modtype != stringtype)
-      		gen_push32d(0);
-     }
-    } 
-    else _error(4); /* notype -> type mismatch */
-   firsttype=localtype;  /* moving record of last sub-expression type */
+  while ((sym == plus) || (sym == minus)) {
+	if ((firsttype == shorttype) || (firsttype == longtype)) {
+	  /* may need to coerce */
+	  for (i=0;i<=4;i++) {
+		gen_nop();
+		cx[i]=curr_code;
+	  }
+	}
+	op=sym;
+	insymbol();
+	int modtype=modterm();
+	if (modtype == undefined) return(modtype);
+	coercion=coerce(&firsttype,&modtype,cx);
+	localtype=modtype;
+	if (coercion) {
+	  if (modtype != stringtype) pop_operands(modtype);
+	  switch(op) {
+	  case plus :  
+		switch(modtype) {
+		case shorttype: gen_add16dd(1,0); break;
+		case longtype:  gen_add32dd(1,0); break;
+		case singletype : 	
+		  gen_libbase("Math");
+		  gen_libcall("SPAdd","Math");
+		  break;
+		case stringtype : 	/* copy source to temp string */
+		  gen_pop_addr(2); /* 2nd */
+		  gen_call_args("_strcpy","a1,t0",0);
+		  /* prepare for strcat */
+		  gen_load_addr(tempstrname,0);
+		  gen_move32aa(2,1);
+		  gen_jsr("_strcat");
+		  gen_pea(tempstrname);
+		  break;
+		}
+		break;
+	  case minus : 
+		switch(modtype) {
+		case shorttype: gen_sub16dd(1,0); break;
+		case longtype:  gen_sub32dd(1,0); break;
+		case singletype :	
+		  gen_libbase("Math");
+		  gen_libcall("SPSub","Math");
+		  break;
+		case stringtype : 	_error(4); break;
+		}
+	  }
+	  if (modtype != stringtype) pop_operands(modtype);
+    } else _error(4); /* notype -> type mismatch */
+	firsttype=localtype;  /* moving record of last sub-expression type */
   }
  return(localtype);
 }
 
-BOOL relop(op)
-int op;
+static BOOL relop(int op)
 {
- if ((op == equal) || (op == notequal) || (op == gtrthan) || 
-     (op == lessthan) || (op == gtorequal) || (op == ltorequal))
-     return(TRUE);
- else
-     return(FALSE);
+  return ((op == equal) || (op == notequal) || (op == gtrthan) || 
+		  (op == lessthan) || (op == gtorequal) || (op == ltorequal));
 }
 
-void make_label(name,lab)
-char *name;
-char *lab;
+void make_label(char * name,char * lab)
 {
-char num[40];
- 
- strcpy(name,"_lab");
- itoa(labelcount++,num,10);
- strcat(name,num);
- strcpy(lab,name);
- strcat(lab,":\0");
+  char num[40];
+  strcpy(name,"_lab");
+  itoa(labelcount++,num,10);
+  strcat(name,num);
+  strcpy(lab,name);
+  strcat(lab,":\0");
 } 
 
-int relexpr() {
+static int relexpr() {
   /* relational expression -> pass through this only ONCE */
   int  i,op=undefined;
   int  firsttype,localtype;
-  char labname[80],lablabel[80],branch[6];
   BOOL coercion;
   CODE *cx[5];
+  int simptype;
 
  firsttype=simple_expr();
  localtype=firsttype;
@@ -581,78 +479,33 @@ int relexpr() {
   if (simptype == undefined) return(simptype);
   coercion=coerce(&firsttype,&simptype,cx);
   localtype=simptype;
-  if (coercion) {
-   /* compare on basis of type -> d5 = d0 op d1 */
-   switch(simptype) {
-    case shorttype  : 	
-	  gen_pop16d(1);  /* 2nd */
-	  gen_pop16d(0);  /* 1st */
-	  gen_load32d_val(-1,5); /* assume true */
-	  gen_cmp16dd(1,0);
-	  break;
-
-    case longtype:
-	  gen_pop32d(1);  /* 2nd */
-	  gen_pop32d(0);  /* 1st */
-	  gen_load32d_val(-1,5); /* assume true */
-	  gen_cmp32dd(1,0);
-	  break;
-
-    case singletype : 	
-	  gen_pop32d(1);  /* 2nd */
-	  gen_pop32d(0);  /* 1st */
-	  gen_load32d_val(-1,5); /* assume true */
-	  gen_libbase("Math");
-	  gen_libcall("SPCmp","Math");
-	  break;
-
-    case stringtype :
-	  switch(op) {
-	  case equal     : gen_call_args("_streq","a1,a0:d0",0); break;
-	  case notequal  : gen_call_args("_strne","a1,a0:d0",0); break;
-	  case lessthan  : gen_call_args("_strlt","a1,a0:d0",0); break;
-	  case gtrthan   : gen_call_args("_strgt","a1,a0:d0",0); break;
-	  case ltorequal : gen_call_args("_strle","a1,a0:d0",0); break;
-	  case gtorequal : gen_call_args("_strge","a1,a0:d0",0); break;
-	  }
-	  break;
-    }
-
-   /* leave result on stack according to operator (-1 = true, 0 = false) */
-   /* (this code for short,long & single comparisons only) */
-   if (simptype != stringtype) {	
-     make_label(labname,lablabel);
-	 gen_bxx(op,labname);
-     gen_load32d_val(0,5);  /* not true */
-     gen_label(lablabel);
-     gen_push32d(5); /* boolean result on stack */
-   }
-  } else _error(4);
+  if (coercion) gen_cmp(simptype,op);
+  else _error(4);
  }
  
  return (op == undefined) ? localtype : longtype; /* BOOLEAN! */
 }
 
-int notexpr() {
-int localtype,op;
+static int notexpr() {
+  int localtype,op;
 
- op=sym;
- if (sym == notsym) insymbol();
+  op=sym;
+  if (sym == notsym) insymbol();
 
- localtype=relexpr();
+  localtype=relexpr();
 
- if (op == notsym) {
-   localtype=make_integer(localtype);
-   if (localtype == notype) return(localtype);
-   if (localtype == shorttype) gen_not16sp();
-   else gen_not32sp();
- }
- return(localtype);
+  if (op == notsym) {
+	localtype=make_integer(localtype);
+	if (localtype == notype) return(localtype);
+	if (localtype == shorttype) gen_not16sp();
+	else gen_not32sp();
+  }
+  return(localtype);
 }
 
-int andexpr() {
+static int andexpr() {
   int  op,i;
-  int  firsttype,localtype;
+  int  firsttype,localtype,nottype;
   CODE *cx[5];
   
   firsttype=notexpr();
@@ -689,9 +542,9 @@ int andexpr() {
  return(localtype);
 }
 
-int orexpr() {
+static int orexpr() {
   int  op,i;
-  int  firsttype,localtype;
+  int  firsttype,localtype,andtype;
   CODE *cx[5];
   
   firsttype=andexpr();
@@ -730,9 +583,9 @@ int orexpr() {
   return(localtype);
 }
 
-int eqvexpr() {
+static int eqvexpr() {
   int  op,i;
-  int  firsttype,localtype;
+  int  firsttype,localtype,ortype;
   CODE *cx[5];
   
   firsttype=orexpr();
@@ -771,7 +624,7 @@ int eqvexpr() {
 
 int expr() {
   int  op,i;
-  int  firsttype,localtype;
+  int  firsttype,localtype,eqvtype;
   CODE *cx[5];
   
   firsttype=eqvexpr();
@@ -808,91 +661,3 @@ int expr() {
   return(localtype);
 }
 
-void pop_operands(int typ) {
-  if (typ == shorttype) {
-	gen_pop16d(0);  /* 2nd operand */
-	gen_pop16d(1);  /* 1st operand -> d0 = d1 op d0 */
-  } else {
-	gen_pop32d(0);  /* 2nd operand */
-	gen_pop32d(1);  /* 1st operand -> d0 = d1 op d0 */
-  } 
-}
-
-void push_result(int typ) {
- if (typ == shorttype) gen_push16d(0);
- else gen_push32d(0);
-}
-
-void gen_round(int type) {  
-  /*
-  ** Convert float to integer
-  ** with rounding.
-  */
-  gen_call_args("_round","d0:d0",0);
-  enter_XREF("_MathBase");
-
-  /*
-  ** Only relevant when called from
-  ** assign_coerce() and STOREType=shorttype.
-  */
-  if (type == shorttype) {
-   gen_pop32d(0);
-   gen_push16d(0);
-  }
-}  
- 
-/* convert an integer to a single-precision float */
-int gen_Flt(int typ) {
-  if (typ == singletype) return singletype;  /* already a float! */
-  if (typ == stringtype) {_error(4); return undefined; } /* can't do it */
-  if (typ == shorttype) gen_pop16d(0);
-  else gen_pop32d(0);
-  if (typ == shorttype) gen_ext16to32(0); /* extend sign */
-  gen_libbase("Math");
-  gen_libcall("SPFlt","Math");
-  gen_push32d(0);
-  return singletype;
-}
-
-void change_Flt(int exptyp,CODE * cx[]) {
-  /* convert an integer to a float */
-  if (exptyp == shorttype) change(cx[0],"move.w","(sp)+","d0");
-  else change(cx[0],"move.l","(sp)+","d0");
-  if (exptyp == shorttype) change(cx[1],"ext.l","d0","  ");
-  change(cx[2],"move.l","_MathBase","a6");
-  change(cx[3],"jsr","_LVOSPFlt(a6)","  ");
-  change(cx[4],"move.l","d0","-(sp)");
-  enter_XREF("_LVOSPFlt");
-  enter_XREF("_MathBase");
-}
-
-int make_integer(int oldtyp) {
-  if (oldtyp == stringtype) return(notype); /* can't do it! */
-  else if (oldtyp == singletype) { 
-	gen_round(oldtyp);
-	return(longtype); 
-  }
-  return(oldtyp);  /* already an integer */
-}
-
-int make_sure_short(int type) {
- if (type == longtype) make_short();
- else if (type == singletype) { make_integer(type); make_short(); }
- else if (type == stringtype) { _error(4); return undefined; }
- return shorttype;
-}
-
-int gen_pop_as_short(int type, unsigned char reg) {
-  if (type == singletype) type = make_integer(type);
-  if (type == longtype) gen_pop32d(reg);
-  else if (type == shorttype) { gen_pop16d(reg); }
-  else if (type == stringtype) { _error(4); return undefined; }
-  return shorttype;
-}
-
-int make_sure_long(int type) {
- if      (type == shorttype) make_long();
- else if (type == singletype) make_integer(type);
- else if (type == stringtype) { _error(4); return undefined; }
- return longtype;
-}

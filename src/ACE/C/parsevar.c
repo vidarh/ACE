@@ -85,11 +85,10 @@ BOOL restore_a4=FALSE;
 BOOL restore_a5=FALSE;
 CODE *exit_for_cx=NULL;
 
-/* --expression type holders-- */
-int  storetype,eqvtype,ortype,andtype,nottype,simptype;
-int  modtype,idivtype,prodtype,negtype,exptype,factype;
+int storetype;
 
 /* --miscellaneous parser variables-- */
+
 int  fstrcount=0;		/* PRINT format string counter */
 int  strconstcount=0;           /* string constant counter */
 int  strstorecount=0;           /* string storage counter */
