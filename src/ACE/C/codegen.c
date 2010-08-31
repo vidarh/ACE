@@ -2,6 +2,11 @@
 #include "acedef.h"
 #include "codegen.h"
 
+void codegen_set_target(struct codegen_target * t)
+{
+  target = t;
+}
+
 extern BOOL   early_exit;
 extern CODE * new_code, * curr_code;
 
@@ -106,7 +111,7 @@ void gen_branch(char * branch, char * labname) {
 
 void gen_link() { gen("link","a5","  "); }
 void gen_unlk() { gen("unlk","a5","  "); }
-void gen_rts() { gen("rts","  ","  "); }
+static void generic_rts() { gen("rts","  ","  "); }
 void gen_bne(const char * label) { gen_bxx(notequal, label); }
 void gen_beq(const char * label) { gen_bxx(equal, label); }
 void gen_bge(const char * label) { gen_bxx(gtorequal, label); }
@@ -135,11 +140,27 @@ void gen_cmp16dd(BYTE r1, BYTE r2) { gen("cmp.w",dreg[r1],dreg[r2]); }
 void gen_cmp32dd(BYTE r1, BYTE r2) { gen("cmp.l",dreg[r1],dreg[r2]); }
 void gen_not16d(unsigned char reg) { gen("not.w",dreg[reg],"  "); }
 void gen_neg16d(unsigned char r) { gen("neg.w",dreg[r],"  "); }
+
+void m68k_neg(int type)
+{
+  switch(type) {
+  case shorttype: gen("neg.w","(sp)","  "); break;
+  case longtype:  gen("neg.l","(sp)","  "); break;
+  case singletype: 
+	gen_pop32d(0); 
+	gen_libbase("Math");
+	gen_libcall("SPNeg","Math");
+	gen_push32d(0);
+	break;
+  }
+}
+
 void gen_neg16sp() { gen("neg.w","(sp)","  "); }
 void gen_neg32sp() { gen("neg.l","(sp)","  "); }
+
+
 void gen_not16sp() { gen("not.w","(sp)","  "); }
 void gen_not32sp() { gen("not.l","(sp)","  "); }
-void gen_muls()    { gen("muls","d1","d0"); }
 void gen_push_indirect_indexed16() { gen("move.w","0(a0,d7.L)","-(sp)"); }
 void gen_push_indirect_indexed32() { gen("move.l","0(a0,d7.L)","-(sp)"); }
 
@@ -354,8 +375,19 @@ void gen_and16dd(BYTE reg1, BYTE reg2) { gen("and.w",dreg[reg1],dreg[reg2]); }
 
 void gen_or32dd(unsigned char reg1, unsigned char reg2) { gen("or.l",dreg[reg1],dreg[reg2]); }
 void gen_or16dd(unsigned char reg1, unsigned char reg2) { gen("or.w",dreg[reg1],dreg[reg2]); }
-void gen_eor32dd(unsigned char reg1, unsigned char reg2) { gen("eor.l",dreg[reg1],dreg[reg2]); }
-void gen_eor16dd(unsigned char reg1, unsigned char reg2) { gen("eor.w",dreg[reg1],dreg[reg2]); }
+
+static void m68k_or(int type)
+{
+  if (type == shorttype) gen("or.w","d1","d0");
+  else gen("or.l","d1","d0");
+}
+
+static void m68k_eor(int type)
+{
+  if (type == shorttype) gen("eor.w","d1","d0");
+  else gen("eor.l","d1","d0");
+}
+
 void gen_asr32dd(unsigned char reg1, unsigned char reg2) { gen("asr.l",dreg[reg1],dreg[reg2]); }
 void gen_asl32dd(BYTE r1, BYTE r2) { gen("asl.l",dreg[r1],dreg[r2]); }
 void gen_sub16dd(BYTE r1, BYTE r2) { gen("sub.w",dreg[r1],dreg[r2]); }
@@ -587,3 +619,36 @@ void gen_call_indirect(const char * addr) {
   gen("move.l",addr,"a0");
   gen("jsr","(a0)","  ");
 }
+
+static int m68k_muls(int type)
+{
+  switch(type) {
+  case shorttype:  
+	pop_operands(shorttype);
+	gen("muls","d1","d0");
+	return longtype;
+	break;
+  case longtype   :	/* args on stack */
+	gen_call_void("lmul",8); 
+	return longtype;
+	break;
+  case singletype :  
+	pop_operands(shorttype);
+	gen_libbase("Math");
+	gen_libcall("SPMul","Math");
+	return singletype;
+	break;
+  }
+  return notype;
+}
+
+/* The m68k target */
+
+struct codegen_target m68k_target = {
+  m68k_eor,
+  m68k_muls,
+  m68k_neg,
+  m68k_or,
+  generic_rts,
+};
+

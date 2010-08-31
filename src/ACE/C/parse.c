@@ -653,6 +653,8 @@ int main(int argc,char * argv[]) {
 	  if (tmparg) free(tmparg);
   }
 
+  codegen_set_target(&m68k_target);
+  
   /* 
   ** compile program 
   */

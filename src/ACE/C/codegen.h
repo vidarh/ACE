@@ -1,9 +1,37 @@
 #ifndef CODEGEN_H
 #define CODEGEN_H
 
+/* A "vtable" for the code generators, to present a CPU independent interface.
+   Once complete, retargeting to a new CPU should be a matter of copying an
+   existing codegen_target structure that most closely resembles the new CPU,
+   and replace the appropriate function pointers.
+*/
+struct codegen_target {
+  /* Simple, low level functions that are reasonably common on many
+	 architectures, in alphabetic order */
+
+  void (* eor)(int);
+  int (* muls)(int);
+  void (* neg)(int type);
+  void (* or)(int);
+  void (* rts)();
+};
+
+struct codegen_target * target;
+
+void codegen_set_target(struct codegen_target * t);
+
+/* Current targets */
+struct codegen_target m68k_target;
+
 /* Low level code generation functions */
 
-void gen_rts();
+static inline void gen_rts() { target->rts(); }
+static inline void gen_eor(int type) { target->eor(type); }
+static inline void gen_or(int type) { target->or(type); }
+static inline void gen_neg(int type) { target->neg(type); }
+static inline int gen_muls(int type) { return target->muls(type); }
+
 void gen_move32(const char * src, const char * dest);
 void gen_incr_indirect16();
 void gen_incr_indirect32();

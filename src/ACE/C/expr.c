@@ -228,112 +228,74 @@ BOOL negate=FALSE;
  localtype=expterm();
  if (localtype == undefined) return(localtype);
 
- if (negate)
- {
-  switch(localtype)
-  {
-   case shorttype  : gen_neg16sp(); break;
-   case longtype   : gen_neg16sp(); break;
-   case singletype : gen_pop32d(0); 
-       gen_libbase("Math");
-       gen_libcall("SPNeg","Math");
-       gen_push32d(0);
-       break;
-   case stringtype : _error(4); break;
-  }
+ if (negate) {
+   if (localtype == stringtype) _error(4);
+   else gen_neg(localtype);
  }
  return(localtype);
 }
 
 int prodterm()
 {
-/*
-   multiplication     	    -> returns long or single
-   floating-point division  -> returns single
-*/
-int  op,i;
-int  firsttype,original_firsttype,localtype,coercedtype;
-BOOL coercion;
-CODE *cx[5];
+  /*
+	multiplication     	    -> returns long or single
+	floating-point division  -> returns single
+  */
+  int  op,i;
+  int  firsttype,original_firsttype,localtype,coercedtype;
+  BOOL coercion;
+  CODE *cx[5];
+  
+  firsttype=negterm();
+  localtype=firsttype;
+  
+  while ((sym == multiply) || (sym == fdiv)) {
+	if ((firsttype == shorttype) || (firsttype == longtype)) {
+	  /* may need to coerce to singletype or longtype */
+	  for (i=0;i<=4;i++) {
+		gen_nop();
+		cx[i]=curr_code;
+	  }
+	}
+	
+	op=sym;  /* multiply or fdiv ? */
+	
+	insymbol();
+	negtype=negterm();
 
- firsttype=negterm();
- localtype=firsttype;
- 
- while ((sym == multiply) || (sym == fdiv))
- {
-  if ((firsttype == shorttype) || (firsttype == longtype))
-  {
-   /* may need to coerce to singletype or longtype */
-   for (i=0;i<=4;i++)
-   {
-    gen_nop();
-    cx[i]=curr_code;
-   }
-  }
-
-  op=sym;  /* multiply or fdiv ? */
-
-  insymbol();
-  negtype=negterm();
-
-  if (negtype == undefined) return(negtype);
-
-  /* save firsttype in case of a SHORT->single coercion 
-     later because coercion will need to start over again 
-     to avoid short->single code overwriting short->long code */
-
-  original_firsttype=firsttype; 
-  coercion=coerce(&firsttype,&negtype,cx);
+	if (negtype == undefined) return(negtype);
+	
+	/* save firsttype in case of a SHORT->single coercion 
+	   later because coercion will need to start over again 
+	   to avoid short->single code overwriting short->long code */
+	
+	original_firsttype=firsttype; 
+	coercion=coerce(&firsttype,&negtype,cx);
     
-  /* if not stringtype, perform operation */
-  if (coercion) 
-  {
-   coercedtype=negtype;
+	/* if not stringtype, perform operation */
+	if (coercion) {
+	  coercedtype=negtype;
 
-   /* make sure operands are singletype if FFP division */
-   if ((op == fdiv) && (coercedtype != singletype))
-   {
-    /* neither operands are singletype 
-       -> both short or long */ 
-    change_Flt(original_firsttype,cx); /* handles SHORT->single correctly */
-    gen_Flt(negtype);
-    coercedtype=singletype;
-   }
+	  /* make sure operands are singletype if FFP division */
+	  if ((op == fdiv) && (coercedtype != singletype)) {
+		/* neither operands are singletype 
+		   -> both short or long */ 
+		change_Flt(original_firsttype,cx); /* handles SHORT->single correctly */
+		gen_Flt(negtype);
+		coercedtype=singletype;
+	  }
 
-   if ((op == multiply) && (coercedtype != longtype)) 
-      pop_operands(coercedtype);
-
-   switch(op)
-   {
-    case multiply : switch(coercedtype)
-		    {
-		     case shorttype  :  gen_muls();
-					localtype=longtype;
-					break;
-			
-		     case longtype   :	/* args on stack */
-					gen_call_void("lmul",8); 
-					localtype=longtype;
-					break;
-
-			case singletype :  
-			  gen_libbase("Math");
-			  gen_libcall("SPMul","Math");
-			  localtype=singletype;
-			  break;
-		    }
-		    break;
-
-    case fdiv:
-	  gen_pop32d(1);  /* 2nd operand */
-	  gen_pop32d(0);  /* 1st operand */
-	  gen_libbase("Math");
-	  gen_libcall("SPDiv","Math");  
-	  localtype=singletype;
-	  break;
-   }
-
-   push_result(localtype);  /* result */
+	  switch(op) {
+	  case multiply: localtype = gen_muls(coercedtype); break;
+	  case fdiv:
+		gen_pop32d(1);  /* 2nd operand */
+		gen_pop32d(0);  /* 1st operand */
+		gen_libbase("Math");
+		gen_libcall("SPDiv","Math");  
+		localtype=singletype;
+		break;
+	  }
+	  push_result(localtype);  /* result */
 
   } 
   else _error(4); /* notype -> type mismatch */
@@ -756,14 +718,8 @@ int orexpr() {
 		if (andtype != notype) {
 		  pop_operands(andtype);  
 		  switch(op) {
-		  case orsym  : 
-			if (andtype == shorttype) gen_or16dd(1,0);
-			else gen_or32dd(1,0);
-			break;
-		  case xorsym : 
-			if (andtype == shorttype) gen_eor16dd(1,0);
-			else gen_eor32dd(1,0);
-			break;
+		  case orsym  : gen_or(andtype); break;
+		  case xorsym : gen_eor(andtype); break;
 		  }
 		  push_result(andtype);
 		} else _error(4);

@@ -325,7 +325,8 @@ BOOL offset_on_stack;
 	   if (ntype == stringtype) {
 		 gen_pop_addr(0);
 		 gen_load_indirect(0,1);
-		 gen_ext8to32(1); /* MID$(X$,1,1) */
+		 gen_ext8to16(1);
+		 gen_ext16to32(1); /* MID$(X$,1,1) */
 	   } else {
 		 make_sure_long(ntype);
 		 gen_pop32d(1);	/* J */			
