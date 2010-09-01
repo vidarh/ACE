@@ -125,10 +125,21 @@ static int ptr_term()
   return(localtype);
 }
 
+static void alloc_coerce_space(int type,CODE ** cx, int num)
+{
+  int i;
+  if ((type == shorttype) || (type == longtype)) {
+	/* may need to coerce */
+	for (i=0;i< num;i++) {
+	  gen_nop();
+	  cx[i]=curr_code;
+	}
+  }
+}
+
 static int expterm()
 {
   /* exponentiation -> ALWAYS returns single */
-  int  i;
   int  firsttype,original_firsttype,localtype,coercedtype, factype;
   BOOL coercion;
   CODE *cx[5];
@@ -137,13 +148,7 @@ static int expterm()
   localtype=firsttype;
  
   while (sym == raiseto) {
-	if ((firsttype == shorttype) || (firsttype == longtype)) {
-	  /* may need to coerce to singletype */
-	  for (i=0;i<=4;i++) {
-		gen_nop();
-		cx[i]=curr_code;
-	  }
-	}
+	alloc_coerce_space(firsttype,cx,5);
 
 	insymbol();
 	factype=ptr_term();
@@ -192,14 +197,45 @@ static int negterm()
   return(localtype);
 }
 
+
+static int generic_expr(int mysym, int (* subexpr)(), void(* gen)(int)) {
+  int  op,firsttype,localtype;
+  CODE *cx[5];
+  
+  firsttype=subexpr();
+  localtype=firsttype;
+
+  if (sym == mysym) {
+	firsttype=make_integer(firsttype);  
+	if (firsttype != notype) {
+	  while (sym == mysym) {
+		alloc_coerce_space(firsttype,cx,5);
+		op=sym;
+		insymbol();
+		localtype=subexpr(); 
+		if (localtype == undefined) return undefined;
+		localtype=make_integer(localtype);
+		coerce(&firsttype,&localtype,cx);
+		if (localtype != notype) {
+		  pop_operands(localtype);
+		  gen(localtype);
+		  push_result(localtype);
+		} else _error(4);
+	  }
+	} else _error(4);
+	firsttype=localtype;
+  }
+  return(localtype);
+}
+
+
 static int prodterm()
 {
   /*
 	multiplication     	    -> returns long or single
 	floating-point division  -> returns single
   */
-  int  op,i;
-  int  firsttype,original_firsttype,localtype,coercedtype,negtype;
+  int  op,firsttype,original_firsttype,localtype,coercedtype,negtype;
   BOOL coercion;
   CODE *cx[5];
   
@@ -207,13 +243,7 @@ static int prodterm()
   localtype=firsttype;
   
   while ((sym == multiply) || (sym == fdiv)) {
-	if ((firsttype == shorttype) || (firsttype == longtype)) {
-	  /* may need to coerce to singletype or longtype */
-	  for (i=0;i<=4;i++) {
-		gen_nop();
-		cx[i]=curr_code;
-	  }
-	}
+	alloc_coerce_space(firsttype,cx,5);
 	
 	op=sym;  /* multiply or fdiv ? */
 	
@@ -319,13 +349,7 @@ static int modterm()
   localtype=firsttype;
   
   while (sym == modsym)  {
-	/* may need to coerce to single */
-	for (i=0;i<=4;i++)
-	  {
-		gen_nop();
-		cx[i]=curr_code;
-	  }
-
+	alloc_coerce_space(firsttype,cx,5);
 	if (firsttype == undefined) return(firsttype);
 	
 	insymbol();
@@ -376,8 +400,7 @@ static int modterm()
 
 static int simple_expr()
 {
-  int  op,i;
-  int  firsttype,localtype;
+  int  op,firsttype,localtype;
   BOOL coercion;
   CODE *cx[5];
   
@@ -385,24 +408,17 @@ static int simple_expr()
   localtype=firsttype;
   
   while ((sym == plus) || (sym == minus)) {
-	if ((firsttype == shorttype) || (firsttype == longtype)) {
-	  /* may need to coerce */
-	  for (i=0;i<=4;i++) {
-		gen_nop();
-		cx[i]=curr_code;
-	  }
-	}
+	alloc_coerce_space(firsttype,cx,5);
 	op=sym;
 	insymbol();
-	int modtype=modterm();
-	if (modtype == undefined) return(modtype);
-	coercion=coerce(&firsttype,&modtype,cx);
-	localtype=modtype;
+	localtype=modterm();
+	if (localtype == undefined) return(localtype);
+	coercion=coerce(&firsttype,&localtype,cx);
 	if (coercion) {
-	  if (modtype != stringtype) pop_operands(modtype);
+	  if (localtype != stringtype) pop_operands(localtype);
 	  switch(op) {
 	  case plus :  
-		switch(modtype) {
+		switch(localtype) {
 		case shorttype: gen_add16dd(1,0); break;
 		case longtype:  gen_add32dd(1,0); break;
 		case singletype : 	
@@ -421,7 +437,7 @@ static int simple_expr()
 		}
 		break;
 	  case minus : 
-		switch(modtype) {
+		switch(localtype) {
 		case shorttype: gen_sub16dd(1,0); break;
 		case longtype:  gen_sub32dd(1,0); break;
 		case singletype :	
@@ -431,7 +447,7 @@ static int simple_expr()
 		case stringtype : 	_error(4); break;
 		}
 	  }
-	  if (modtype != stringtype) pop_operands(modtype);
+	  if (localtype != stringtype) pop_operands(localtype);
     } else _error(4); /* notype -> type mismatch */
 	firsttype=localtype;  /* moving record of last sub-expression type */
   }
@@ -456,7 +472,7 @@ void make_label(char * name,char * lab)
 
 static int relexpr() {
   /* relational expression -> pass through this only ONCE */
-  int  i,op=undefined;
+  int  op=undefined;
   int  firsttype,localtype;
   BOOL coercion;
   CODE *cx[5];
@@ -466,21 +482,15 @@ static int relexpr() {
  localtype=firsttype;
 
  if (relop(sym)) {
-   if ((firsttype == shorttype) || (firsttype == longtype)) {
-   /* may need to coerce */
-	for (i=0;i<=4;i++) {
-	  gen_nop();
-	  cx[i]=curr_code;
-	}
-  }
-  op=sym;
-  insymbol();
-  simptype=simple_expr();
-  if (simptype == undefined) return(simptype);
-  coercion=coerce(&firsttype,&simptype,cx);
-  localtype=simptype;
-  if (coercion) gen_cmp(simptype,op);
-  else _error(4);
+   alloc_coerce_space(firsttype,cx,5);
+   op=sym;
+   insymbol();
+   simptype=simple_expr();
+   if (simptype == undefined) return(simptype);
+   coercion=coerce(&firsttype,&simptype,cx);
+   localtype=simptype;
+   if (coercion) gen_cmp(simptype,op);
+   else _error(4);
  }
  
  return (op == undefined) ? localtype : longtype; /* BOOLEAN! */
@@ -503,48 +513,16 @@ static int notexpr() {
   return(localtype);
 }
 
-static int andexpr() {
-  int  op,i;
-  int  firsttype,localtype,nottype;
-  CODE *cx[5];
-  
-  firsttype=notexpr();
-  localtype=firsttype;
-  
-  if (sym == andsym) {
-  firsttype=make_integer(firsttype);  
-  if (firsttype != notype) {
-   while (sym == andsym) {
-    if ((firsttype == shorttype) || (firsttype == longtype)) {
-	  /* may need to coerce */
-	  for (i=0;i<=4;i++) {
-		gen_nop();
-		cx[i]=curr_code;
-	  }
-    }
-    op=sym;
-    insymbol();
-    nottype=notexpr(); 
-    if (nottype == undefined) return(nottype);
-    nottype=make_integer(nottype);
-    coerce(&firsttype,&nottype,cx);
-    localtype=nottype;
-    if (nottype != notype) {
-	  pop_operands(nottype);
-	  if (nottype == shorttype)  gen_and16dd(1,0);
-	  else gen_and32dd(1,0);
-	  push_result(nottype);
-    } else _error(4);
-   }
-  } else _error(4);
-  firsttype=localtype;
-  }
- return(localtype);
+static void gen_and(int localtype)
+{
+  if (localtype == shorttype)  gen_and16dd(1,0);
+  else gen_and32dd(1,0);
 }
 
+static int andexpr() { return generic_expr(andsym, &notexpr,&gen_and); }
+
 static int orexpr() {
-  int  op,i;
-  int  firsttype,localtype,andtype;
+  int  op,firsttype,localtype,andtype;
   CODE *cx[5];
   
   firsttype=andexpr();
@@ -554,13 +532,7 @@ static int orexpr() {
 	firsttype=make_integer(firsttype);  
 	if (firsttype != notype) {
 	  while ((sym == orsym) || (sym == xorsym)) {
-		if ((firsttype == shorttype) || (firsttype == longtype)) {
-		  /* may need to coerce */
-		  for (i=0;i<=4;i++) {
-			gen_nop();
-			cx[i]=curr_code;
-		  }
-		}
+		alloc_coerce_space(firsttype,cx,5);
 		op=sym;
 		insymbol();
 		andtype=andexpr();
@@ -583,81 +555,24 @@ static int orexpr() {
   return(localtype);
 }
 
-static int eqvexpr() {
-  int  op,i;
-  int  firsttype,localtype,ortype;
-  CODE *cx[5];
-  
-  firsttype=orexpr();
-  localtype=firsttype;
+static void gen_eqv(int localtype)
+{
+  if (localtype == shorttype) gen_jsr("_eqvw");
+  else gen_jsr("_eqvl");
+}
 
-  if (sym == eqvsym) {
-	firsttype=make_integer(firsttype);  
-	if (firsttype != notype) {
-	  while (sym == eqvsym) {
-		if ((firsttype == shorttype) || (firsttype == longtype)) {
-		  /* may need to coerce */
-		  for (i=0;i<=4;i++) {
-			gen_nop();
-			cx[i]=curr_code;
-		  }
-		}
-		op=sym;
-		insymbol();
-		ortype=orexpr(); 
-		if (ortype == undefined) return(ortype);
-		ortype=make_integer(ortype);
-		coerce(&firsttype,&ortype,cx);
-		localtype=ortype;
-		if (ortype != notype) {
-		  pop_operands(ortype);
-		  if (ortype == shorttype) gen_jsr("_eqvw");
-		  else gen_jsr("_eqvl");
-		  push_result(ortype);
-		} else _error(4);
-	  }
-	} else _error(4);
-	firsttype=localtype;
-  }
-  return(localtype);
+static int eqvexpr() {
+  return generic_expr(eqvsym,&orexpr,&gen_eqv);
+}
+
+void gen_imp(int type)
+{
+  	if (type == shorttype) gen_jsr("_impw");
+	else gen_jsr("_impl");
+	push_result(type);
 }
 
 int expr() {
-  int  op,i;
-  int  firsttype,localtype,eqvtype;
-  CODE *cx[5];
-  
-  firsttype=eqvexpr();
-  localtype=firsttype;
-  
-  if (sym == impsym) {
-	firsttype=make_integer(firsttype);  
-	if (firsttype != notype) {
-	  while (sym == impsym) {
-		if ((firsttype == shorttype) || (firsttype == longtype)) {
-		  /* may need to coerce */
-		  for (i=0;i<=4;i++) {
-			gen_nop();
-			cx[i]=curr_code;
-		  }
-		}
-		op=sym;
-		insymbol();
-		eqvtype=eqvexpr(); 
-		if (eqvtype == undefined) return(eqvtype);
-		eqvtype=make_integer(eqvtype);
-		coerce(&firsttype,&eqvtype,cx);
-		localtype=eqvtype;
-		if (eqvtype != notype) {
-		  pop_operands(eqvtype);
-		  if (eqvtype == shorttype) gen_jsr("_impw");
-		  else gen_jsr("_impl");
-		  push_result(eqvtype);
-		} else _error(4);
-	  }
-	} else _error(4);
-	firsttype=localtype;
-  }
-  return(localtype);
+  return generic_expr(impsym, &eqvexpr, &gen_imp);
 }
 
