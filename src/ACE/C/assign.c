@@ -80,38 +80,25 @@ extern	BOOL 	have_equal;
 
 /* functions */
 
-int assign_coerce(storetype,exptype)
-int storetype,exptype;
+int assign_coerce(int storetype,int exptype)
 {
  /* coerce expression type to store type */
 
- if (((storetype == stringtype) && (exptype != stringtype)) ||
+  if (((storetype == stringtype) && (exptype != stringtype)) ||
     ((storetype != stringtype) && (exptype == stringtype))) return(notype);
- else
- if (((storetype == shorttype) || (storetype == longtype))
-    && (exptype == singletype)) 
- {
-  gen_round(storetype);
- } 
- else
- if ((storetype == singletype) &&
-     ((exptype == shorttype) || (exptype == longtype))) 
- {
-  gen_Flt(exptype);
- }
- else
- if ((storetype == longtype) && (exptype == shorttype))
- {
-  gen_pop16d(0);
-  gen_ext16to32(0);
-  gen_push32d(0);
- }
- else
- if ((storetype == shorttype) && (exptype == longtype))
- {
-  gen_pop32d(0);
-  /*gen("andi.l","#$ffff","d0");*/
-  gen_push16d(0);
+ else if (((storetype == shorttype) || (storetype == longtype))
+		  && (exptype == singletype)) {
+   gen_round(storetype);
+ } else if ((storetype == singletype) &&
+			((exptype == shorttype) || (exptype == longtype))) {
+   gen_Flt(exptype);
+ } else if ((storetype == longtype) && (exptype == shorttype)) {
+   gen_pop16d(0);
+   gen_ext16to32(0);
+   gen_push32d(0);
+ } else if ((storetype == shorttype) && (exptype == longtype)) {
+   gen_pop32d(0);
+   gen_push16d(0);
  }
 
  return(storetype);  /* could be bytetype (for struct member) */
@@ -119,383 +106,304 @@ int storetype,exptype;
 
 void make_string_store() {
   char numbuf[40];
-
- itoa(strstorecount++,numbuf,10);
- strcpy(strstorename,"_stringstore");
- strcat(strstorename,numbuf);
- strcpy(strstorelabel,strstorename);
- strcat(strstorelabel,":\0");
+  
+  itoa(strstorecount++,numbuf,10);
+  strcpy(strstorename,"_stringstore");
+  strcat(strstorename,numbuf);
+  strcpy(strstorelabel,strstorename);
+  strcat(strstorelabel,":");
 }
 
-void create_string_variable(string_item,string_size)
-SYM *string_item;
-int string_size;
+void create_string_variable(SYM * string_item,int string_size)
 {
-/* creates a unique BSS object for a string variable 
-   and stores its address in the string variable
-   pointer in the stack frame. 
-*/
-char stringvarname[40],stringvarlabel[40],bss_size[20];
-char numbuf[10],addrbuf[20];
-
- /* keep a record of "stringvar" number which is
-    about to be created (for simple string variables
-    and string SUBs only) for future reference. 
- */
- string_item->numconst.longnum = stringvarcount;
-
- /* make name of BSS object */
- strcpy(stringvarname,"_stringvar");
- itoa(stringvarcount++,numbuf,10);
- /* name */
- strcat(stringvarname,numbuf);
- /* label */
- strcpy(stringvarlabel,stringvarname);
- strcat(stringvarlabel,":\0");
- 
- /* size of BSS object */
- itoa(string_size,numbuf,10);
- strcpy(bss_size,"ds.b ");
- strcat(bss_size,numbuf);
-
- /* enter bss object */
- enter_BSS(stringvarlabel,bss_size);
-
- /* store bss object address in stack frame */
- itoa(-1*string_item->address,addrbuf,10);
- strcat(addrbuf,frame_ptr[lev]);
-
- gen_pea(stringvarname);
- gen_pop32_var(addrbuf); 
-}
-
-void assign_to_string_variable(string_item,string_size)
-SYM *string_item;
-int string_size;
-{
-/* assigns a string on the stack 
-   to the specified string variable 
-*/
-char addrbuf[20],buf[80];
-
- /* get stack frame address holder */
- itoa(-1*string_item->address,addrbuf,10);
- strcat(addrbuf,frame_ptr[lev]);
-
- if (string_item->new_string_var)
- {
-  /* create a BSS object for new string variable */
-  create_string_variable(string_item,string_size);
-  string_item->new_string_var=FALSE;  
- }
- else
- if (string_item->decl != declared && !string_item->shared)
- {
-  /* Make sure there is a valid address in the 
-     variable's stack-frame address holder EACH
-     time the variable is to be assigned a value.
-
-     The reason is that unlike a declared string
-     variable or array, an undeclared string variable 
-     might not have a valid address at the time of 
-     assignment since the first occurrence of said 
-     variable may be as part of a case statement which 
-     might NEVER be reached.
-
-     However, we still need string variable address
-     in stack frame for other purposes (eg: passing
-     to SUBs, use in factor() etc). 
-   */
-   sprintf(buf,"#_stringvar%ld",(long)string_item->numconst.longnum);
-   gen_move32(buf,addrbuf);
- }
-
- /* copy string on stack to variable */
- gen_pop_addr(1);  /* source */
- gen_load32a(addrbuf,0);  /* destination */
- gen_jsr("_strcpy");   /* copy source to destination */
-}
-
-void assign_to_string_array(addrbuf)
-char *addrbuf;
-{
-/* - assigns a string on the stack 
-     to the specified string array element.
-   - assumes absolute index is in d7.
-*/
-
- gen_pop_addr(1); /* source */
- gen_save32a(addrbuf,0);
- gen_add32da(7,0);   /* destination */
-
- gen_jsr("_strcpy");  /* copy source to destination */
-}
-
-void assign_to_struct(item)
-SYM *item;
-{
-/* assign either an address to 
-   a structure variable or a
-   value to one of its members.
-*/
-SYM    *structype;
-char   addrbuf[40],absbuf[40],numbuf[40];
-STRUCM *member;
-BOOL   found=FALSE;
-int    exprtype,storetype;
-
- if (sym == memberpointer)
- {
-  /* assign value to a member */
-
-  /* get pointer to structure 
-     type definition. 
+  /* creates a unique BSS object for a string variable 
+	 and stores its address in the string variable
+	 pointer in the stack frame. 
   */
-  structype = item->other; 
+  char stringvarname[40],stringvarlabel[40],bss_size[20];
+  char numbuf[10],addrbuf[20];
 
-  insymbol();
+  /* keep a record of "stringvar" number which is
+	 about to be created (for simple string variables
+	 and string SUBs only) for future reference. 
+  */
+  string_item->numconst.longnum = stringvarcount;
 
-  if (sym != ident) 
-     _error(7);
-  else
-  {
-   /* does member exist? */
-   member = structype->structmem->next;
-   while ((member != NULL) && (!found)) 
-   {
-    if (strcmp(member->name,id) == 0)
-       found=TRUE;
-    else
-       member = member->next;
-   }
-   
-   /* dereference it? */
-   if (!found) 
-      { _error(67); insymbol(); }  /* not a member! */
-   else
-   {
-    /* assign value */
-    insymbol();
-    if (sym != equal)
-       _error(5);
-    else
-    {
-     insymbol();
-     exprtype=expr();
-
-     /* treat byte type as a SHORT when coercing */ 
-     if (member->type == bytetype) 
-        storetype=shorttype;
-     else
-        storetype=member->type;  /* short, long, single */
-
-     storetype = assign_coerce(storetype,exprtype);
-     if (storetype == notype) 
-         _error(4);   /* type mismatch */
-     else
-     {
-      /* address of structure */
-      ltoa(-1*item->address,addrbuf,10);
-      strcat(addrbuf,frame_ptr[lev]);
-
-	  gen_load32a(addrbuf,0);
-      if (item->shared && lev == ONE)
-		gen_load_indirect32(0,0);   /* start address of structure */
-
-      /* offset from struct start */ 
-      if (member->type != stringtype)
-      {
-       ltoa(member->offset,absbuf,10);
-       strcat(absbuf,"(a0)");
-      }
-
-      if (member->type == bytetype)
-      {
-       gen_pop16d(0);
-       gen_save8d(0,absbuf);  /* byte */
-      }
-      else
-      if (member->type == stringtype)  /* string */
-      {
-       gen_pop_addr(1);  /* source */
-       gen_add32a_val(member->offset,0);  /* destination = struct address + offset */
-       gen_jsr("_strcpy");   /* copy source to destination */
-      }
-      else
-      if (member->type == shorttype)
-         gen_pop16_var(absbuf);  /* short */
-      else
-         gen_pop32_var(absbuf);  /* long, single */
-     }
-    } 
-   } 
-  }
- }
- else
- {
-  /* assign address of structure */
-  if (sym != equal)
-     _error(5); 
-  else
-  {
-   insymbol();
-   if (expr() != longtype)
-      _error(4);
-   else
-   { 
-    /* address of structure */
-    ltoa(-1*item->address,addrbuf,10);
-    strcat(addrbuf,frame_ptr[lev]);
-    
-    if (item->shared && lev == ONE)
-    {     
-	  gen_load32a(addrbuf,0);      /* address of structure variable */
-	  gen_pop_indirect32(0); // ("move.l","(sp)+","(a0)");    /* store new address in variable */
-    }
-    else
-	  gen_pop32_var(addrbuf);  /* store new address in variable */
-   }
-  }
- }
+  /* make name of BSS object */
+  strcpy(stringvarname,"_stringvar");
+  itoa(stringvarcount++,numbuf,10);
+  /* name */
+  strcat(stringvarname,numbuf);
+  /* label */
+  strcpy(stringvarlabel,stringvarname);
+  strcat(stringvarlabel,":");
+  
+  /* size of BSS object */
+  itoa(string_size,numbuf,10);
+  strcpy(bss_size,"ds.b ");
+  strcat(bss_size,numbuf);
+  
+  /* enter bss object */
+  enter_BSS(stringvarlabel,bss_size);
+  
+  /* store bss object address in stack frame */
+  itoa(-1*string_item->address,addrbuf,10);
+  strcat(addrbuf,frame_ptr[lev]);
+  
+  gen_pea(stringvarname);
+  gen_pop32_var(addrbuf); 
 }
 
-void assign()
+void assign_to_string_variable(SYM * string_item,int string_size)
 {
-char addrbuf[80],sub_name[80];
-char ext_name[MAXIDSIZE],buf[MAXIDSIZE];
-SYM  *storage_item;
-int  oldlevel;
-int  exprtype;
+  /* assigns a string on the stack 
+	 to the specified string variable 
+  */
+  char addrbuf[20],buf[80];
 
- /* in case it's a subprogram */
- strcpy(sub_name,"_SUB_");
- strcat(sub_name,id);
-
- /* make external variable name 
-    by removing qualifier and  
-    adding an underscore prefix 
-    if one is not present. 
- */
- strcpy(buf,ut_id);
- remove_qualifier(buf);
- if (buf[0] != '_')
- {
-  strcpy(ext_name,"_\0");
-  strcat(ext_name,buf);
+  /* get stack frame address holder */
+  itoa(-1*string_item->address,addrbuf,10);
+  strcat(addrbuf,frame_ptr[lev]);
+  
+  if (string_item->new_string_var) {
+	/* create a BSS object for new string variable */
+	create_string_variable(string_item,string_size);
+	string_item->new_string_var=FALSE;  
+  } else if (string_item->decl != declared && !string_item->shared) {
+	/* Make sure there is a valid address in the 
+	   variable's stack-frame address holder EACH
+	   time the variable is to be assigned a value.
+	   
+	   The reason is that unlike a declared string
+	   variable or array, an undeclared string variable 
+	   might not have a valid address at the time of 
+	   assignment since the first occurrence of said 
+	   variable may be as part of a case statement which 
+	   might NEVER be reached.
+	   
+	   However, we still need string variable address
+	   in stack frame for other purposes (eg: passing
+	   to SUBs, use in factor() etc). 
+	*/
+	sprintf(buf,"#_stringvar%ld",(long)string_item->numconst.longnum);
+	gen_move32(buf,addrbuf);
  }
- else 
-     strcpy(ext_name,buf);
 
- /* does it exist? */
- if (exist(id,constant)) { _error(53); return; }
- else
- if (exist(id,array)) obj=array;
- else
- if (exist(id,structure)) { assign_to_struct(curr_item); return; }
- else
- if (exist(sub_name,subprogram)) obj=subprogram;
- else
- if (exist(ext_name,extvar)) obj=extvar;
- else
- if (!exist(id,obj)) enter(id,typ,obj,0); /* create a simple variable */
+  /* copy string on stack to variable */
+  gen_pop_addr(1);  /* source */
+  gen_load32a(addrbuf,0);  /* destination */
+  gen_jsr("_strcpy");   /* copy source to destination */
+}
 
- storage_item = curr_item;
-
- if (obj == array) push_indices(storage_item); /* parse indices first! */
+void assign_to_string_array(char * addrbuf)
+{
+  /* - assigns a string on the stack 
+     to the specified string array element.
+	 - assumes absolute index is in d7.
+  */
   
- /* assign it */
- if (!have_equal) insymbol();
- if (sym == equal) 
- { 
-  if (storage_item->object != array)  /* get expression later! */
-  {
-   insymbol(); 
-   exprtype = expr();
-   if (exprtype == undefined) _error(0);   /* illegal syms? */
-   storetype = assign_coerce(storage_item->type,exprtype);
-   if (storetype == notype) 
-       _error(4);   /* type mismatch */
+  gen_pop_addr(1); /* source */
+  gen_save32a(addrbuf,0);
+  gen_add32da(7,0);   /* destination */
+  
+  gen_jsr("_strcpy");  /* copy source to destination */
+}
+
+void assign_to_struct(SYM * item)
+{
+  /* assign either an address to 
+	 a structure variable or a
+	 value to one of its members.
+  */
+  SYM    *structype;
+  char   addrbuf[40],absbuf[40],numbuf[40];
+  STRUCM *member;
+  BOOL   found=FALSE;
+  int    exprtype,storetype;
+  
+  if (sym == memberpointer) {
+	/* assign value to a member */
+	
+	/* get pointer to structure 
+	   type definition. 
+	*/
+	structype = item->other; 
+	
+	insymbol();
+	
+	if (sym != ident) _error(7);
+	else {
+	  /* does member exist? */
+	  member = structype->structmem->next;
+	  while ((member != NULL) && (!found)) {
+		if (strcmp(member->name,id) == 0) found=TRUE;
+		else member = member->next;
+	  }
+   
+	  /* dereference it? */
+	  if (!found) { _error(67); insymbol(); }  /* not a member! */
+	  else {
+		/* assign value */
+		insymbol();
+		if (sym != equal) _error(5);
+		else {
+		  insymbol();
+		  exprtype=expr();
+		  
+		  /* treat byte type as a SHORT when coercing */ 
+		  if (member->type == bytetype) storetype=shorttype;
+		  else storetype=member->type;  /* short, long, single */
+
+		  storetype = assign_coerce(storetype,exprtype);
+		  if (storetype == notype) _error(4);   /* type mismatch */
+		  else {
+			/* address of structure */
+			ltoa(-1*item->address,addrbuf,10);
+			strcat(addrbuf,frame_ptr[lev]);
+
+			gen_load32a(addrbuf,0);
+			if (item->shared && lev == ONE)
+			  gen_load_indirect32(0,0);   /* start address of structure */
+
+			/* offset from struct start */ 
+			if (member->type != stringtype) {
+			  ltoa(member->offset,absbuf,10);
+			  strcat(absbuf,"(a0)");
+			}
+
+			if (member->type == bytetype) {
+			  gen_pop16d(0);
+			  gen_save8d(0,absbuf);  /* byte */
+			} else if (member->type == stringtype) {  /* string */
+			  gen_pop_addr(1);  /* source */
+			  gen_add32a_val(member->offset,0);  /* destination = struct address + offset */
+			  gen_jsr("_strcpy");   /* copy source to destination */
+			} else if (member->type == shorttype) gen_pop16_var(absbuf);  /* short */
+			else gen_pop32_var(absbuf);  /* long, single */
+		  }
+		} 
+	  } 
+	}
+  } else {
+	/* assign address of structure */
+	if (sym != equal) _error(5); 
+	else {
+	  insymbol();
+	  if (expr() != longtype) _error(4);
+	  else {
+		/* address of structure */
+		ltoa(-1*item->address,addrbuf,10);
+		strcat(addrbuf,frame_ptr[lev]);
+    
+		if (item->shared && lev == ONE) {
+		  gen_load32a(addrbuf,0);  /* address of structure variable */
+		  gen_pop_indirect32(0);   /* store new address in variable */
+		} else
+		  gen_pop32_var(addrbuf);  /* store new address in variable */
+	  }
+	}
   }
+}
 
-      if (obj != extvar)
-      {
-       /* get address of object */
-       if (storage_item->object == subprogram) { oldlevel=lev; lev=ZERO; }
+void assign() {
+  char addrbuf[80],sub_name[80];
+  char ext_name[MAXIDSIZE],buf[MAXIDSIZE];
+  SYM  *storage_item;
+  int  oldlevel;
+  int  exprtype;
   
-       itoa(-1*storage_item->address,addrbuf,10);
-       strcat(addrbuf,frame_ptr[lev]);
-	
-       if (storage_item->object == subprogram) lev=oldlevel; 
-      }
+  /* in case it's a subprogram */
+  strcpy(sub_name,"_SUB_");
+  strcat(sub_name,id);
+  
+  /* make external variable name by removing qualifier and  
+	 adding an underscore prefix if one is not present. 
+  */
+  strcpy(buf,ut_id);
+  remove_qualifier(buf);
+  if (buf[0] != '_') {
+	strcpy(ext_name,"_");
+	strcat(ext_name,buf);
+  } else strcpy(ext_name,buf);
 
-      switch(storage_item->object)
-      {
-       case variable   : 
-	if ((storage_item->shared) && (lev == ONE) 
-           && (storage_item->type != stringtype))
-        {
-         gen_load32a(addrbuf,0);  /* absolute address of store */
-		 if (storage_item->type == shorttype)
-		   gen_pop_indirect16(0); // "move.w","(sp)+","(a0)");
-	 else
-	   gen_pop_indirect32(0); // ("move.l","(sp)+","(a0)");
-		}
-	else
-        /* ordinary variable or shared string variable */
-        if (storage_item->type == stringtype) 
-  	   assign_to_string_variable(storage_item,MAXSTRLEN);
-        else
-        if (storage_item->type == shorttype)
-           gen_pop16_var(addrbuf);
-        else
-          /* longtype or singletype */
-          gen_pop32_var(addrbuf);
-        break;
+  /* does it exist? */
+  if (exist(id,constant)) { _error(53); return; }
+  else if (exist(id,array)) obj=array;
+  else if (exist(id,structure)) { assign_to_struct(curr_item); return; }
+  else if (exist(sub_name,subprogram)) obj=subprogram;
+  else if (exist(ext_name,extvar)) obj=extvar;
+  else if (!exist(id,obj)) enter(id,typ,obj,0); /* create a simple variable */
 
-       case subprogram :   
-	if (storage_item->address != extfunc)
-	{
-	  	if (storage_item->type == stringtype)
-          	{
-	   	  oldlevel=lev;
-	   	  lev=ZERO; 
-  	   	  assign_to_string_variable(storage_item,MAXSTRLEN);
-           	  lev=oldlevel;
-          	}
-          	else
-          	if (storage_item->type == shorttype)
-             		gen_pop16_var(addrbuf);
-          	else
-             		/* longtype or singletype */
-             		gen_pop32_var(addrbuf);
+  storage_item = curr_item;
+
+  if (obj == array) push_indices(storage_item); /* parse indices first! */
+  
+  /* assign it */
+  if (!have_equal) insymbol();
+  if (sym == equal) { 
+	if (storage_item->object != array) { /* get expression later! */
+	  insymbol(); 
+	  exprtype = expr();
+	  if (exprtype == undefined) _error(0);   /* illegal syms? */
+	  storetype = assign_coerce(storage_item->type,exprtype);
+	  if (storetype == notype) _error(4);   /* type mismatch */
 	}
-	else
-	{
-		/* External subprogram being assigned a value */
-		if (storage_item->type == shorttype)
-			gen_pop16d(0);
+
+	if (obj != extvar) {
+	  /* get address of object */
+	  if (storage_item->object == subprogram) { oldlevel=lev; lev=ZERO; }
+	  
+	  itoa(-1*storage_item->address,addrbuf,10);
+	  strcat(addrbuf,frame_ptr[lev]);
+	  
+	  if (storage_item->object == subprogram) lev=oldlevel; 
+	}
+
+	switch(storage_item->object) {
+	case variable: 
+	  if ((storage_item->shared) && (lev == ONE) 
+		  && (storage_item->type != stringtype)) {
+		gen_load32a(addrbuf,0);  /* absolute address of store */
+		if (storage_item->type == shorttype) gen_pop_indirect16(0);
+		else gen_pop_indirect32(0);
+	  } else if (storage_item->type == stringtype) 
+		/* ordinary variable or shared string variable */
+		assign_to_string_variable(storage_item,MAXSTRLEN);
+	  else if (storage_item->type == shorttype) gen_pop16_var(addrbuf);
+	  else gen_pop32_var(addrbuf); /* longtype or singletype */
+	  break;
+
+	case subprogram :   
+	  if (storage_item->address != extfunc) {
+		if (storage_item->type == stringtype) {
+		  oldlevel=lev;
+		  lev=ZERO; 
+		  assign_to_string_variable(storage_item,MAXSTRLEN);
+		  lev=oldlevel;
+		} else if (storage_item->type == shorttype) gen_pop16_var(addrbuf);
 		else
-			/* longint, single, string */
-			gen_pop32d(0);
-	}
-        break;
-
-	case extvar : if (storage_item->type == shorttype)
-			/* short integer */
-		      	gen_pop16_var(ext_name);
-		      else
-		      if (storage_item->type == stringtype)
-		      {
-			/* string */
-			gen_pop_addr(1);
-			gen_load_addr(ext_name,0);
-			gen_jsr("_strcpy");
-		      }	
-		      else
-			 /* long integer, single-precision */
-			 gen_pop32_var(ext_name);
-		      break;
-	
+		  /* longtype or singletype */
+		  gen_pop32_var(addrbuf);
+	  } else {
+		/* External subprogram being assigned a value */
+		if (storage_item->type == shorttype) gen_pop16d(0);
+		else
+		  /* longint, single, string */
+		  gen_pop32d(0);
+	  }
+	  break;
+		 
+	case extvar : 
+	  if (storage_item->type == shorttype) gen_pop16_var(ext_name);
+	  else if (storage_item->type == stringtype) {
+		gen_pop_addr(1);
+		gen_load_addr(ext_name,0);
+		gen_jsr("_strcpy");
+	  } else
+		  /* long integer, single-precision */
+		  gen_pop32_var(ext_name);
+	  break;
+	  
 	case array : 	get_abs_ndx(storage_item);
 			
 			/* save storage info in case it gets clobbered
@@ -541,200 +449,148 @@ int  exprtype;
  } else _error(5); /* '=' expected */
 }  
 
-void make_array_name(name,lab)
-char *name;
-char *lab;
+void make_array_name(char * name,char * lab)
 {
-char num[20];
+  char num[20];
  
- strcpy(name,"_array");
- itoa(arraycount++,num,10);
- strcat(name,num);
- strcpy(lab,name);
- strcat(lab,":\0");
+  strcpy(name,"_array");
+  itoa(arraycount++,num,10);
+  strcat(name,num);
+  strcpy(lab,name);
+  strcat(lab,":");
 } 
- 
-void dim()
-/* declare an array */
+
+/* declare an array */ 
+void dim() 
 {
-BOOL  dimmed=TRUE;
-int   index;
-int   arraytype;
-char  arrayid[50];
-SYM   *array_item;
-char  buf[80],numbuf[80],addrbuf[80];
-char  arrayname[80],arraylabel[80];
-LONG  max_element,string_element_size;
+  BOOL  dimmed=TRUE;
+  int   index;
+  int   arraytype;
+  char  arrayid[50];
+  SYM   *array_item;
+  char  buf[80],numbuf[80],addrbuf[80];
+  char  arrayname[80],arraylabel[80];
+  LONG  max_element,string_element_size;
  
-do
-{
- arraytype = undefined;
+  do {
+	arraytype = undefined;
 
- insymbol();
+	insymbol();
 
- /* type identifiers */
- if (sym == shortintsym || sym == longintsym || sym == addresssym ||
-     sym == singlesym || sym == stringsym)
- {
-  switch(sym)
-  {
-   case shortintsym : arraytype = shorttype;  break;
-   case longintsym  : arraytype = longtype;   break;
-   case addresssym  : arraytype = longtype;   break;
-   case singlesym   : arraytype = singletype; break;
-   case stringsym   : arraytype = stringtype; break;
-  }
-  insymbol();
- }
+	/* type identifiers */
+	if (sym == shortintsym || sym == longintsym || sym == addresssym ||
+		sym == singlesym || sym == stringsym) {
+	  switch(sym) {
+	  case shortintsym : arraytype = shorttype;  break;
+	  case longintsym  : arraytype = longtype;   break;
+	  case addresssym  : arraytype = longtype;   break;
+	  case singlesym   : arraytype = singletype; break;
+	  case stringsym   : arraytype = stringtype; break;
+	  }
+	  insymbol();
+	}
 
- if (sym == ident) 
- {
-  if (!exist(id,array))
-  { 
-	dimmed=FALSE; 
-	strcpy(arrayid,id); 
-	if (arraytype == undefined) arraytype=typ; 
-  }
-  else
-     { _error(22); insymbol(); return; }  /* array already declared */
-
-  insymbol();
-
-  if (sym != lparen)
-     _error(14);
-  else
-  {
-   index=0;
-   do
-   {
-    insymbol();
-    /* literal constant? */
-    if ((sym == shortconst) && (shortval > 0))
-       dimsize[index++] = shortval+1;
-    else
-    /* defined constant? */
-    if ((sym == ident) && (exist(id,constant)))
-    {
-     if ((curr_item->type == shorttype) && (curr_item->numconst.shortnum > 0))
-        dimsize[index++] = curr_item->numconst.shortnum+1;
-     else
-        _error(23);
-    }
-    else
-       _error(23);  /* illegal array index */
-    insymbol();
-   }
-   while ((sym == comma) && (index < MAXDIMS));
-
-   if (sym != rparen)
-      _error(9);
-
-   if (!dimmed) 
-   {
-    enter(arrayid,arraytype,array,index-1);
-    array_item = curr_item;
-
-    max_element = max_array_ndx(array_item); /* number of linear elements */
-
-    /* frame address to hold array pointer */  
-    itoa(-1*array_item->address,addrbuf,10);
-    strcat(addrbuf,frame_ptr[lev]);
-
-    insymbol();
-
-    /* specify size of string array elements with "SIZE"? */
-    if (sym == sizesym && array_item->type == stringtype)
-    {
-     insymbol();
-     if (sym == shortconst) 
-        string_element_size=(LONG)shortval; 
-     else
-     if (sym == longconst) 
-        string_element_size=longval; 
-     else
-     if (sym == ident && exist(id,constant))
-     {
-      if (curr_item->type == shorttype)
-         string_element_size=(LONG)curr_item->numconst.shortnum;
-      else
-      if (curr_item->type == longtype)
-         string_element_size=curr_item->numconst.longnum;
-      else
-          _error(4);
-     }
-     else
-     if (sym == singleconst)
-        _error(4);
-     else
-        _error(27);  /* numeric constant expected */
-
-     if (string_element_size <= 0L) _error(41); /* non-positive string size */
-
-     insymbol();
-    }
-    else
-        string_element_size=MAXSTRLEN;
-
-    /* record size of array in bytes (for SIZEOF) 
-       plus string element size */
-    if (array_item->type == stringtype)
-    {
-       array_item->size = max_element * string_element_size;
-       /* size of each string array element */
-       array_item->numconst.longnum = string_element_size;
-    }
-    else
-    if (array_item->type == shorttype)
-       array_item->size = max_element*2;
-    else
-       /* long or single */
-       array_item->size = max_element*4; 
- 
-    /* specify ADDRESS? */
-    if (sym != addresssym)
-    {
-     /* set up BSS object for array */
-
-     if (array_item->type == stringtype)
-        strcpy(buf,"ds.b ");
-     else
-     if (array_item->type == shorttype)
-        strcpy(buf,"ds.w ");
-     else
-        /* long or single */ 
-        strcpy(buf,"ds.l "); 
-
-     if (array_item->type == stringtype)
-        ltoa(max_element*string_element_size,numbuf,10);
-     else
-        ltoa(max_element,numbuf,10);
-
-     strcat(buf,numbuf);
-     make_array_name(arrayname,arraylabel);
-
-     /* create the BSS object */
-     enter_BSS(arraylabel,buf);
-
-     /* store address of array in stack frame */
-     gen_pea(arrayname);
-     gen_pop32_var(addrbuf);	    
-    }
-    else
-    {
-     /* push specified array start address */
-     insymbol();
-     if (expr() != longtype)
-        _error(4);
-     else
-         /* store address of array in stack frame */
-         gen_pop32_var(addrbuf);	    
-    }
-   }
-  }
- }
- else _error(7);
- }
- while (sym == comma);
+	if (sym == ident) {
+	  if (!exist(id,array)) { 
+		dimmed=FALSE; 
+		strcpy(arrayid,id); 
+		if (arraytype == undefined) arraytype=typ; 
+	  } else { _error(22); insymbol(); return; }  /* array already declared */
+	  
+	  insymbol();
+	  
+	  if (sym != lparen) _error(14);
+	  else {
+		index=0;
+		do {
+		  insymbol();
+		  /* literal constant? */
+		  if ((sym == shortconst) && (shortval > 0))
+			dimsize[index++] = shortval+1;
+		  else if ((sym == ident) && (exist(id,constant))) {
+			/* defined constant? */
+			
+			if ((curr_item->type == shorttype) && (curr_item->numconst.shortnum > 0))
+			  dimsize[index++] = curr_item->numconst.shortnum+1;
+			else _error(23);
+		  } else _error(23);  /* illegal array index */
+		  insymbol();
+		} while ((sym == comma) && (index < MAXDIMS));
+		
+		if (sym != rparen) _error(9);
+		
+		if (!dimmed) {
+		  enter(arrayid,arraytype,array,index-1);
+		  array_item = curr_item;
+		  
+		  max_element = max_array_ndx(array_item); /* number of linear elements */
+		  
+		  /* frame address to hold array pointer */  
+		  itoa(-1*array_item->address,addrbuf,10);
+		  strcat(addrbuf,frame_ptr[lev]);
+		  
+		  insymbol();
+		  
+		  /* specify size of string array elements with "SIZE"? */
+		  if (sym == sizesym && array_item->type == stringtype) {
+			insymbol();
+			if (sym == shortconst) string_element_size=(LONG)shortval; 
+			else if (sym == longconst) string_element_size=longval; 
+			else if (sym == ident && exist(id,constant)) {
+			  if (curr_item->type == shorttype) string_element_size=(LONG)curr_item->numconst.shortnum;
+			  else if (curr_item->type == longtype) string_element_size=curr_item->numconst.longnum;
+			  else _error(4);
+			} else if (sym == singleconst) _error(4);
+			else _error(27);  /* numeric constant expected */
+			
+			if (string_element_size <= 0L) _error(41); /* non-positive string size */
+			
+			insymbol();
+		  } else string_element_size=MAXSTRLEN;
+		  
+		  /* record size of array in bytes (for SIZEOF) 
+			 plus string element size */
+		  if (array_item->type == stringtype) {
+			array_item->size = max_element * string_element_size;
+			/* size of each string array element */
+			array_item->numconst.longnum = string_element_size;
+		  } else if (array_item->type == shorttype)
+			array_item->size = max_element*2;
+		  else
+			/* long or single */
+			array_item->size = max_element*4; 
+		  
+		  /* specify ADDRESS? */
+		  if (sym != addresssym) {
+			/* set up BSS object for array */
+			
+			if (array_item->type == stringtype) strcpy(buf,"ds.b ");
+			else if (array_item->type == shorttype) strcpy(buf,"ds.w ");
+			else strcpy(buf,"ds.l "); /* long or single */ 
+			
+			if (array_item->type == stringtype)
+			  ltoa(max_element*string_element_size,numbuf,10);
+			else ltoa(max_element,numbuf,10);
+			
+			strcat(buf,numbuf);
+			make_array_name(arrayname,arraylabel);
+			
+			/* create the BSS object */
+			enter_BSS(arraylabel,buf);
+			
+			/* store address of array in stack frame */
+			gen_pea(arrayname);
+			gen_pop32_var(addrbuf);	    
+		  } else {
+			/* push specified array start address */
+			insymbol();
+			if (expr() != longtype) _error(4);
+			else gen_pop32_var(addrbuf); /* store address of array in stack frame */
+		  }
+		}
+	  }
+	} else _error(7);
+  } while (sym == comma);
 }
 
 /* --------------- */
@@ -945,7 +801,6 @@ void read_data() {
 	gen_save32d(1,"_dataptr");
 
 	insymbol();
-	if (sym == lparen && storage->object != array) 
-	  _error(71);  /* undeclared array */  
+	if (sym == lparen && storage->object != array) _error(71);  /* undeclared array */  
   } while (sym == comma);
 }
