@@ -98,334 +98,315 @@ char	*version();
 /* functions */
 void block()
 {
-CODE *link;
-SYM  *sub_ptr;
-char end_of_sub_name[80],end_of_sub_label[80];
-char sub_name[80],sub_label[80],exit_sub_label[80];
-char xdef_name[80];
-char bytes[40],buf[40];
-int  subprog;
-int  sub_type,def_expr_type;
+  CODE *link;
+  SYM  *sub_ptr;
+  char end_of_sub_name[80],end_of_sub_label[80];
+  char sub_name[80],sub_label[80],exit_sub_label[80];
+  char xdef_name[80];
+  char bytes[40],buf[40];
+  int  subprog;
+  int  sub_type,def_expr_type;
 
- while (!end_of_source)
- {
-  if (sym != subsym && sym != defsym) 
-   /* ordinary statement */
-   statement();
-  else
-  {
-   /************************/
-   /* SUBprogram or DEF FN */
-   /************************/
-   subprog = sym;
-   insymbol();
-   
-   sub_type = undefined;
-
-   /* type identifiers */
-   if (sym == shortintsym || sym == longintsym || sym == addresssym ||
-       sym == singlesym || sym == stringsym)
-   {
-    switch(sym)
-    {
-     case shortintsym : sub_type = shorttype;  break;
-     case longintsym  : sub_type = longtype;   break;
-     case addresssym  : sub_type = longtype;   break;
-     case singlesym   : sub_type = singletype; break;
-     case stringsym   : sub_type = stringtype; break;
-    }
-    insymbol();
-   }
-
-   if (sym != ident) _error(32);
-   else
-   { 
-    /* get name of subprogram and prefix _SUB_ to it */
-    strcpy(sub_name,"_SUB_");
-    strcat(sub_name,id);
-
-    if (!exist(sub_name,subprogram)) {
-      if (sub_type == undefined) sub_type = typ;
-      enter(sub_name,sub_type,subprogram,0);  /* new SUB */
-      curr_item->decl=subdecl;
-    }
-    else if ((exist(sub_name,subprogram)) && (curr_item->decl == fwdref))
-	  curr_item->decl=subdecl;
-	else _error(33); /* already exists */
-
-    sub_ptr=curr_item; /* pointer to sub info' */
-
-    turn_event_off(sub_name);   /* see event.c */
-
-    /* exit point name & label */
-    strcpy(exit_sub_name,"_EXIT");
-    strcat(exit_sub_name,sub_name);
-    strcpy(exit_sub_label,exit_sub_name);
-    strcat(exit_sub_label,":");
-
-    /* prepare for level ONE */
-    lev=ONE; 
-    addr[lev]=0; 
-    new_symtab();
-    make_label(end_of_sub_name,end_of_sub_label);
-    gen_jmp(end_of_sub_name);
-
-    /* subprogram label -> _SUB_ prefix to make it unique */
-    strcpy(sub_label,sub_name);
-    strcat(sub_label,":\0");
-    gen_label(sub_label);
-
-    /* all SUBs need link instruction -- add # of bytes later */
-    gen_link();
-    link=curr_code;
-
-    /* parse formal parameter list */
-    sub_params(sub_ptr);
-
-    /* make this subprogram externally visible? */
-    if (sym == externalsym) {
+  while (!end_of_source) {
+	if (sym != subsym && sym != defsym) statement();
+	else {
+	  /************************/
+	  /* SUBprogram or DEF FN */
+	  /************************/
+	  subprog = sym;
 	  insymbol();
-	  strcpy(xdef_name,sub_name);
-	  xdef_name[0] = '*';  /* signal that this is an XDEF */
-	  enter_XREF(xdef_name);
-    }
+	  
+	  sub_type = undefined;
+	  
+	  /* type identifiers */
+	  if (sym == shortintsym || sym == longintsym || sym == addresssym ||
+		  sym == singlesym || sym == stringsym)
+		{
+		  switch(sym) {
+		  case shortintsym : sub_type = shorttype;  break;
+		  case longintsym  : sub_type = longtype;   break;
+		  case addresssym  : sub_type = longtype;   break;
+		  case singlesym   : sub_type = singletype; break;
+		  case stringsym   : sub_type = stringtype; break;
+		  }
+		  insymbol();
+		}
 
-    /* 
-    ** Pass function (SUB) values via d0 for ALL subprograms 
-    ** in a module since there is no link using A4 for modules.
-    */
-    if (module_opt)
-	sub_ptr->address = extfunc;  /* This has a numeric value of 3004:
-					hopefully large enough to avoid
-					clashes with real stack offsets. */
-	
-    /* SUB or DEF FN code? */
-    if (subprog == subsym) {
-      while ((sym != endsym) && (!end_of_source)) {
-		if (sym == sharedsym) parse_shared_vars();
-		if ((sym != endsym) && (!end_of_source)) statement();
-      }
-
-      if (end_of_source) _error(34);  /* END SUB expected */
-
-      if (sym == endsym)  {
-		insymbol();
-		if (sym != subsym) _error(35); 
-		insymbol(); 
-      }
-    } else {
-        /* DEF FN code */
-	  if (sym != equal) _error(5);
+	  if (sym != ident) _error(32);
 	  else {
-		insymbol();
-		def_expr_type = expr();
-		if (assign_coerce(sub_type,def_expr_type) != sub_type) _error(4);
-		else if (sub_type == shorttype) gen_pop16d(0);
-		else gen_pop32d(0);
+		/* get name of subprogram and prefix _SUB_ to it */
+		strcpy(sub_name,"_SUB_");
+		strcat(sub_name,id);
+		
+		if (!exist(sub_name,subprogram)) {
+		  if (sub_type == undefined) sub_type = typ;
+		  enter(sub_name,sub_type,subprogram,0);  /* new SUB */
+		  curr_item->decl=subdecl;
+		}
+		else if ((exist(sub_name,subprogram)) && (curr_item->decl == fwdref))
+		  curr_item->decl=subdecl;
+		else _error(33); /* already exists */
+		
+		sub_ptr=curr_item; /* pointer to sub info' */
+		
+		turn_event_off(sub_name);   /* see event.c */
+		
+		/* exit point name & label */
+		strcpy(exit_sub_name,"_EXIT");
+		strcat(exit_sub_name,sub_name);
+		strcpy(exit_sub_label,exit_sub_name);
+		strcat(exit_sub_label,":");
 
-		/* change object from SUB to DEF FN */
-		sub_ptr->object = definedfunc;
-	  }
-    }
+		/* prepare for level ONE */
+		lev=ONE; 
+		addr[lev]=0; 
+		new_symtab();
+		make_label(end_of_sub_name,end_of_sub_label);
+		gen_jmp(end_of_sub_name);
+		
+		/* subprogram label -> _SUB_ prefix to make it unique */
+		strcpy(sub_label,sub_name);
+		strcat(sub_label,":\0");
+		gen_label(sub_label);
+		
+		/* all SUBs need link instruction -- add # of bytes later */
+		gen_link();
+		link=curr_code;
+		
+		/* parse formal parameter list */
+		sub_params(sub_ptr);
+		
+		/* make this subprogram externally visible? */
+		if (sym == externalsym) {
+		  insymbol();
+		  strcpy(xdef_name,sub_name);
+		  xdef_name[0] = '*';  /* signal that this is an XDEF */
+		  enter_XREF(xdef_name);
+		}
+		
+		/* 
+		** Pass function (SUB) values via d0 for ALL subprograms 
+		** in a module since there is no link using A4 for modules.
+		*/
+		if (module_opt)
+		  sub_ptr->address = extfunc;  /* This has a numeric value of 3004:
+										  hopefully large enough to avoid
+										  clashes with real stack offsets. */
+		
+		/* SUB or DEF FN code? */
+		if (subprog == subsym) {
+		  while ((sym != endsym) && (!end_of_source)) {
+			if (sym == sharedsym) parse_shared_vars();
+			if ((sym != endsym) && (!end_of_source)) statement();
+		  }
 
-    /* establish size of stack frame */
-    if (addr[lev] == 0) strcpy(bytes,"#");
-    else strcpy(bytes,"#-");     
-    itoa(addr[lev],buf,10);   
-    strcat(bytes,buf);   
-    change(link,"link","a5",bytes);  
-
-    /* exit code */
-    if (subprog == subsym) gen_label(exit_sub_label);
-    gen_unlk();
-	gen_rts();
-    gen_label(end_of_sub_label);
-
-    kill_symtab();
-    lev=ZERO;
-   } 
+		  if (end_of_source) _error(34);  /* END SUB expected */
+		  
+		  if (sym == endsym)  {
+			insymbol();
+			if (sym != subsym) _error(35); 
+			insymbol(); 
+		  }
+		} else {
+		  /* DEF FN code */
+		  if (sym != equal) _error(5);
+		  else {
+			insymbol();
+			def_expr_type = expr();
+			if (assign_coerce(sub_type,def_expr_type) != sub_type) _error(4);
+			else if (sub_type == shorttype) gen_pop16d(0);
+			else gen_pop32d(0);
+			
+			/* change object from SUB to DEF FN */
+			sub_ptr->object = definedfunc;
+		  }
+		}
+		
+		/* establish size of stack frame */
+		if (addr[lev] == 0) strcpy(bytes,"#");
+		else strcpy(bytes,"#-");     
+		itoa(addr[lev],buf,10);   
+		strcat(bytes,buf);   
+		change(link,"link","a5",bytes);  
+		
+		/* exit code */
+		if (subprog == subsym) gen_label(exit_sub_label);
+		gen_unlk();
+		gen_rts();
+		gen_label(end_of_sub_label);
+		
+		kill_symtab();
+		lev=ZERO;
+	  } 
+	}
   }
- }
 }
 
 void parse()
 {
- lev=ZERO;
- addr[lev]=0;
- new_symtab();
- create_lists();
+  lev=ZERO;
+  addr[lev]=0;
+  new_symtab();
+  create_lists();
   
- insymbol();
- block();
-
- undef_label_check();
- kill_symtab();
+  insymbol();
+  block();
+  
+  undef_label_check();
+  kill_symtab();
 }
 
-void compile(source_name,dest_name)
-char *source_name,*dest_name;
+void compile(char * source_name,const char * dest_name)
 {
-char buf[40],bytes[40],icon_name[MAXSTRLEN];
-FILE *icon_src,*icon_dest;
-int  cc;
+  char buf[40],icon_name[MAXSTRLEN];
+  FILE *icon_src,*icon_dest;
+  int  cc;
 
- /* 
- ** Parse the source file producing XREFs, code, data, 
- ** bss & basdata segments.
- */
- parse();
-
- /* optimise? */
- if (optimise_opt && !early_exit) optimise();
-
- if (!module_opt)
- {
-   /* startup xrefs for startup.lib */
-   enter_XREF("_startup");
-   enter_XREF("_cleanup");
- 
-   /* command line argument xref */
-   if (cli_args) enter_XREF("_parse_cli_args");
-
-   if (translateused)
-   {
-    enter_XREF("_opentranslator");
-    enter_XREF("_closetranslator");
-   }
-
-   if (mathffpused)
-   {
-    enter_XREF("_openmathffp");
-    enter_XREF("_closemathffp");
-   }
-
-   if (mathtransused)
-   {
-    enter_XREF("_openmathtrans");
-    enter_XREF("_closemathtrans");
-   }
-
-   /* Always use these, since they're in the kernel/kickstart anyway. Saves lots of enter_XREF elsewhere */
-   enter_XREF("_GfxBase");
-   enter_XREF("_IntuitionBase");
-   enter_XREF("_DosBase");
-   enter_XREF("_opengfx");
-   enter_XREF("_closegfx");
-   enter_XREF("_openintuition");
-   enter_XREF("_closeintuition");
-
-   if (iffused)
-   {
-    enter_XREF("_create_ILBMLib");
-    enter_XREF("_remove_ILBMLib");
-   }
-
-   enter_XREF("_starterr");
-
-   /*
-   ** A module may need to jump to _EXIT_PROG so
-   ** make this label externally referenceable (* = XDEF).
-   */
-   enter_XREF("*EXIT_PROG");
-
-   if (ontimerused) enter_XREF("_ontimerstart");
-
-   /*
-   ** Always call this in case a db.lib function 
-   ** allocates memory via alloc(). This also takes
-   ** care of the use of ALLOC by an ACE program.
-   ** To do this we always need to externally 
-   ** reference the free_alloc() function.
-   */
-   enter_XREF("_free_alloc");
- }
- else
- {
-   /*
-   ** Current module may need to jump to _EXIT_PROG, so externally reference it.
-   */
-    enter_XREF("_EXIT_PROG");
- }
+  /* 
+  ** Parse the source file producing XREFs, code, data, 
+  ** bss & basdata segments.
+  */
+  parse();
   
- /* DATA statements? */
- if (basdatapresent) enter_BSS("_dataptr:","ds.l 1");
- if ((readpresent) && (!basdatapresent)) _error(25); 
+  /* optimise? */
+  if (optimise_opt && !early_exit) optimise();
+  
+  if (!module_opt) {
+	/* startup xrefs for startup.lib */
+	enter_XREF("_startup");
+	enter_XREF("_cleanup");
+	
+	/* command line argument xref */
+	if (cli_args) enter_XREF("_parse_cli_args");
 
- /* ------------------------------------------------- */
- /* create A68K compatible 68000 assembly source file */
- /* ------------------------------------------------- */
+	if (translateused) {
+	  enter_XREF("_opentranslator");
+	  enter_XREF("_closetranslator");
+	}
 
- if (!early_exit) printf("\ncreating %s\n",dest_name);
- else printf("\nfreeing code list...\n");
+	if (mathffpused) {
+	  enter_XREF("_openmathffp");
+	  enter_XREF("_closemathffp");
+	}
 
- if (!early_exit) write_xrefs();
+	if (mathtransused) {
+	  enter_XREF("_openmathtrans");
+	  enter_XREF("_closemathtrans");
+	}
 
- /* startup code */
- fprintf(dest,"\n\tSECTION code,CODE\n\n");
+	/* Always use these, since they're in the kernel/kickstart anyway. Saves lots of enter_XREF elsewhere */
+	enter_XREF("_GfxBase");
+	enter_XREF("_IntuitionBase");
+	enter_XREF("_DosBase");
+	enter_XREF("_opengfx");
+	enter_XREF("_closegfx");
+	enter_XREF("_openintuition");
+	enter_XREF("_closeintuition");
+	
+	if (iffused) {
+	  enter_XREF("_create_ILBMLib");
+	  enter_XREF("_remove_ILBMLib");
+	}
 
- if (!module_opt) m68k_amiga_startup(dest);
+	enter_XREF("_starterr");
 
- /* write code & kill code list */
- kill_code();
+	/*
+	** A module may need to jump to _EXIT_PROG so
+	** make this label externally referenceable (* = XDEF).
+	*/
+	enter_XREF("*EXIT_PROG");
 
- if (!module_opt) m68k_amiga_cleanup(dest);
+	if (ontimerused) enter_XREF("_ontimerstart");
 
- if (!early_exit) {
-   write_data();
-   write_basdata();  
-   write_bss();
- }
-
- fprintf(dest,"\n\tEND\n");
-
- /* errors? */
- if (errors > 0) putchar('\n');
-
- printf("%s compiled ",source_name);
-
- if (errors == 0)    
-    printf("with no errors.\n");
- else
- {
-  exitvalue=10; /* set ERROR for bas script */
-  printf("with %d ",errors);
-  if (errors > 1) printf("errors.\n");
-  else printf("error.\n");
- }
-
- /* make icon? */
- if (make_icon && !early_exit)
- {
-  if ((icon_src = fopen("ACE:icons/exe.info","r")) == NULL)
-    puts("can't open ACE:icons/exe.info for reading."); 
-  else
-  {
-   cc=0; while(source_name[cc] != '.') cc++; 
-   source_name[cc] = '\0';   
-   sprintf(icon_name,"%s.info",source_name);
-   if ((icon_dest = fopen(icon_name,"w")) == NULL)
-      printf("can't open %s.info for writing.\n",source_name);
-   else
-   {
-    while (!feof(icon_src)) fputc(fgetc(icon_src),icon_dest);
-    fclose(icon_dest);
-    fclose(icon_src);
-    puts("icon created.");
-   }
+	/*
+	** Always call this in case a db.lib function 
+	** allocates memory via alloc(). This also takes
+	** care of the use of ALLOC by an ACE program.
+	** To do this we always need to externally 
+	** reference the free_alloc() function.
+	*/
+	enter_XREF("_free_alloc");
+  } else {
+	/*
+	** Current module may need to jump to _EXIT_PROG, so externally reference it.
+	*/
+    enter_XREF("_EXIT_PROG");
   }
- }
+  
+  /* DATA statements? */
+  if (basdatapresent) enter_BSS("_dataptr:","ds.l 1");
+  if ((readpresent) && (!basdatapresent)) _error(25); 
+
+  /* ------------------------------------------------- */
+  /* create A68K compatible 68000 assembly source file */
+  /* ------------------------------------------------- */
+  
+  if (!early_exit) printf("\ncreating %s\n",dest_name);
+  else printf("\nfreeing code list...\n");
+  
+  if (!early_exit) write_xrefs();
+  
+  /* startup code */
+  fprintf(dest,"\n\tSECTION code,CODE\n\n");
+  
+  if (!module_opt) m68k_amiga_startup(dest);
+  
+  /* write code & kill code list */
+  kill_code();
+  
+  if (!module_opt) m68k_amiga_cleanup(dest);
+  
+  if (!early_exit) {
+	write_data();
+	write_basdata();  
+	write_bss();
+  }
+  
+  fprintf(dest,"\n\tEND\n");
+  
+  /* errors? */
+  if (errors > 0) putchar('\n');
+  
+  printf("%s compiled ",source_name);
+  
+  if (errors == 0) printf("with no errors.\n");
+  else {
+	exitvalue=10; /* set ERROR for bas script */
+	printf("with %d ",errors);
+	if (errors > 1) printf("errors.\n");
+	else printf("error.\n");
+  }
+
+  /* make icon? */
+  if (make_icon && !early_exit) {
+	if ((icon_src = fopen("ACE:icons/exe.info","r")) == NULL)
+	  puts("can't open ACE:icons/exe.info for reading."); 
+	else {
+	  cc=0; while(source_name[cc] != '.') cc++; 
+	  source_name[cc] = '\0';   
+	  sprintf(icon_name,"%s.info",source_name);
+	  if ((icon_dest = fopen(icon_name,"w")) == NULL)
+		printf("can't open %s.info for writing.\n",source_name);
+	  else {
+		while (!feof(icon_src)) fputc(fgetc(icon_src),icon_dest);
+		fclose(icon_dest);
+		fclose(icon_src);
+		puts("icon created.");
+	  }
+	}
+  }
 }
 
 void show_title()
 {
- printf("ACE Amiga BASIC Compiler version %s, copyright ",version());
- putchar(169);  /* copyright symbol */
- puts(" 1991-1996 David Benn.");
+  printf("ACE Amiga BASIC Compiler version %s, copyright ",version());
+  putchar(169);  /* copyright symbol */
+  puts(" 1991-1996 David Benn.");
 }
 
 void usage()
 {
- printf("usage: ACE [words | -bcEilmOtw?] <sourcefile>[.b[as]]\n");
+  printf("usage: ACE [words | -bcEilmOtw?] <sourcefile>[.b[as]]\n");
 }
 
 void help()
@@ -483,7 +464,8 @@ void ctrl_c_break_test() {
 #endif
 }
 
-void dump_reserved_words() {
+void dump_reserved_words()
+{
   int i;
   
   printf("\nAmigaBASIC RESERVED WORDS: %d\n\n",(xorsym-abssym)+1);
