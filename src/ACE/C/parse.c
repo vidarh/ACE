@@ -57,6 +57,9 @@
 #include "codegen.h"
 
 /* externals */
+extern  void m68k_amiga_startup(FILE *);
+extern  void m68k_amiga_cleanup(FILE *);
+
 extern	char	*srcfile,*destfile;
 extern	int	sym;
 extern	int	typ;
@@ -81,13 +84,9 @@ extern	BOOL	list_source;
 extern	BOOL 	wdw_close_opt;
 extern	BOOL 	module_opt;
 extern	BOOL	cli_args;
+extern	BOOL 	translateused;
 extern	BOOL 	mathffpused;
 extern	BOOL 	mathtransused;
-extern	BOOL 	dosused;
-extern	BOOL 	gfxused;
-extern	BOOL 	intuitionused;
-extern	BOOL 	translateused;
-extern	BOOL 	narratorused;
 extern	BOOL	ontimerused;
 extern	BOOL	iffused;
 extern	BOOL 	basdatapresent;
@@ -356,166 +355,22 @@ int  cc;
  /* create A68K compatible 68000 assembly source file */
  /* ------------------------------------------------- */
 
- if (!early_exit) 
-	printf("\ncreating %s\n",dest_name);
- else
-	printf("\nfreeing code list...\n");
+ if (!early_exit) printf("\ncreating %s\n",dest_name);
+ else printf("\nfreeing code list...\n");
 
  if (!early_exit) write_xrefs();
 
  /* startup code */
  fprintf(dest,"\n\tSECTION code,CODE\n\n");
 
- if (!module_opt)
- {
-   /* 
-   ** Check for Wb start BEFORE DOING ANYTHING ELSE! 
-   ** This also always opens dos.library and stores 
-   ** CLI argument data. 
-   */
-   fprintf(dest,"\tjsr\t_startup\n");
-   fprintf(dest,"\tcmpi.b\t#1,_starterr\n"); /* see _startup in startup.lib */
-   fprintf(dest,"\tbne.s\t_START_PROG\n");
-   fprintf(dest,"\trts\n");
-   fprintf(dest,"_START_PROG:\n");
-
-   /* storage for initial stack pointer */
-   enter_BSS("_initialSP:","ds.l 1");
-   fprintf(dest,"\tmove.l\tsp,_initialSP\n"); /* save task's stack pointer */
-
-   fprintf(dest,"\tmovem.l\td1-d7/a0-a6,-(sp)\n"); /* save initial registers */
-
-   if (cli_args) 
-      fprintf(dest,"\tjsr\t_parse_cli_args\n"); /* get CLI arguments */
-
-   if (translateused) 
-   {
-    fprintf(dest,"\tjsr\t_opentranslator\n");
-    fprintf(dest,"\tcmpi.b\t#1,_starterr\n");
-    fprintf(dest,"\tbne.s\t_translate_ok\n");
-    fprintf(dest,"\tjmp\t_ABORT_PROG\n");
-    fprintf(dest,"_translate_ok:\n");
-   }   
-
-   if (mathffpused) 
-   {
-    fprintf(dest,"\tjsr\t_openmathffp\n");
-    fprintf(dest,"\tcmpi.b\t#1,_starterr\n");
-    fprintf(dest,"\tbne.s\t_mathffp_ok\n");
-    fprintf(dest,"\tjmp\t_ABORT_PROG\n");
-    fprintf(dest,"_mathffp_ok:\n");
-   }   
-
-   if (mathtransused) 
-   {
-    fprintf(dest,"\tjsr\t_openmathtrans\n"); 
-    fprintf(dest,"\tcmpi.b\t#1,_starterr\n");
-    fprintf(dest,"\tbne.s\t_mathtrans_ok\n");
-    fprintf(dest,"\tjmp\t_ABORT_PROG\n");
-    fprintf(dest,"_mathtrans_ok:\n");
-   }   
-
-   if (intuitionused && !gfxused) 
-   {
-    fprintf(dest,"\tjsr\t_openintuition\n");   
-    fprintf(dest,"\tcmpi.b\t#1,_starterr\n");
-    fprintf(dest,"\tbne.s\t_intuition_ok\n");
-    fprintf(dest,"\tjmp\t_ABORT_PROG\n");
-    fprintf(dest,"_intuition_ok:\n");
-   }   
-
-   if (gfxused)
-   {
-    /* open intuition.library */
-    fprintf(dest,"\tjsr\t_openintuition\n");    
-    fprintf(dest,"\tcmpi.b\t#1,_starterr\n");
-    fprintf(dest,"\tbne.s\t_intuition_ok\n");
-    fprintf(dest,"\tjmp\t_ABORT_PROG\n");
-    fprintf(dest,"_intuition_ok:\n");
-
-    /* open graphics.library */
-    fprintf(dest,"\tjsr\t_opengfx\n");  
-    fprintf(dest,"\tcmpi.b\t#1,_starterr\n");
-    fprintf(dest,"\tbne.s\t_gfx_ok\n");
-    fprintf(dest,"\tjmp\t_ABORT_PROG\n");
-    fprintf(dest,"_gfx_ok:\n");
-   }   
-
-   /* create temporary ILBM.library */
-   if (iffused) fprintf(dest,"\tjsr\t_create_ILBMLib\n");
-
-   /* get timer event trapping start time */
-   if (ontimerused) fprintf(dest,"\tjsr\t_ontimerstart\n");
-
-   /* size of stack frame */ 
-   if (addr[lev] == 0)
-      strcpy(bytes,"#\0");
-   else
-      strcpy(bytes,"#-");     
-   itoa(addr[lev],buf,10);   
-   strcat(bytes,buf);     
- 
-   /* create stack frame */
-   fprintf(dest,"\tlink\ta4,%s\n\n",bytes); 
-
-   /* initialise global DATA pointer */
-   if (basdatapresent) fprintf(dest,"\tmove.l\t#_BASICdata,_dataptr\n");
- }
+ if (!module_opt) m68k_amiga_startup(dest);
 
  /* write code & kill code list */
  kill_code();
 
- if (!module_opt)
- {
-   /* exiting code */
-   fprintf(dest,"\n_EXIT_PROG:\n");
+ if (!module_opt) m68k_amiga_cleanup(dest);
 
-   fprintf(dest,"\tunlk\ta4\n");
-
-   /* 
-   ** Programs which abort should cleanup libraries, free allocated memory
-   ** and possibly reply to a Wb startup message. 
-   */
-   if (intuitionused || gfxused || mathffpused || mathtransused ||
-       translateused) 
-      fprintf(dest,"_ABORT_PROG:\n");
-
-   /* Free memory allocated via ALLOC and db.lib calls to alloc(). */
-   fprintf(dest,"\tjsr\t_free_alloc\n");
-
-   /* close libraries */
-   if (gfxused) 
-   {
-    fprintf(dest,"\tjsr\t_closegfx\n");
-    fprintf(dest,"\tjsr\t_closeintuition\n");
-   }
-   if (narratorused) fprintf(dest,"\tjsr\t_cleanup_async_speech\n");
-   if (intuitionused && !gfxused) fprintf(dest,"\tjsr\t_closeintuition\n");
-   if (mathtransused) fprintf(dest,"\tjsr\t_closemathtrans\n");
-   if (mathffpused) fprintf(dest,"\tjsr\t_closemathffp\n");
-   if (translateused) fprintf(dest,"\tjsr\t_closetranslator\n");
-
-   /* delete temporary ILBM.library */
-   if (iffused) fprintf(dest,"\tjsr\t_remove_ILBMLib\n");
-
-   /* restore registers */
-   fprintf(dest,"\tmovem.l\t(sp)+,d1-d7/a0-a6\n");
-
-   /* restore initial stack pointer */
-   fprintf(dest,"\tmove.l\t_initialSP,sp\n");
-
-   /* 
-   ** Close dos.library and reply to Wb message
-   ** as the LAST THING DONE before rts'ing.
-   */
-   fprintf(dest,"\tjsr\t_cleanup\n");
-
-   /* return */
-   fprintf(dest,"\n\trts\n");
- }
-
- if (!early_exit)
- {
+ if (!early_exit) {
    write_data();
    write_basdata();  
    write_bss();
