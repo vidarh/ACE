@@ -487,27 +487,22 @@ char lab[80],lablabel[80];
 
 void timer_event_test()
 {
-char lab[80],lablabel[80];
+  char lab[80],lablabel[80];
+  
+  /* test for timer event and pass control to the
+	 TIMER trapping subroutine. */
+  
+  gen_load32d(ontimer_seconds,0);
+  gen_jsr("_ontimer");
+  gen_tst32d(0);
+  make_label(lab,lablabel);
+  gen_beq(lab);
 
-/* test for timer event 
-   and pass control to the
-   TIMER trapping subroutine. */
-
- gen_save32d(ontimer_seconds,0);
- gen_jsr("_ontimer");
- gen_tst32d(0);
- make_label(lab,lablabel);
- gen_beq(lab);
-
- if (timer_event_branch == callsym)
-   gen_jsr(timer_event_label);
- else
- if (timer_event_branch == gosubsym) 
-   gen_branch("jsr",timer_event_label);
- else
-   gen_branch("jmp",timer_event_label);
- gen_label(lablabel);
- enter_XREF("_MathBase");  /* timer routines need mathffp.library */
+  if (timer_event_branch == callsym) gen_jsr(timer_event_label);
+  else if (timer_event_branch == gosubsym) gen_branch("jsr",timer_event_label);
+  else gen_branch("jmp",timer_event_label);
+  gen_label(lablabel);
+  enter_XREF("_MathBase");  /* timer routines need mathffp.library */
 }
 
 void error_event_test()
