@@ -570,7 +570,7 @@ void show_title()
 
 void usage()
 {
- printf("usage: ACE [words | -bcEilmOw] <sourcefile>[.b[as]]\n");
+ printf("usage: ACE [words | -bcEilmOw?] <sourcefile>[.b[as]]\n");
 }
 
 void help()
