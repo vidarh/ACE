@@ -79,7 +79,6 @@ void gen_incr_indirect16() { gen("add.w","#1","(a0)"); }
 void gen_incr_indirect32() { gen("add.l","#1","(a0)"); }
 
 void gen_incr_indirect_float() {
-  gen_libbase("Math");
   gen("move.l","(a0)","d0");
   gen("move.l","#$80000041","d1");
   gen_libcall("SPAdd","Math");
@@ -90,7 +89,6 @@ void gen_decr_indirect16() { gen("sub.w","#1","(a0)"); }
 void gen_decr_indirect32() { gen("sub.l","#1","(a0)"); }
 
 void gen_decr_indirect_float() {
-  gen_libbase("Math");
   gen("move.l","(a0)","d0");
   gen("move.l","#$80000041","d1");
   gen_libcall("SPSub","Math");
@@ -148,7 +146,6 @@ void m68k_neg(int type)
   case longtype:  gen("neg.l","(sp)","  "); break;
   case singletype: 
 	gen_pop32d(0); 
-	gen_libbase("Math");
 	gen_libcall("SPNeg","Math");
 	gen_push32d(0);
 	break;
@@ -562,7 +559,6 @@ int gen_Flt(int typ) {
   if (typ == shorttype) gen_pop16d(0);
   else gen_pop32d(0);
   if (typ == shorttype) gen_ext16to32(0); /* extend sign */
-  gen_libbase("Math");
   gen_libcall("SPFlt","Math");
   gen_push32d(0);
   return singletype;
@@ -638,7 +634,7 @@ void make_long() {
  gen_push32d(0);
 }
 
-void gen_libbase(const char * base) {
+static void gen_libbase(const char * base) {
   char buf[200];
   strcpy(buf,"_");
   strncat(buf,base,sizeof(buf)-1);
@@ -652,6 +648,7 @@ void gen_libbase(const char * base) {
 
 void gen_libcall(const char * lvo, const char * base) {
   char buf[200];
+  gen_libbase(base);
   strcpy(buf,"_LVO");
   strncat(buf,lvo,sizeof(buf)-4);
   enter_XREF(buf);
@@ -662,7 +659,6 @@ void gen_libcall(const char * lvo, const char * base) {
 void gen_gfxcall(const char * lvo) {
   gen_load32a("_RPort",1);
   enter_XREF("_RPort");
-  gen_libbase("Gfx");
   gen_libcall(lvo,"Gfx");
 }
 
@@ -735,7 +731,6 @@ static int m68k_muls(int type)
 	break;
   case singletype :  
 	pop_operands(shorttype);
-	gen_libbase("Math");
 	gen_libcall("SPMul","Math");
 	return singletype;
 	break;
@@ -766,7 +761,6 @@ static void m68k_cmp(int simptype, int op)
 	  gen_pop32d(1);  /* 2nd */
 	  gen_pop32d(0);  /* 1st */
 	  gen_load32d_val(-1,5); /* assume true */
-	  gen_libbase("Math");
 	  gen_libcall("SPCmp","Math");
 	  break;
 

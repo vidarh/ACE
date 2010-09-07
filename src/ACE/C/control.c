@@ -507,13 +507,11 @@ int  countertype,limittype,steptype;
     { 
      gen_load32d_val(0,1);
      gen_load32d(stpbuf,0);   /* d0 < d1? (where d1=0) */
-     gen_libbase("Math");
      gen_libcall("SPCmp","Math");
      make_label(labname2,lablabel2);
      gen_blt(labname2);  /* test result of ffp Cmp above */
      gen_load32d(cntbuf,0);    /* counter */
      gen_load32d(limbuf,1);   /* limit */
-     gen_libbase("Math");
      gen_libcall("SPCmp","Math");
      gen_bgt("  ");	  /* if STEP +ve -> counter>limit? */
      cx1=curr_code;
@@ -522,7 +520,6 @@ int  countertype,limittype,steptype;
      gen_label(lablabel2);
      gen_load32d(cntbuf,0);   /* counter */
      gen_load32d(limbuf,1);   /* limit */
-     gen_libbase("Math");
      gen_libcall("SPCmp","Math");
      gen_blt("  ");          /* if STEP -ve -> counter<limit? */
      cx2=curr_code;
@@ -559,7 +556,6 @@ int  countertype,limittype,steptype;
 	  break;
 	case singletype :  gen_load32d(stpbuf,0);
 	  gen_load32d(cntbuf,1);
-	  gen_libbase("Math");
 	  gen_libcall("SPAdd","Math");
 	  gen_save32d(0,counteraddr);
 	  break;

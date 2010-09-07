@@ -277,7 +277,6 @@ static int prodterm()
 	  case fdiv:
 		gen_pop32d(1);  /* 2nd operand */
 		gen_pop32d(0);  /* 1st operand */
-		gen_libbase("Math");
 		gen_libcall("SPDiv","Math");  
 		localtype=singletype;
 		break;
@@ -421,10 +420,7 @@ static int simple_expr()
 		switch(localtype) {
 		case shorttype: gen_add16dd(1,0); break;
 		case longtype:  gen_add32dd(1,0); break;
-		case singletype : 	
-		  gen_libbase("Math");
-		  gen_libcall("SPAdd","Math");
-		  break;
+		case singletype: gen_libcall("SPAdd","Math"); break;
 		case stringtype : 	/* copy source to temp string */
 		  gen_pop_addr(2); /* 2nd */
 		  gen_call_args("_strcpy","a1,t0",0);
@@ -440,10 +436,7 @@ static int simple_expr()
 		switch(localtype) {
 		case shorttype: gen_sub16dd(1,0); break;
 		case longtype:  gen_sub32dd(1,0); break;
-		case singletype :	
-		  gen_libbase("Math");
-		  gen_libcall("SPSub","Math");
-		  break;
+		case singletype : gen_libcall("SPSub","Math"); break;
 		case stringtype : 	_error(4); break;
 		}
 	  }

@@ -34,6 +34,8 @@ static inline void gen_neg(int type) { target->neg(type); }
 static inline int gen_muls(int type) { return target->muls(type); }
 static inline void gen_cmp(int type,int op) { target->cmp(type,op); }
 
+void gen_link();
+void gen_unlk();
 void gen_move32(const char * src, const char * dest);
 void gen_incr_indirect16();
 void gen_incr_indirect32();
@@ -79,7 +81,6 @@ void gen_pea(const char * target);
 
 /* Mid level */
 
-void gen_libbase(const char * base);
 void gen_libcall(const char * lvo, const char * base);
 void gen_gfxcall(const char * lvo);
 void gen_call_args(const char * label, const char * args, unsigned int stack);

@@ -95,7 +95,6 @@ void pset()
 
   /* plot point */
   if (!colorset) {
-	gen_libbase("Gfx");
 	gen_load32a("_RPort",1);
 	enter_XREF("_RPort");
   }
@@ -274,13 +273,11 @@ void circle()
   /* convert x & y values to floats */
   gen_load16d("_shortx",0);
   gen_ext16to32(0);
-  gen_libbase("Math");
   gen_libcall("SPFlt","Math");
   gen_save32d(0,"_floatx");
   
   gen_load16d("_shorty",0);
   gen_ext16to32(0);
-  gen_libbase("Math");
   gen_libcall("SPFlt","Math");
   gen_save32d(0,"_floaty");
   
@@ -427,7 +424,6 @@ void draw_line()
 			  }	else if (boxfill) {
 				change(cx,"nop","  ","  ");   /* don't need Move */
 				gen_load32a("_RPort",1);
-				gen_libbase("Gfx");
 				gen_pop16d(3);  /* ymax */
 				gen_pop16d(2);  /* xmax */
 				gen_load16d("_ymin",1); /* ymin */
@@ -438,7 +434,6 @@ void draw_line()
 			  } else {
 				/* draw line */
 				gen_load32a("_RPort",1);
-				gen_libbase("Gfx");
 				gen_pop16d(1);  /* y2 */
 				gen_pop16d(0);  /* x2 */
 				/* already moved to x1,y1 */

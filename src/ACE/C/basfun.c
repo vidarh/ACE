@@ -367,7 +367,6 @@ BOOL offset_on_stack;
 	   gen_move32aa(0,2);
 	   gen_jsr("_strlen"); /* inlen in d0 */
 	   gen_load32d_val(MAXSTRLEN,1); /* outlen = MAXSTRLEN */
-	   gen_libbase("Trans");
 	   gen_libcall("Translate","Trans");
 	   gen_pea(tempstrname); /* outstr on stack */
 	   sftype=stringtype;
@@ -400,7 +399,6 @@ int gen_single_func(char * funcname,int nftype)
 	{
 	  if (nftype != singletype) gen_Flt(nftype);  
 	  gen_pop32d(0);
-	  gen_libbase("MathTrans");
 	  gen_libcall(funcname,"MathTrans");
 	  gen_push32d(0);
 	  enter_XREF("_MathBase");
@@ -507,7 +505,6 @@ int numericfunction() {
   case fixsym  : /* n */
 	if (nftype == singletype) {
 	  gen_pop32d(0);
-	  gen_libbase("Math");
 	  gen_libcall("SPFix","Math");
 	  gen_push32d(0);
 	  nftype=longtype;
@@ -524,7 +521,6 @@ int numericfunction() {
   case intsym  : /* n */
 	if (nftype == singletype) {
 	  gen_pop32d(0);
-	  gen_libbase("Math");
 	  gen_libcall("SPFloor","Math");
 	  gen_libcall("SPFix","Math");
 	  gen_push32d(0);
