@@ -101,10 +101,10 @@ void get_obj_info(char * objname,int * object,int * objtype) {
 	exist(objname,structure);
 
   if (found) {
-	*object = curr_item->object;
+	*object  = curr_item->object;
 	*objtype = curr_item->type;
   } else {
-	*object = undefined;
+	*object  = undefined;
 	*objtype = undefined;
   }
 }
@@ -141,9 +141,7 @@ void swap() {
 
 		/* if two objects are of same data type -> swap them */
 		if (typ1 != typ2) _error(4);
-		else {
-		  gen_swap(typ1);
-		}
+		else gen_swap(typ1);
 	  }
 	}
   } 

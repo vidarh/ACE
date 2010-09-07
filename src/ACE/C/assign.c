@@ -78,6 +78,10 @@ extern	BOOL 	readpresent;
 extern	BOOL 	have_lparen;
 extern	BOOL 	have_equal;
 
+void input_long(SYM * storage, const char * func, char * addrbuf);
+void input_short(SYM * storage,const char * func, char * addrbuf);
+void input_single(SYM * storage, const char * func, char * addrbuf);
+
 /* functions */
 
 int assign_coerce(int storetype,int exptype)
@@ -203,7 +207,7 @@ void assign_to_string_array(char * addrbuf)
   */
   
   gen_pop_addr(1); /* source */
-  gen_save32a(addrbuf,0);
+  gen_load32a(addrbuf,0);
   gen_add32da(7,0);   /* destination */
   
   gen_jsr("_strcpy");  /* copy source to destination */
@@ -216,7 +220,7 @@ void assign_to_struct(SYM * item)
 	 value to one of its members.
   */
   SYM    *structype;
-  char   addrbuf[40],absbuf[40],numbuf[40];
+  char   addrbuf[40],absbuf[40];
   STRUCM *member;
   BOOL   found=FALSE;
   int    exprtype,storetype;
@@ -769,7 +773,7 @@ void read_data() {
 		if (storage->object == variable) {
 		  if ((storage->shared) && (lev == ONE)) {
 			/* FIXME: Why is this so different? */
-			gen_save32a(addrbuf,0);   /* abs addr of store */
+			gen_load32a(addrbuf,0);   /* abs addr of store */
 			gen_pop_indirect32(0);
 		  } else gen_pop32_var(addrbuf);
 		} else if (storage->object == array)

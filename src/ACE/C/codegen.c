@@ -299,13 +299,13 @@ void gen_load32d_val(signed long val, unsigned char reg) {
   else gen("move.l",buf,dreg[reg]);
 }
 
-void gen_load32a_val(long val, BYTE reg) { gen_load32d_val(val,areg[reg]); }
-
 void gen_load32_val(long val, const char * label) {
   char buf[16];
   sprintf(buf,"#%ld",val);
   gen("move.l",buf,label);
 }
+
+void gen_load32a_val(long val, BYTE reg) { gen_load32_val(val,areg[reg]); }
 
 void gen_load16_val(long val, const char * label) {
   char buf[16];
@@ -678,7 +678,7 @@ void gen_gfxcall(const char * lvo) {
  * a[0-7] => address registers
  * t[0-7] => Create a temporary string, load into address register
  */
-static char * gen_pop_arg(char * args) {
+static const char * gen_pop_arg(const char * args) {
   if (*args == 'd') {
 	if (args[2] == '.') {
 	  if (args[3] == 'w') gen_pop16d(args[1] - '0');
@@ -697,7 +697,7 @@ static char * gen_pop_arg(char * args) {
   return args;
 }
 
-static char * gen_push_ret(char * args) {
+static const char * gen_push_ret(const char * args) {
   if (*args != ':') return args;
   args += 1;
   if (*args == 'd') {

@@ -272,7 +272,6 @@ void while_statement() {
 void repeat_statement() {
   char labname1[80],lablabel1[80];
   char labname2[80],lablabel2[80];
-  int  exprtype;
   
   make_label(labname1,lablabel1);
   gen_label(lablabel1);
@@ -589,11 +588,10 @@ int  countertype,limittype,steptype;
 
 void on_branch()
 {
-char numbuf[40];
-char lab[80],lablabel[80];
-int  branch;
-int  btype;
-long i,opt=0;
+  char lab[80],lablabel[80];
+  int  branch;
+  int  btype;
+  long i,opt=0;
 
 /* ON <integer-expression> GOTO | GOSUB <label> | <line> */
 

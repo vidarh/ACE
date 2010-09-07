@@ -81,6 +81,30 @@ void gen_neg16d(unsigned char r);
 void gen_pea(const char * target);
 void gen_push16_val(int val);
 void gen_swap(int typ);
+void gen_ext16to32(BYTE d);
+int gen_pop_as_short(int type, unsigned char reg);
+void gen_decr_indirect_float();
+void gen_save_indirect16(unsigned char dr, unsigned char ar);
+void gen_save_indirect8(unsigned char dr, unsigned char ar);
+void gen_save_indirect32(unsigned char dr, unsigned char ar);
+void gen_load16d_val(int val, unsigned char reg);
+void gen_load32a_val(long val, BYTE reg);
+void gen_add32dd(BYTE reg1, BYTE reg2);
+void gen_add32da(unsigned char srcreg, unsigned char destreg);
+void gen_push_indirect_indexed16();
+void gen_push_indirect_indexed32();
+void gen_push_indirect32(unsigned char r);
+void gen_cmp32sp_val(long val);
+void gen_push_indirect16(unsigned char r);
+void gen_pop_indirect_indexed32(unsigned char ar, unsigned char dr);
+void gen_pop_indirect_indexed16(unsigned char ar, unsigned char dr);
+void gen_save_indirect_indexed16(const char * label, unsigned char ar, unsigned char dr);
+void gen_cmp16_val(long val, const char * target);
+void gen_cmp16dd(BYTE r1, BYTE r2);
+void gen_add32d_val(long val, unsigned char reg);
+void gen_save_indirect_indexed32(const char * label, unsigned char ar, unsigned char dr);
+void gen_cmp32_val(long val, const char * target);
+void gen_add32dd(BYTE reg1, BYTE reg2);
 
 /* Mid level */
 
