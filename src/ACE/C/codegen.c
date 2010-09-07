@@ -9,6 +9,7 @@ void codegen_set_target(struct codegen_target * t)
 
 extern BOOL   early_exit;
 extern CODE * new_code, * curr_code;
+extern	char	tempstrname[80];
 
 void kill_all_lists();
 
@@ -312,7 +313,7 @@ void gen_load16_val(long val, const char * label) {
   gen("move.w",buf,label);
 }
 
-void gen_swapstr(const char * tempstrname) {
+static void gen_swapstr(const char * tempstrname) {
   /* make copies of two addresses */
   gen("move.l","a1","d1"); /* first address */
   gen("move.l","a2","d2"); /* second address */
@@ -335,16 +336,26 @@ void gen_swapstr(const char * tempstrname) {
   gen_jsr("_strcpy");   /* second = temp */
 }
 
-void gen_swap16() {
+static void gen_swap16() {
   gen("move.w","(a1)","d0");   /* temp = [first] */
   gen("move.w","(a2)","(a1)"); /* [first] = [second] */
   gen("move.w","d0","(a2)");   /* [second] =temp */     
 }
 
-void gen_swap32() {
+static void gen_swap32() {
   gen("move.l","(a1)","d0");   /* temp = [first] */
   gen("move.l","(a2)","(a1)"); /* [first] = [second] */
   gen("move.l","d0","(a2)");   /* [second] =temp */     
+}
+
+void gen_swap(int typ)
+{
+  gen_pop_addr(2); /* second address */
+  gen_pop_addr(1); /* first address */
+  
+  if (typ == stringtype) gen_swapstr(tempstrname);
+  else if (typ == shorttype) gen_swap16();
+  else gen_swap32();
 }
 
 void gen_save_registers() { gen("movem.l","d1-d7/a0-a6","-(sp)"); }

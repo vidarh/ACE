@@ -142,12 +142,7 @@ void swap() {
 		/* if two objects are of same data type -> swap them */
 		if (typ1 != typ2) _error(4);
 		else {
-		  gen_pop_addr(2); /* second address */
-		  gen_pop_addr(1); /* first address */
-		  
-		  if (typ1 == stringtype) gen_swapstr(tempstrname);
-		  else if (typ1 == shorttype) gen_swap16();
-		  else gen_swap32();
+		  gen_swap(typ1);
 		}
 	  }
 	}

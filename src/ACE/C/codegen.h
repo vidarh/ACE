@@ -62,6 +62,7 @@ void gen_bne(const char * label);
 void gen_beq(const char * label);
 void gen_blt(const char * label);
 void gen_bgt(const char * label);
+void gen_bge(const char * label);
 void gen_jmp(const char * label);
 void gen_tst32d(BYTE reg);
 void gen_tst16d(BYTE reg);
@@ -78,6 +79,8 @@ void gen_save32a(unsigned char reg, const char * label);
 void gen_not16d(unsigned char reg);
 void gen_neg16d(unsigned char r);
 void gen_pea(const char * target);
+void gen_push16_val(int val);
+void gen_swap(int typ);
 
 /* Mid level */
 
