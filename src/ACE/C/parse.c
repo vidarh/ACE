@@ -570,7 +570,7 @@ void show_title()
 
 void usage()
 {
- printf("usage: ACE [words | -bcEilmOw?] <sourcefile>[.b[as]]\n");
+ printf("usage: ACE [words | -bcEilmOtw?] <sourcefile>[.b[as]]\n");
 }
 
 void help()
@@ -580,14 +580,17 @@ void help()
 		 "'words' produces a list of keywords known to ACE\n"
 		 "\n"
 		 "Options:\n"
-		 " -b   Include automatic Ctrl-C checks\n"
-		 " -c   Include ACE statement as comment in the asm output\n"
-		 " -E   Creates 'ace.err' file containing error messages\n"
-		 " -i   Make an icon for the executable (based on ACE:icons/exe.info)\n"
-		 " -l   Display each line as it is being compiled\n"
-		 " -m   Create a linkable module with no startup code\n"
-		 " -O   Enable the peephole optimizer\n"
-		 " -w   Include automatic window close-gadget checks\n"
+		 " -b         Include automatic Ctrl-C checks\n"
+		 " -c         Include ACE statement as comment in the asm output\n"
+		 " -E         Creates 'ace.err' file containing error messages\n"
+		 " -i         Make an icon for the executable (based on ACE:icons/exe.info)\n"
+		 " -l         Display each line as it is being compiled\n");
+  printf(
+		 " -m         Create a linkable module with no startup code\n"
+		 " -O         Enable the peephole optimizer\n"
+		 " -t [name]  Set code generation target (valid: m68k-amiga i386-aros; default: m68k-amiga)\n"
+		 " -w         Include automatic window close-gadget checks\n"
+		 "\n"
 		 );
 }
 
