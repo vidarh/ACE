@@ -440,7 +440,7 @@ void assign() {
 				if (storage_item->type == shorttype)
 				  {
 					gen_load32a(addrbuf,0);
-					gen_pop_indirect16(0,7);
+					gen_pop_indirect_indexed16(0,7);
 				  }
 				else
 				  {
