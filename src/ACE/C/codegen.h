@@ -105,6 +105,10 @@ void gen_add32d_val(long val, unsigned char reg);
 void gen_save_indirect_indexed32(const char * label, unsigned char ar, unsigned char dr);
 void gen_cmp32_val(long val, const char * target);
 void gen_add32dd(BYTE reg1, BYTE reg2);
+void gen_jmp_fwd(const char * label,const char * flag);
+void gen_pop_indirect32(unsigned char r);
+void gen_pop_indirect16(unsigned char r);
+void gen_move16(const char * src, const char * dest);
 
 /* Mid level */
 
