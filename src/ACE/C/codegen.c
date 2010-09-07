@@ -712,6 +712,14 @@ void gen_call_args(const char * label, const char * args, unsigned int stack) {
   gen_push_ret(args);
 }
 
+int gen_fcall(const char * funcname, int type, const char * params, int ret, const char * callargs, int stackadj)
+{
+  if (parse_gen_params(type,params) == undefined) return undefined;
+  gen_call_args(funcname, callargs, stackadj);
+  return ret;
+}
+
+
 void gen_call_indirect(const char * addr) {
   gen("move.l",addr,"a0");
   gen("jsr","(a0)","  ");

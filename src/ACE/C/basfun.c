@@ -187,13 +187,6 @@ int parse_gen_params(int type, const char * params) {
   return type;
 }
 
-int gen_fcall(const char * funcname, int type, const char * params, int ret, const char * callargs, int stackadj)
-{
-  if (parse_gen_params(type,params) == undefined) return undefined;
-  gen_call_args(funcname, callargs, stackadj);
-  return ret;
-}
-
 int stringfunction()
 {
 int  func;
