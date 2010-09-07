@@ -472,7 +472,7 @@ void files() {
 }
 
 void push_struct_var_info(SYM * structVar) {
-  char addrbuf[40], sizebuf[10];
+  char addrbuf[40];
 
   /* Push address held by structure variable. */
   sprintf(addrbuf,"%d%s",-1*structVar->address, frame_ptr[lev]);

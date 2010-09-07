@@ -559,7 +559,6 @@ void areafill()
 void pattern()
 {
   char addrbuf[40];
-  char numbuf[20];
   BOOL linepatterncalled;
   
   /* PATTERN [line-pattern][,area-pattern] | RESTORE */ 

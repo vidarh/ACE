@@ -339,7 +339,6 @@ static int idivterm()
 static int modterm()
 {
   /* modulo arithmetic -> returns remainder of long integer or FFP division */
-  int  i;
   int  firsttype,localtype,idivtype;
   int  targettype=longtype;
   CODE *cx[5];

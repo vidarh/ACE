@@ -315,7 +315,7 @@ void sub_params(SYM * sub_ptr) {
 void parse_shared_vars() {
   SYM  *zero_ptr,*one_ptr;
   int  i;
-  char buf0[40],buf1[40],num[40];
+  char buf0[40],buf1[40];
   BOOL share_it;
 
   /* get the SHARED list for current SUB and store details */

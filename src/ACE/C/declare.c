@@ -658,7 +658,6 @@ BOOL *need_symbol;
 SYM   *extfunc_item;
 int   i;
 SHORT popcount=0;
-char  buf[40],numbuf[40];
 
   if (exist(extfuncid,extfunc)) /* preserve case */
   {

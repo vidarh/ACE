@@ -189,11 +189,10 @@ int parse_gen_params(int type, const char * params) {
 
 int stringfunction()
 {
-int  func;
-int  sftype=undefined;
-int  ntype=undefined;
-char buf[80],srcbuf[80];
-BOOL offset_on_stack;
+  int  func;
+  int  sftype=undefined;
+  int  ntype=undefined;
+  BOOL offset_on_stack;
  
  if (!strfunc()) return undefined;
 
@@ -664,8 +663,7 @@ int numericfunction() {
 int address_of_object() {
   /* return the address of a variable, array or structure */
   SYM    *varptr_item;
-  char   buf[50],numbuf[40];
-  char   addrbuf[40];
+  char   buf[50],addrbuf[40];
   char   extobjid[MAXIDSIZE];
   char   subname[MAXIDSIZE+5];
   SYM    *structype;

@@ -258,7 +258,7 @@ void parse()
 
 void compile(char * source_name,const char * dest_name)
 {
-  char buf[40],icon_name[MAXSTRLEN];
+  char icon_name[MAXSTRLEN];
   FILE *icon_src,*icon_dest;
   int  cc;
 

@@ -725,6 +725,7 @@ void	iff();
 void	iff_open();
 void	iff_read();
 void	iff_close();
+void parse_channel();
 
 BYTE 	check_for_ace_lib();
 void	enter_new_library();
