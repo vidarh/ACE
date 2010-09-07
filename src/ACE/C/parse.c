@@ -573,6 +573,24 @@ void usage()
  printf("usage: ACE [words | -bcEilmOw] <sourcefile>[.b[as]]\n");
 }
 
+void help()
+{
+  usage();
+  printf("\n"
+		 "'words' produces a list of keywords known to ACE\n"
+		 "\n"
+		 "Options:\n"
+		 " -b   Include automatic Ctrl-C checks\n"
+		 " -c   Include ACE statement as comment in the asm output\n"
+		 " -E   Creates 'ace.err' file containing error messages\n"
+		 " -i   Make an icon for the executable (based on ACE:icons/exe.info)\n"
+		 " -l   Display each line as it is being compiled\n"
+		 " -m   Create a linkable module with no startup code\n"
+		 " -O   Enable the peephole optimizer\n"
+		 " -w   Include automatic window close-gadget checks\n"
+		 );
+}
+
 BOOL check_options(char * opt) {
   BOOL legalopt=TRUE;
 
@@ -636,6 +654,10 @@ int main(int argc,char * argv[]) {
   */ 
   if ((argc == 1) || (argc > 3)) 
     { usage(); exit(10); } /* arg count mismatch */
+
+  if (!strcmp(argv[1],"-?") || !strcmp(argv[1],"--help") || !strcmp(argv[1],"-h"))  {
+	help(); exit(0);
+  }
   
   /* send reserved words to stdout then quit? */
   tmparg = (char *)malloc(strlen(argv[1])+1);
