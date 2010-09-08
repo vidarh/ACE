@@ -407,6 +407,12 @@ void gen_add32a_val(long val, unsigned char reg) {
   gen("adda.l",buf,areg[reg]);
 }
 
+void gen_add32_val(long val, const char * label) {
+  char buf[16];
+  sprintf(buf,"#%ld",val);
+  gen("add.l",buf,label);
+}
+
 void gen_add32d_val(long val, unsigned char reg) {
   char buf[16];
   sprintf(buf,"#%ld",val);
@@ -418,6 +424,12 @@ void gen_add16d_val(long val, unsigned char reg) {
   char buf[16];
   sprintf(buf,"#%ld",val);
   gen("add.w",buf,dreg[reg]);
+}
+
+void gen_add16_val(long val, const char * label) {
+  char buf[16];
+  sprintf(buf,"#%ld",val);
+  gen("add.w",buf,label);
 }
 
 void gen_sub32d_val(long val, unsigned char reg) {  

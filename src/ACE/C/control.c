@@ -523,11 +523,11 @@ void for_statement()
 	  switch(steptype) {
 	  case shorttype  : 	
 		gen_load16d(stpbuf,0);
-		gen_add16d_val(0,counteraddr);
+		gen_add16_val(0,counteraddr);
 		break;
 	  case longtype   : 	
 		gen_load32d(stpbuf,0);
-		gen_add32d_val(0,counteraddr);
+		gen_add32_val(0,counteraddr);
 		break;
 	  case singletype :  gen_load32d(stpbuf,0);
 		gen_load32d(cntbuf,1);

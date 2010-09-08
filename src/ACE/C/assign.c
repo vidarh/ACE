@@ -81,6 +81,7 @@ extern	BOOL 	have_equal;
 void input_long(SYM * storage, const char * func, char * addrbuf);
 void input_short(SYM * storage,const char * func, char * addrbuf);
 void input_single(SYM * storage, const char * func, char * addrbuf);
+void assign_string_to_storage(SYM * storage, char * addrbuf);
 
 /* functions */
 

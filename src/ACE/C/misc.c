@@ -245,10 +245,10 @@ void get_abs_ndx(SYM * curr)
 	gen_call_void("lmulu",8);	/* d7*MAXSTRLEN */
 	gen_move32dd(0,7);
   } else if (curr->type == shorttype)
-    gen_lsl(1,7);   /* d7*2 */
+    gen_lsl(1);   /* d7*2 */
   else
     /* long or single */
-    gen_lsl(2,7);  /* d7*4 */
+    gen_lsl(2);  /* d7*4 */
 }
 
 void push_num_constant(int typ, SYM * item)
