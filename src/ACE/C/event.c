@@ -95,271 +95,257 @@ extern	char  	ontimer_seconds[40];
 /* functions */
 void get_event_trap_label()
 {
-/* ON <event>|[TIMER(n)] GOSUB <label> | GOTO <label> | CALL <SUBname> */
-int   event;
-int   branchsym;
-char  theLabel[80];
+  /* ON <event>|[TIMER(n)] GOSUB <label> | GOTO <label> | CALL <SUBname> */
+  int   event;
+  int   branchsym;
+  char  theLabel[80];
 
  if ((sym != breaksym) && (sym != menusym) &&
      (sym != mousesym) && (sym != timersym) && 
      (sym != errorsym) && (sym != windowsym) &&
      (sym != gadgetsym))
     _error(55);
- else
- {
+ else {
   event=sym; /* remember event specifier */
 
   /* if TIMER, get single-precision seconds */
-  if (event == timersym)
-  {
-   insymbol();
-   if (sym != lparen) _error(14);
-   else
-   {
-    insymbol();
-    if ((sym != shortconst) && (sym != longconst) &&
-        (sym != singleconst)) _error(27); /* numeric constant expected */
-    else
-    {
-     switch(sym)
-     {
-      case shortconst  : timer_event_seconds=(float)shortval; break;
-      case longconst   : timer_event_seconds=(float)longval;  break;
-      case singleconst : timer_event_seconds=singleval; break;
-     }
-     sprintf(ontimer_seconds,"#$%lx",(unsigned long)timer_event_seconds);
-     insymbol();
-     if (sym != rparen) _error(9);       
-    }
-   }
+  if (event == timersym) {
+	insymbol();
+	if (sym != lparen) _error(14);
+	else {
+	  insymbol();
+	  if ((sym != shortconst) && (sym != longconst) &&
+		  (sym != singleconst)) _error(27); /* numeric constant expected */
+	  else {
+		switch(sym) {
+		case shortconst  : timer_event_seconds=(float)shortval; break;
+		case longconst   : timer_event_seconds=(float)longval;  break;
+		case singleconst : timer_event_seconds=singleval; break;
+		}
+		sprintf(ontimer_seconds,"#$%lx",(unsigned long)timer_event_seconds);
+		insymbol();
+		if (sym != rparen) _error(9);       
+	  }
+	}
   }
   insymbol();
   if (sym != gosubsym && sym != gotosym && sym != callsym) 
-     _error(56);
-  else
-  {
-   branchsym=sym; /* GOSUB, GOTO or CALL? */
+	_error(56);
+  else {
+	branchsym=sym; /* GOSUB, GOTO or CALL? */
 
-   insymbol();
-   if (sym != ident && sym != shortconst && sym != longconst)
-       _error(57);  /* label or SUB name expected */
-   else
-   {
-     /* Make a label from a line number? */
-     if (sym != ident) make_label_from_linenum(sym,id);
+	insymbol();
+	if (sym != ident && sym != shortconst && sym != longconst)
+	  _error(57);  /* label or SUB name expected */
+	else {
+	  /* Make a label from a line number? */
+	  if (sym != ident) make_label_from_linenum(sym,id);
+	  
+	  /* 
+	  ** Convert to a SUB label, check for existence 
+	  ** (defined or declared) of SUB and number of 
+	  ** parameters (must be zero to be valid).
+	  */	
+	  if (branchsym == callsym) {
+		sprintf(theLabel,"_SUB_%s",id);
+		if (!exist(theLabel,subprogram)) {
+		  _error(59);
+		  return;
+		} else if (curr_item->no_of_params != 0) {
+		  _error(78);
+		  return;
+		}
+	  } else 
+		strcpy(theLabel,id);
 
-     /* 
-     ** Convert to a SUB label, check for existence 
-     ** (defined or declared) of SUB and number of 
-     ** parameters (must be zero to be valid).
-     */	
-     if (branchsym == callsym) 
-     {
-	sprintf(theLabel,"_SUB_%s",id);
-	if (!exist(theLabel,subprogram))
-	{
-		_error(59);
-		return;
-	}
-	else
-	if (curr_item->no_of_params != 0)
-	{
-		_error(78);
-		return;
-	}
-     }
-     else
-	strcpy(theLabel,id);
+	  switch(event) {
+      case breaksym : 
+		strcpy(break_event_label,theLabel);
+		break_event_label_exists=TRUE; 
+		break_event_branch=branchsym;
+		break;
+			  
+      case menusym: 
+		strcpy(menu_event_label,theLabel);
+		menu_event_label_exists=TRUE;
+		menu_event_branch=branchsym;
+		break;
 
-     switch(event)
-     {
-      case breaksym : strcpy(break_event_label,theLabel);
-		      break_event_label_exists=TRUE; 
-		      break_event_branch=branchsym;
-		      break;
-
-      case menusym  : strcpy(menu_event_label,theLabel);
- 		      menu_event_label_exists=TRUE;
-		      menu_event_branch=branchsym;
-		      break;
-
-      case mousesym : strcpy(mouse_event_label,theLabel); 
-		      mouse_event_label_exists=TRUE;
-		      mouse_event_branch=branchsym;
-		      break;
-
+      case mousesym:
+		strcpy(mouse_event_label,theLabel); 
+		mouse_event_label_exists=TRUE;
+		mouse_event_branch=branchsym;
+		break;
+		
       case timersym : strcpy(timer_event_label,theLabel); 
-		      timer_event_label_exists=TRUE;
-		      timer_event_branch=branchsym;
-		      break;
+		timer_event_label_exists=TRUE;
+		timer_event_branch=branchsym;
+		break;
 
       case errorsym : strcpy(error_event_label,theLabel); 
-		      error_event_label_exists=TRUE;
-		      error_event_branch=branchsym;
-		      break;
-
+		error_event_label_exists=TRUE;
+		error_event_branch=branchsym;
+		break;
+		
       case windowsym : strcpy(wdw_event_label,theLabel); 
-		      wdw_event_label_exists=TRUE;
-		      wdw_event_branch=branchsym;
-		      break;
+		wdw_event_label_exists=TRUE;
+		wdw_event_branch=branchsym;
+		break;
 
       case gadgetsym : strcpy(gad_event_label,theLabel); 
-		      gad_event_label_exists=TRUE;
-		      gad_event_branch=branchsym;
-		      break;
-     }
-    insymbol();
-   }
+		gad_event_label_exists=TRUE;
+		gad_event_branch=branchsym;
+		break;
+	  }
+	  insymbol();
+	}
   }
  }
 }
 
-void change_event_trapping_status(event)
-int event;
+void change_event_trapping_status(int event)
 {
-/* <event> ON|OFF|STOP */
-int action;
-
- if (lastsym != windowsym && lastsym != gadgetsym &&
-     lastsym != menusym) insymbol();
-
- if ((sym != onsym) && (sym != offsym) && (sym != stopsym))
+  /* <event> ON|OFF|STOP */
+  int action;
+  
+  if (lastsym != windowsym && lastsym != gadgetsym &&
+	  lastsym != menusym) insymbol();
+  
+  if ((sym != onsym) && (sym != offsym) && (sym != stopsym))
     _error(58); /* ON, OFF or STOP expected */
- else
- {
-  action=sym; /* remember action symbol */
-  insymbol();
-  /* enable event trapping for <event>. */
-  if (action == onsym)
-     switch(event)
-     {
-      case breaksym : if (break_event_label_exists) 
-		         break_event=TRUE;
-                      else _error(59);
-		      break;
+  else {
+	action=sym; /* remember action symbol */
+	insymbol();
+	/* enable event trapping for <event>. */
+	if (action == onsym)
+	  switch(event) {
+      case breaksym : 
+		if (break_event_label_exists) break_event=TRUE;
+		else _error(59);
+		break;
 
-      case menusym  : if (menu_event_label_exists) 
-		         menu_event=TRUE;
-                      else _error(59);
-		      break;
+      case menusym  : 
+		if (menu_event_label_exists) menu_event=TRUE;
+		else _error(59);
+		break;
 
-      case mousesym : if (mouse_event_label_exists) 
-		         mouse_event=TRUE;
-                      else _error(59);
-		      break;
+      case mousesym : 
+		if (mouse_event_label_exists)  mouse_event=TRUE;
+		else _error(59);
+		break;
 
-      case timersym : if (timer_event_label_exists) 
-		         { timer_event=TRUE; ontimerused=TRUE; }
-                      else _error(59);
-		      break;
+      case timersym : 
+		if (timer_event_label_exists)  { timer_event=TRUE; ontimerused=TRUE; }
+		else _error(59);
+		break;
 
-      case errorsym : if (error_event_label_exists) 
-		         error_event=TRUE;
-                      else _error(59);
-		      break;
+      case errorsym : 
+		if (error_event_label_exists) error_event=TRUE;
+		else _error(59);
+		break;
 
-      case windowsym : if (wdw_event_label_exists) 
-		         wdw_event=TRUE;
-                      else _error(59);
-		      break;
+      case windowsym : 
+		if (wdw_event_label_exists)  wdw_event=TRUE;
+		else _error(59);
+		break;
 
-      case gadgetsym : if (gad_event_label_exists) 
-		         gad_event=TRUE;
-                      else _error(59);
-		      break;
+      case gadgetsym : 
+		if (gad_event_label_exists)  gad_event=TRUE;
+		else _error(59);
+		break;
      }
   else
   /* disable event trapping for <event>. */
   if (action == offsym)
      switch(event)
      {
-      case breaksym : if (break_event_label_exists) 
-		         { break_event=FALSE; break_event_label_exists=FALSE; }
-                      else _error(59);
-		      break;
+      case breaksym : 
+		if (break_event_label_exists) { break_event=FALSE; break_event_label_exists=FALSE; }
+		else _error(59);
+		break;
 
-      case menusym  :  if (menu_event_label_exists) 
-		          { menu_event=FALSE; menu_event_label_exists=FALSE; }
-                       else _error(59);
-		       break;
+      case menusym  :  
+		if (menu_event_label_exists)  { menu_event=FALSE; menu_event_label_exists=FALSE; }
+		else _error(59);
+		break;
 
-      case mousesym : if (mouse_event_label_exists) 
-		         { mouse_event=FALSE; mouse_event_label_exists=FALSE; }
-                      else _error(59);
-		      break;
+      case mousesym : 
+		if (mouse_event_label_exists) { mouse_event=FALSE; mouse_event_label_exists=FALSE; }
+		else _error(59);
+		break;
 
-      case timersym : if (timer_event_label_exists) 
-		         { timer_event=FALSE; timer_event_label_exists=FALSE; }
-                      else _error(59);
-		      break;
+      case timersym : 
+		if (timer_event_label_exists) { timer_event=FALSE; timer_event_label_exists=FALSE; }
+		else _error(59);
+		break;
 
-      case errorsym : if (error_event_label_exists) 
-		         { error_event=FALSE; error_event_label_exists=FALSE; }
-                      else _error(59);
-		      break;
+      case errorsym : 
+		if (error_event_label_exists) { error_event=FALSE; error_event_label_exists=FALSE; }
+		else _error(59);
+		break;
 
-      case windowsym : if (wdw_event_label_exists) 
-		         { wdw_event=FALSE; wdw_event_label_exists=FALSE; }
-                      else _error(59);
-		      break;
+      case windowsym : 
+		if (wdw_event_label_exists) { wdw_event=FALSE; wdw_event_label_exists=FALSE; }
+		else _error(59);
+		break;
 
-      case gadgetsym : if (gad_event_label_exists) 
-		         { gad_event=FALSE; gad_event_label_exists=FALSE; }
-                      else _error(59);
-		      break;
+      case gadgetsym : 
+		if (gad_event_label_exists) { gad_event=FALSE; gad_event_label_exists=FALSE; }
+		else _error(59);
+		break;
      }
   else
   /* disable event trapping for <event> but remember trapping routine. */ 
   if (action == stopsym)
      switch(event)
      {
-      case breaksym : if (break_event_label_exists) 
-		         break_event=FALSE;
-                      else _error(59);
-		      break;
+      case breaksym : 
+		if (break_event_label_exists) break_event=FALSE;
+		else _error(59);
+		break;
 
-      case menusym  : if (menu_event_label_exists) 
-		         menu_event=FALSE;
-                      else _error(59);
-		      break;
+      case menusym  : 
+		if (menu_event_label_exists) menu_event=FALSE;
+		else _error(59);
+		break;
 
-      case mousesym : if (mouse_event_label_exists) 
-		         mouse_event=FALSE;
-                      else _error(59);
-		      break;
+      case mousesym : 
+		if (mouse_event_label_exists) mouse_event=FALSE;
+		else _error(59);
+		break;
 
-      case timersym : if (timer_event_label_exists) 
-		         timer_event=FALSE;
-                      else _error(59);
-		      break;
+	 case timersym : 
+	   if (timer_event_label_exists)  timer_event=FALSE;
+	   else _error(59);
+	   break;
 
-      case errorsym : if (error_event_label_exists) 
-		         error_event=FALSE;
-                      else _error(59);
-		      break;
+	 case errorsym : 
+	   if (error_event_label_exists) error_event=FALSE;
+	   else _error(59);
+	   break;
 
-      case windowsym : if (wdw_event_label_exists) 
-		         wdw_event=FALSE;
-                      else _error(59);
-		      break;
-
-      case gadgetsym : if (gad_event_label_exists) 
-		         gad_event=FALSE;
-                      else _error(59);
-		      break;
+      case windowsym : 
+		if (wdw_event_label_exists) wdw_event=FALSE;
+		else _error(59);
+		break;
+		
+	 case gadgetsym : 
+	   if (gad_event_label_exists) gad_event=FALSE;
+	   else _error(59);
+	   break;
      }
 
-  insymbol();
+	insymbol();
  } 
 }
 
 void turn_event_off(char * eventHandler)
 {
-/* 
-** Turn event trapping off if this 
-** subroutine/subprogram belongs to 
-** an event.
-*/
+  /* 
+  ** Turn event trapping off if this 
+  ** subroutine/subprogram belongs to 
+  ** an event.
+  */
      if ((strcmp(eventHandler,break_event_label) == 0) && (break_event))
         { break_event=FALSE; break_event_label_exists=FALSE; }
      else
@@ -396,158 +382,78 @@ void check_for_event()
  if (error_event) 	error_event_test();
 }
 
+void event_test(const char * test, const char * label, int branch)
+{
+  char lab[80],lablabel[80];
+
+  /* test for menu button press 
+	 and pass control to the
+	 MENU trapping subroutine. */
+
+  make_label(lab,lablabel);
+  
+  gen_jsr(test);
+  gen_tst32d(0);
+  gen_beq(lab);
+
+  if (branch == callsym) gen_jsr(label);
+  else if (branch  == gosubsym) gen_branch("jsr",label);
+  else gen_branch("jmp",label);
+  gen_label(lablabel);
+}
+
 void ctrl_c_test()
 {
-char lab[80],lablabel[80];
-
-/* test for ctrl-c signal 
-   and exit program if a 
-   break signal is pending. */
-
-   make_label(lab,lablabel);
-
-   gen_jsr("_ctrl_c_test");
-   gen_tst32d(0);
-   gen_beq(lab);
-   gen_jmp("_EXIT_PROG");
-   gen_label(lablabel);
+  event_test("_ctrl_c_test","_EXIT_PROG", gotosym);
 }
 
 void break_event_test()
 {
-char lab[80],lablabel[80];
-
-/* test for ctrl-c signal 
-   and pass control to the
-   BREAK trapping subroutine. */
-
-   make_label(lab,lablabel);
-
-   gen_jsr("_ctrl_c_test");
-   gen_tst32d(0);
-   gen_beq(lab);
-
-   if (break_event_branch == callsym)
-	 gen_jsr(break_event_label);
-   else
-   if (break_event_branch == gosubsym) 
-      gen_branch("jsr",break_event_label);
-   else
-      gen_branch("jmp",break_event_label);
-
-   gen_label(lablabel);
+  event_test("_ctrl_c_test",break_event_label, break_event_branch);
 }
+
 
 void menu_event_test()
 {
-char lab[80],lablabel[80];
-
-/* test for menu button press 
-   and pass control to the
-   MENU trapping subroutine. */
-
- gen_jsr("_menu_test");
- gen_tst32d(0);
- make_label(lab,lablabel);
- gen_beq(lab);
-
- if (menu_event_branch == callsym)
-   gen_jsr(menu_event_label);
- else
- if (menu_event_branch == gosubsym) 
-   gen_branch("jsr",menu_event_label);
- else
-   gen_branch("jmp",menu_event_label);
- gen_label(lablabel);
+  event_test("_menu_test",menu_event_label, menu_event_branch);
 }
 
 void mouse_event_test()
 {
-char lab[80],lablabel[80];
-
-/* test for left mouse button 
-   press and pass control to the
-   MOUSE trapping subroutine. */
-
- gen_load32d_val(0,0);
- gen_jsr("_mouse");
- gen_tst32d(0);
- make_label(lab,lablabel);
- gen_beq(lab);
-
- if (mouse_event_branch == callsym)
-   gen_jsr(mouse_event_label);
- else
- if (mouse_event_branch == gosubsym) 
-    gen_branch("jsr",mouse_event_label);
- else
-    gen_branch("jmp",mouse_event_label);
- gen_label(lablabel);
+  event_test("_mouse", mouse_event_label, mouse_event_branch);
 }
 
 void timer_event_test()
 {
-  char lab[80],lablabel[80];
-  
-  /* test for timer event and pass control to the
-	 TIMER trapping subroutine. */
-  
   gen_load32d(ontimer_seconds,0);
-  gen_jsr("_ontimer");
-  gen_tst32d(0);
-  make_label(lab,lablabel);
-  gen_beq(lab);
-
-  if (timer_event_branch == callsym) gen_jsr(timer_event_label);
-  else if (timer_event_branch == gosubsym) gen_branch("jsr",timer_event_label);
-  else gen_branch("jmp",timer_event_label);
-  gen_label(lablabel);
+  event_test("_ontimer", timer_event_label, timer_event_branch);
   enter_XREF("_MathBase");  /* timer routines need mathffp.library */
 }
 
 void error_event_test()
 {
-char lab[80],lablabel[80];
-
-/* Test for I/O error condition 
-   and pass control to the ERROR
-   trapping subroutine.
-*/
-
- gen_jsr("_testerror");
- gen_tst32d(0);
- make_label(lab,lablabel);
- gen_beq(lab);
-
- if (error_event_branch == callsym)
-   gen_jsr(error_event_label);
- else
-   if (error_event_branch == gosubsym) 
-	 gen_branch("jsr",error_event_label);
-   else
-	 gen_branch("jmp",error_event_label);
- gen_label(lablabel);
+  event_test("_testerror",error_event_label, error_event_branch);
 }
 
 void wdw_close_test()
 {
-char lab[80],lablabel[80];
+  char lab[80],lablabel[80];
+  
+  /* Test for close-gadget selection 
+	 in any window and exit program 
+	 if close-gadget click detected.
+	 
+	 The clicked window will be closed
+	 before the program exits.
+  */
+  make_label(lab,lablabel);
 
-/* Test for close-gadget selection 
-   in any window and exit program 
-   if close-gadget click detected.
-
-   The clicked window will be closed
-   before the program exits.
-*/
-   make_label(lab,lablabel);
-
-   gen_push32_val(1);
-   gen_call_void("_wdw_close_test",4);
-   gen_tst32d(0);
-   gen_beq(lab);
-   gen_jmp("_EXIT_PROG");
-   gen_label(lablabel);
+  gen_push32_val(1);
+  gen_call_void("_wdw_close_test",4);
+  gen_tst32d(0);
+  gen_beq(lab);
+  gen_jmp("_EXIT_PROG");
+  gen_label(lablabel);
 }
 
 void wdw_event_test()
