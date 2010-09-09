@@ -829,3 +829,13 @@ struct codegen_target m68k_target = {
   generic_rts,
 };
 
+
+struct codegen_target i386_aros_target = {
+  m68k_cmp,
+  m68k_eor,
+  m68k_muls,
+  m68k_neg,
+  m68k_or,
+  generic_rts,
+};
+

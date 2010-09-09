@@ -23,7 +23,8 @@ struct codegen_target * target;
 void codegen_set_target(struct codegen_target * t);
 
 /* Current targets */
-struct codegen_target m68k_target;
+extern struct codegen_target m68k_target;
+extern struct codegen_target i386_aros_target;
 
 /* Low level code generation functions */
 

@@ -95,6 +95,8 @@ extern	BOOL 	readpresent;
 /* external functions */
 char	*version();
 
+const char * targetstr = 0;
+
 /* functions */
 void block()
 {
@@ -401,33 +403,33 @@ void show_title()
 {
   printf("ACE Amiga BASIC Compiler version %s, copyright ",version());
   putchar(169);  /* copyright symbol */
-  puts(" 1991-1996 David Benn.");
+  puts(" 1991-1996 David Benn; parts (C) 2010 Vidar Hokstad");
 }
 
 void usage()
 {
-  printf("usage: ACE [words | -bcEilmOtw?] <sourcefile>[.b[as]]\n");
+  printf("usage: ACE [-bcEgilmOtwW?] <sourcefile>[.b[as]] -- '-?' for extended usage\n");
 }
 
 void help()
 {
   usage();
   printf("\n"
-		 "'words' produces a list of keywords known to ACE\n"
-		 "\n"
 		 "Options:\n"
+		 " -h/-?      This help\n"
 		 " -b         Include automatic Ctrl-C checks\n"
 		 " -c         Include ACE statement as comment in the asm output\n"
 		 " -E         Creates 'ace.err' file containing error messages\n"
-		 " -i         Make an icon for the executable (based on ACE:icons/exe.info)\n"
-		 " -l         Display each line as it is being compiled\n");
+		 " -i         Make an icon for the executable (based on ACE:icons/exe.info)\n");
   printf(
+		 " -l         Display each line as it is being compiled\n"
 		 " -m         Create a linkable module with no startup code\n"
 		 " -O         Enable the peephole optimizer\n"
-		 " -t [name]  Set code generation target (valid: m68k-amiga i386-aros; default: m68k-amiga)\n"
+		 " -t[name]   Set code generation target (valid: m68k-amiga i386-aros x86_64-aros; default: m68k-amiga)\n"
 		 " -w         Include automatic window close-gadget checks\n"
+		 " -W         List keywords (formerly 'words' command)\n"
 		 "\n"
-		 );
+		   );
 }
 
 BOOL check_options(char * opt) {
@@ -447,7 +449,13 @@ BOOL check_options(char * opt) {
 	  else if (*opt == 'l') list_source=TRUE;
 	  else if (*opt == 'm') module_opt=TRUE;
 	  else if (*opt == 'w') wdw_close_opt=TRUE;
-	  else legalopt=FALSE;
+	  else if (*opt == 't') { 
+		opt+=1; if (*opt == '=') opt+=1; targetstr = opt; 
+		return legalopt; 
+	  } else if (*opt == '?' || *opt == 'h') { help(); exit(0); }
+	  else if (*opt == 'W') {
+		dump_reserved_words(); exit(0);
+	  } else legalopt=FALSE;
 	  opt++;
 	}
 
@@ -484,39 +492,30 @@ void dump_reserved_words()
 }
 
 int main(int argc,char * argv[]) {
-  char *tmparg;
-  
+  int argpos = 1;
+
   show_title();
   
   /* 
   ** - get args and compiler switches.
   ** - open source and destination files. 
   */ 
-  if ((argc == 1) || (argc > 3)) 
-    { usage(); exit(10); } /* arg count mismatch */
 
-  if (!strcmp(argv[1],"-?") || !strcmp(argv[1],"--help") || !strcmp(argv[1],"-h"))  {
-	help(); exit(0);
+  while (argpos < argc && argv[argpos][0] == '-') {
+    if (!check_options(argv[argpos])) { usage(); exit(10); } /* illegal options */  
+	argpos += 1;
   }
-  
-  /* send reserved words to stdout then quit? */
-  tmparg = (char *)malloc(strlen(argv[1])+1);
-  if (tmparg == NULL)  {
-	puts("Unable to allocate temporary argument buffer!");
- 	exit(10);
+
+  if (argpos + 1 != argc) { usage(); exit(10); } /* Missing filename / "words" */
+
+  if (targetstr) {
+	if (!strcmp(targetstr,"i386-aros")) codegen_set_target(&i386_aros_target);
+	else if (!strcmp(targetstr,"m68k-amiga")) codegen_set_target(&m68k_target);
+	else { fprintf(stderr,"ERROR: Unknown target '%s'\n",targetstr); exit(10); }
   } else {
-	strcpy(tmparg,argv[1]);
-	
- 	if (strcmp(strupr(tmparg),"WORDS") == 0) {
-	  dump_reserved_words();
-	  if (tmparg) free(tmparg);
-	  exit(0);
- 	} else
-	  if (tmparg) free(tmparg);
+	codegen_set_target(&m68k_target);
   }
 
-  codegen_set_target(&m68k_target);
-  
   /* 
   ** compile program 
   */
@@ -527,8 +526,6 @@ int main(int argc,char * argv[]) {
     compile(srcfile,destfile); 
   } else {
     /* options plus source file */
-    if (!check_options(argv[1])) 
-	  { usage(); exit(10); } /* illegal options */  
     open_files(argv[2]);  
     setup();
     compile(srcfile,destfile);
