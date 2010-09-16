@@ -104,51 +104,43 @@ void line_input() {
  check_for_event();
  insymbol();
  
- if (sym != hash) _error(44);
- else {
-   insymbol();
-   make_sure_long(expr());
-   if (sym != comma) _error(16);
-   else {
-	 insymbol();
+ if (sym != hash) { _error(44); return; }
+ insymbol();
+ make_sure_long(expr());
+ if (sym != comma) { _error(16); return; }
+ insymbol();
 
-	 if (sym == ident && obj == variable) {
-	   /* if string variable/array doesn't exist, create a simple variable */
-	   if (!exist(id,variable) && !exist(id,array)) {
-		 /* allocate a simple string variable */
-		 enter(id,typ,obj,0);
-		 enter_DATA("_nullstring:","dc.b 0");
-		 gen_pea("_nullstring");
-		 assign_to_string_variable(curr_item,MAXSTRLEN);
-	   }
-
-	   storage=curr_item;
-
-	   /* is it a string variable or array? */
-	   if (storage->type != stringtype) _error(4);
-	   else {
-		 /* get address of string pointed to by variable/array element */
-		 itoa(-1*storage->address,addrbuf,10);
-		 strcat(addrbuf,frame_ptr[lev]);
-		 
-		 /* pass filenumber (d0) and string address (a0) to function */
-		 if (storage->object == array) {
-		   point_to_array(storage,addrbuf);
-		   gen_load32a(addrbuf,0);
-		   gen_add32da(7,0);
-		 }
-		 else gen_load32a(addrbuf,0);	/* string address */
-		 
-		 gen_call_args("_line_input","d0",0);
-		 
-		 insymbol();
-		 if (sym == lparen && storage->object != array) 
-		   _error(71);  /* undeclared array */
-	   }
-	 }
-	 else _error(19); /* variable (or array) expected */
+ if (sym == ident && obj == variable) {
+   /* if string variable/array doesn't exist, create a simple variable */
+   if (!exist(id,variable) && !exist(id,array)) {
+	 /* allocate a simple string variable */
+	 enter(id,typ,obj,0);
+	 enter_DATA("_nullstring:","dc.b 0");
+	 gen_pea("_nullstring");
+	 assign_to_string_variable(curr_item,MAXSTRLEN);
    }
- }
+
+   storage=curr_item;
+
+   /* is it a string variable or array? */
+   if (storage->type != stringtype) { _error(4); return; }
+   /* get address of string pointed to by variable/array element */
+   itoa(-1*storage->address,addrbuf,10);
+   strcat(addrbuf,frame_ptr[lev]);
+	 
+   /* pass filenumber (d0) and string address (a0) to function */
+   if (storage->object == array) {
+	 point_to_array(storage,addrbuf);
+	 gen_load32a(addrbuf,0);
+	 gen_add32da(7,0);
+   } else gen_load32a(addrbuf,0);	/* string address */
+	 
+   gen_call_args("_line_input","d0",0);
+	 
+   insymbol();
+   if (sym == lparen && storage->object != array) 
+	 _error(71);  /* undeclared array */
+ } else _error(19); /* variable (or array) expected */
 }
 
 void write_to_file() {
@@ -159,72 +151,67 @@ void write_to_file() {
   check_for_event();
   insymbol();
   
-  if (sym != hash) _error(44);
-  else {
-	insymbol();
-	make_sure_long(expr());
+  if (sym != hash) { _error(44); return; }
 
-	gen_pop32_var("_seq_filenumber");
+  insymbol();
+  make_sure_long(expr());
   
-	if (sym != comma) _error(16);
-	else {
-	  /* get expressions */
-	  do {
-		insymbol();
-		wtype=expr(); 
-	  
-		switch(wtype) {
-		case undefined : _error(0);  break; /* expression expected */ 
-		case shorttype : 	gen_pop16d(1);
-		  gen_load32d("_seq_filenumber",0);
-		  gen_jsr("_writeshort");
-		  break;
-
-		case longtype : 	gen_pop32d(1);
-		  gen_load32d("_seq_filenumber",0);
-		  gen_jsr("_writelong");
-		  break;
-
-		case singletype : 	gen_pop32d(1);
-		  gen_load32d("_seq_filenumber",0);
-		  gen_jsr("_writesingle");
-		  enter_XREF("_MathBase");
-		  break;
-		  
-		case stringtype :  gen_load32d("_seq_filenumber",0);
-		  gen_jsr("_writequote");	
-		  gen_pop_addr(0);
-		  gen_load32d("_seq_filenumber",0);
-		  gen_jsr("_writestring");
-		  gen_load32d("_seq_filenumber",0);
-		  gen_jsr("_writequote");
-		  break;
-		}
-		
-		/* need a delimiter? */
-		if (sym == comma) {
-		  gen_load32d("_seq_filenumber",0);
-		  gen_jsr("_writecomma"); 
-		}
-		
-	  } while (sym == comma);  
+  gen_pop32_var("_seq_filenumber");
+  
+  if (sym != comma) { _error(16); return; }
+  /* get expressions */
+  do {
+	insymbol();
+	wtype=expr(); 
 	
-	  /* write LF to mark EOLN */
+	switch(wtype) {
+	case undefined : _error(0);  break; /* expression expected */ 
+	case shorttype : 	gen_pop16d(1);
 	  gen_load32d("_seq_filenumber",0);
-	  gen_jsr("_write_eoln");
+	  gen_jsr("_writeshort");
+	  break;
 	  
-	  enter_BSS("_seq_filenumber:","ds.l 1");
+	case longtype : 	gen_pop32d(1);
+	  gen_load32d("_seq_filenumber",0);
+	  gen_jsr("_writelong");
+	  break;
+	  
+	case singletype : 	gen_pop32d(1);
+	  gen_load32d("_seq_filenumber",0);
+	  gen_jsr("_writesingle");
+	  enter_XREF("_MathBase");
+	  break;
+	  
+	case stringtype :  gen_load32d("_seq_filenumber",0);
+	  gen_jsr("_writequote");	
+	  gen_pop_addr(0);
+	  gen_load32d("_seq_filenumber",0);
+	  gen_jsr("_writestring");
+	  gen_load32d("_seq_filenumber",0);
+	  gen_jsr("_writequote");
+	  break;
 	}
-  }
+	
+	/* need a delimiter? */
+	if (sym == comma) {
+	  gen_load32d("_seq_filenumber",0);
+	  gen_jsr("_writecomma"); 
+	}
+	
+  } while (sym == comma);  
+	
+  /* write LF to mark EOLN */
+  gen_load32d("_seq_filenumber",0);
+  gen_jsr("_write_eoln");
+  
+  enter_BSS("_seq_filenumber:","ds.l 1");
 }
 
-void gen_writecode(code)
-int code;
+void gen_writecode(int code)
 {
  /* write special character sequence to a file */
 
  check_for_event();
-
  gen_load32d("_seq_filenumber",0);
 
  switch(code) {
@@ -430,19 +417,12 @@ void kill() {
 void ace_rename() {
   check_for_event();
   insymbol();
-  if (expr() != stringtype) _error(4);
-  else {
-	if (sym != assym) _error(72);
-	else {
-	  insymbol();
-	  if (expr() != stringtype) _error(4);
-	  else {
-		gen_pop32d(2);  /* <filespec2> */
-		gen_pop32d(1);  /* <filespec1> */
-		gen_jsr("_rename");
-	  }
-	}
-  }
+  if (expr() != stringtype) { _error(4); return; }
+  if (sym != assym) { _error(72); return; }
+  if (expr() != stringtype) { _error(4); return; }
+  gen_pop32d(2);  /* <filespec2> */
+  gen_pop32d(1);  /* <filespec1> */
+  gen_jsr("_rename");
 }
 
 /* CHDIR <dirname> */
@@ -490,105 +470,42 @@ void push_struct_var_info(SYM * structVar) {
   gen_push32_val(structVar->other->size);
 }
 
-void random_file_get() {
-  /*
-  ** Fill a structure from a random file.
-  **
-  ** SYNTAX: GET [#]fileNum, structVar [, recordNum]
-  */
+/* Put/Get data to/from a random file */
+void random_file_action(const char * func) {
   SYM *structVar;
 
   check_for_event(); 
 	
-  /* 
-  ** We already have the first symbol.
-  ** Skip `#' if present.
-  */
-  if (sym == hash) insymbol();
-	
-  /* Get the file number */
-  if (make_integer(expr()) == shorttype) make_long();
+  /* We already have the first symbol. */
+  if (sym == hash) insymbol(); /* skip '#' if present */
+  make_sure_long(expr()); /* filenum */
 
-  if (sym != comma) _error(16);
-  else {
-	/*
-	** Structure variable address and size.
-	*/
+  if (sym != comma)  {_error(16); return;}
+  /* Structure variable address and size. */
+  insymbol();
+  if (!exist(id,structure)) { _error(79); return; }
+
+  structVar = curr_item;
+  push_struct_var_info(structVar);
+  
+  insymbol();
+  if (sym == comma) {
+	/* Optional record number. */
 	insymbol();
-	if (!exist(id,structure)) _error(79);
-	else {
-	  structVar = curr_item;
-	  push_struct_var_info(structVar);
-
-	  insymbol();
-	  if (sym == comma) {
-		/*
-		** Optional record number.
-		*/
-		insymbol();
-		if (make_integer(expr()) == shorttype) make_long();
-	  } else {
-		/*
-		** Tell library function not to
-		** seek to a particular record 
-		** before reading.
-		*/
-		gen_push32_val(0);
-	  }
-	  gen_call_void("_GetRecord",16);
-	}
-  }	
+	make_sure_long(expr());
+  } else {
+	/* Don't seek before read/write */
+	gen_push32_val(0);
+  }
+  gen_call_void(func,16);
 }
 
+/* SYNTAX: GET [#]fileNum, structVar [, recordNum] */
+void random_file_get() {
+  random_file_action("_GetRecord");
+}
+
+/* SYNTAX: PUT [#]fileNum, structVar [, recordNum] */
 void random_file_put() {
-  /*
-  ** Write a structure to a random file.
-  **
-  ** SYNTAX: PUT [#]fileNum, structVar [, recordNum]
-  */
-  SYM *structVar;
-
-  check_for_event(); 
-	
-  /* 
-  ** We already have the first symbol.
-  ** Skip `#' if present.
-  */
-  if (sym == hash) insymbol();
-	
-  /*
-  ** Get the file number.
-  */
-  if (make_integer(expr()) == shorttype) make_long();
-
-  if (sym != comma) _error(16);
-  else {
-	/*
-	** Structure variable address and size.
-	*/
-	insymbol();
-	if (!exist(id,structure)) _error(79);
-	else {
-	  structVar = curr_item;
-	  push_struct_var_info(structVar);
-	  
-	  insymbol();
-	  if (sym == comma) {
-		/* Optional record number. */
-		insymbol();
-		if (make_integer(expr()) == shorttype) make_long();
-	  } else {
-		/*
-		** Tell library function not to
-		** seek to a particular record 
-		** before writing.
-		*/
-		gen_push32_val(0);
-	  }
-	  /*
-	  ** Call function.
-	  */
-	  gen_call_void("_PutRecord",16);
-	}
-  }	
+  random_file_action("_PutRecord");
 }
