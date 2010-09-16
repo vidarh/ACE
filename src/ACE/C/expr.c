@@ -505,50 +505,16 @@ static int notexpr() {
   return(localtype);
 }
 
-static void gen_and(int localtype)
-{
+static void gen_and(int localtype) {
   if (localtype == shorttype)  gen_and16dd(1,0);
   else gen_and32dd(1,0);
 }
 
 static int andexpr() { return generic_expr(andsym, &notexpr,&gen_and); }
+static int eorexpr() { return generic_expr(orsym, &andexpr,&gen_eor); }
+static int orexpr() { return generic_expr(orsym, &eorexpr,&gen_or); }
 
-static int orexpr() {
-  int  op,firsttype,localtype,andtype;
-  CODE *cx[5];
-  
-  firsttype=andexpr();
-  localtype=firsttype;
-  
-  if ((sym == orsym) || (sym == xorsym)) {
-	firsttype=make_integer(firsttype);  
-	if (firsttype != notype) {
-	  while ((sym == orsym) || (sym == xorsym)) {
-		alloc_coerce_space(firsttype,cx,5);
-		op=sym;
-		insymbol();
-		andtype=andexpr();
-		if (andtype == undefined) return(andtype); 
-		andtype=make_integer(andtype);
-		coerce(&firsttype,&andtype,cx);
-		localtype=andtype;
-		if (andtype != notype) {
-		  pop_operands(andtype);  
-		  switch(op) {
-		  case orsym  : gen_or(andtype); break;
-		  case xorsym : gen_eor(andtype); break;
-		  }
-		  push_result(andtype);
-		} else _error(4);
-	  }
-	} else _error(4);
-	firsttype=localtype;
-  }
-  return(localtype);
-}
-
-static void gen_eqv(int localtype)
-{
+static void gen_eqv(int localtype) {
   if (localtype == shorttype) gen_jsr("_eqvw");
   else gen_jsr("_eqvl");
 }
@@ -557,11 +523,10 @@ static int eqvexpr() {
   return generic_expr(eqvsym,&orexpr,&gen_eqv);
 }
 
-void gen_imp(int type)
-{
-  	if (type == shorttype) gen_jsr("_impw");
-	else gen_jsr("_impl");
-	push_result(type);
+void gen_imp(int type) {
+  if (type == shorttype) gen_jsr("_impw");
+  else gen_jsr("_impl");
+  push_result(type);
 }
 
 int expr() {
