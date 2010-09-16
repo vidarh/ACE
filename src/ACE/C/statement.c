@@ -322,29 +322,27 @@ BOOL volume=FALSE;
  enter_XREF("_MathBase");
 }   
 
-void handle_label(label_name)
-char *label_name;
+void handle_label(char * label_name)
 {
-int  oldlevel;
-char label_lab[50];
+  int  oldlevel;
+  char label_lab[50];
 
- /* create a new label */
+  /* create a new label */
 
-    oldlevel=lev;  /* make all labels global -> level ZERO */ 
-    lev=ZERO;
+  oldlevel=lev;  /* make all labels global -> level ZERO */ 
+  lev=ZERO;
 
-    /* does label already exist? */
-    strcpy(label_lab,label_name);
-    strcat(label_lab,":\0");
+  /* does label already exist? */
+  strcpy(label_lab,label_name);
+  strcat(label_lab,":\0");
 
-    if (!exist(label_lab,label))  { 
-     /* no, so create it */
-     enter(label_lab,notype,label,0); 
-     gen_label(label_lab);
-     turn_event_off(label_name);  /* see event.c */
-    }
-    else _error(6);  /* duplicate label */
-    lev=oldlevel;
+  if (!exist(label_lab,label))  { 
+	/* no, so create it */
+	enter(label_lab,notype,label,0); 
+	gen_label(label_lab);
+	turn_event_off(label_name);  /* see event.c */
+  } else _error(6);  /* duplicate label */
+  lev=oldlevel;
 }
 
 /*-----------*/
