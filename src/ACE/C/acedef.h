@@ -679,8 +679,6 @@ void	screen();
 void	scroll();
 
 void	window();
-void	wdwclose();
-void	wdwoutput();
 
 void	gadget_rectangle();
 void	gadget();
