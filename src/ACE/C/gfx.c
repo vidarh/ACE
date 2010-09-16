@@ -53,6 +53,32 @@ extern	SYM	*curr_item;
 extern	char	id[MAXIDSIZE];
 
 
+
+int expect_token_sequence(short * seq)
+{
+  while (*seq != -1) {
+	insymbol();
+	if (*seq == shorttype) {
+	  make_sure_short(expr());
+	} else if (*seq == longtype) {
+	  make_sure_long(expr());
+	} else if (*seq == stringtype) {
+	  if (expr() != stringtype) {
+		_error(seq[1]);
+		return 0;
+	  }
+	} else  if (*seq >= 0) {
+	  if (sym != seq[0]) {
+		_error(seq[1]);
+		return 0;
+	  }
+	}
+	seq += 2;
+  }
+  return 1;
+}
+
+
 /* functions */
 void pset()
 {
@@ -136,44 +162,39 @@ void paint() {
   /* PAINT (X,Y)[,paintcolor-id[,bordercolor-id]] */
 
   insymbol();
-  if (sym != lparen) _error(14);
-  else {
-	insymbol();
-	make_sure_short(expr()); /* X */
+  if (sym != lparen) { _error(14); return; }
+  insymbol();
+  make_sure_short(expr()); /* X */
 	
-	if (sym != comma) _error(16);
-	else {
+  if (sym != comma) { _error(16); return; }
+  insymbol();
+  make_sure_short(expr()); /* Y */
+	  
+  if (sym != rparen) { _error(9); return; }
+  insymbol();
+  if (sym == comma) {
+	insymbol();
+		  
+	if (sym != comma) {
+	  make_sure_short(expr()); /* paintcolor-id */
+	  paintcolor=TRUE;
+	}
+	
+	if (sym == comma) {
 	  insymbol();
-	  make_sure_short(expr()); /* Y */
-	  
-	  if (sym != rparen) _error(9);
-	  else {
-		insymbol();
-		if (sym == comma) {
-		  insymbol();
-		  
-		  if (sym != comma) {
-			make_sure_short(expr()); /* paintcolor-id */
-			paintcolor=TRUE;
-		  }
-		  
-		  if (sym == comma) {
-			insymbol();
-			make_sure_short(expr()); /* bordercolor-id */
-			bordercolor=TRUE;
-		  }
-		}
-	  }
-	  /* pop parameters */
-	  if (bordercolor) gen_pop16d(3);
-	  else gen_load32d(-1,3);  /* flag no border color-id */
-	  
-	  if (paintcolor) gen_pop16d(2);
-	  else gen_load32d(-1,2);  /* flag no paint color-id */
-	  
-	  gen_call_args("_paint","d1.w,d0.w",0);
+	  make_sure_short(expr()); /* bordercolor-id */
+	  bordercolor=TRUE;
 	}
   }
+
+  /* pop parameters */
+  if (bordercolor) gen_pop16d(3);
+  else gen_load32d(-1,3);  /* flag no border color-id */
+  
+  if (paintcolor) gen_pop16d(2);
+  else gen_load32d(-1,2);  /* flag no paint color-id */
+  
+  gen_call_args("_paint","d1.w,d0.w",0);
 }
 
 void circle()
@@ -191,28 +212,21 @@ void circle()
   } else relative=FALSE;
   
   if (sym != lparen) { _error(14); return; }
-  else {
-	/* x-coordinate */
-	insymbol();
-	make_sure_short(expr());
-	if (sym != comma) { _error(16); return; }
-	else {
-	  /* y-coordinate */
-	  insymbol();
-	  make_sure_short(expr());
-	  if (sym != rparen) { _error(9); return; }
-	  else {
-		insymbol();
-		if (sym != comma) 
-		  { _error(29); return; } /* radius expected -> no point going on */
-        else {
-		  /* radius */
-		  insymbol();
-		  gen_Flt(expr());
-        }
-	  }
-	}
-  }
+
+  /* x-coordinate */
+  insymbol();
+  make_sure_short(expr());
+  if (sym != comma) { _error(16); return; }
+
+  /* y-coordinate */
+  insymbol();
+  make_sure_short(expr());
+  if (sym != rparen) { _error(9); return; }
+  insymbol();
+  if (sym != comma) { _error(29); return; } /* radius expected -> no point going on */
+  /* radius */
+  insymbol();
+  gen_Flt(expr());
   
   if (sym == comma) {
 	/* color */
@@ -233,7 +247,7 @@ void circle()
 	  gen_pop32d(3); /* start angle */
 	  start_angle=TRUE;
 	}
-
+	
 	if (sym == comma) {
       insymbol();
       if (sym != comma) {  /* else skip to aspect */
@@ -243,7 +257,7 @@ void circle()
 		end_angle=TRUE;
       }
 	} else _error(16);  
-
+	
 	if (sym == comma) {
       /* aspect */
       insymbol();
@@ -501,32 +515,20 @@ void area()
   BOOL relative;
   /* AREA [STEP](x,y) */
 
+  short tokens[] = {lparen, 14, shorttype /*x-coord*/,0, comma, 16, 
+					shorttype /*y-coord*/, 0, rparen, 9, -1, -1 };
+
   insymbol();
   if (sym == stepsym) {
-	insymbol();
 	relative=TRUE; 
   } else relative=FALSE;
   
-  if (sym != lparen) _error(14);
-  else {
-	/* x-coordinate */
-	insymbol();
-	make_sure_short(expr());
-	if (sym != comma) _error(16);
-	else {
-	  /* y-coordinate */
-	  insymbol();
-	  make_sure_short(expr());
-	  if (sym != rparen) _error(9);
-	  else {
-		/* pop y-coordinate */
-		gen_pop16d(1);
-		insymbol();
-	  }
-	}
-	/* pop x-coordinate */
-	gen_pop16d(0);
-  }	
+  if (!expect_token_sequence(tokens)) return;
+
+  /* pop y-coordinate */
+  gen_pop16d(1);
+  /* pop x-coordinate */
+  gen_pop16d(0);
   
   /* include point in area info' */
   if (relative) {
@@ -621,65 +623,28 @@ void pattern()
 void scroll()
 {
   /* SCROLL (xmin,ymin)-(xmax,ymax),delta-x,delta-y */
+  short tokens[] =
+	{lparen, 14, shorttype /*xmin*/, 0, comma, 16, shorttype /*ymin*/,0, rparen, 9, minus, 21, 
+	 lparen, 14, shorttype /*xmax*/, 0, comma, 16, shorttype /*ymax*/,0, rparen, 9, comma, 16,
+	 shorttype /* delta-x */,0, comma, shorttype /*delta-y*/,0,-1,-1};
+
+  if (!expect_token_sequence(tokens)) return;
   
-  insymbol();
+  /* pop parameters */
+  gen_pop16d(1);		/* delta-y */
+  gen_neg16d(1);
+  gen_pop16d(0);		/* delta-x */
+  gen_neg16d(0);
+  gen_pop16d(5);  		/* ymax */
+  gen_pop16d(4);  		/* xmax */
+  gen_pop16d(3);  		/* ymin */
+  gen_pop16d(2);  		/* xmin */
   
-  if (sym != lparen) _error(14);
-  else {
-	insymbol();
-	make_sure_short(expr());  /* xmin */
-	if (sym != comma) _error(16);
-	else {
-	  insymbol();
-	  make_sure_short(expr());  /* ymin */
-	  if (sym != rparen) _error(9);
-	  else {
-		insymbol();
-		if (sym != minus) _error(21);
-		else {
-		  insymbol();
-		  if (sym != lparen) _error(14);
-		  else {
-			insymbol(); 
-			make_sure_short(expr());      /* xmax */
-			if (sym != comma) _error(16);
-			else {
-			  insymbol();
-			  make_sure_short(expr());     /* ymax */
-			  if (sym != rparen) _error(9);
-			  else {
-				insymbol();
-				if (sym != comma) _error(16);
-				else {
-				  insymbol();
-				  make_sure_short(expr());   /* delta-x */ 	
-				  if (sym != comma) _error(16);
-				  else {
-					insymbol();
-					make_sure_short(expr());  /* delta-y */	
-				  }
-				}     
-			  }
-			  
-			  /* pop parameters */
-			  gen_pop16d(1);		/* delta-y */
-			  gen_neg16d(1);
-			  gen_pop16d(0);		/* delta-x */
-			  gen_neg16d(0);
-			  gen_pop16d(5);  		/* ymax */
-			  gen_pop16d(4);  		/* xmax */
-			  gen_pop16d(3);  		/* ymin */
-			  gen_pop16d(2);  		/* xmin */
-			  
-			  /* call ScrollRaster function */
-			  gen_gfxcall("ScrollRaster");
-			} 
-		  }
-		}
-	  }
-	}
-  }
-}
+  /* call ScrollRaster function */
+  gen_gfxcall("ScrollRaster");
+} 
+
+
 
 /* STYLE n */
 void text_style() {
@@ -690,16 +655,8 @@ void text_style() {
 
 /* FONT name,size */
 void text_font() {
-  insymbol();
-  if (expr() != stringtype) _error(4);
-  else {
-	if (sym != comma) _error(16);
-	else {
-	  insymbol();
-	  make_sure_long(expr());
-	  gen_call_void("_change_text_font",8);
-	}		
-  }
+  short tokens[] = {stringtype,4,comma,16,longtype,0,-1,-1};
+  if (expect_token_sequence(tokens)) gen_call_void("_change_text_font",8);
 }
 
 /* GET */
