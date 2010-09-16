@@ -70,41 +70,29 @@ void open_serial() {
 		size	= size of serial buffer
 		name	= name of serial device		
  */
+  short tokens[] = {comma,16,longtype/*unit*/,0,comma,16,longtype/*bps*/,0,comma,16,stringtype,4,-1-1};
 
   parse_channel();
-  if (sym != comma) _error(16);
-  else {  
+
+  if (!expect_token_sequence(tokens)) return;
+
+  /* optional serial READ buffer size */
+  insymbol();
+  if (sym == comma) {
 	insymbol();
-	make_sure_long(expr()); /* unit */
-	if (sym != comma) _error(16);
-	else {
-	  insymbol();
-	  make_sure_long(expr()); /* baud */
-	  if (sym != comma) _error(16);
-	  else {
-		insymbol();
-		if (expr() != stringtype) _error(4);	/* parameter string */
-		else {
-		  /* optional serial READ buffer size */
-		  if (sym == comma) {
-			insymbol();
-			if (sym != comma) {
-			  make_sure_long(expr()); /* Read buffer size */ 
-			} else gen_push32_val(512);		/* defaults to 512 bytes */	
-		  } else gen_push32_val(512);		/* defaults to 512 bytes */
+	if (sym != comma) {
+	  make_sure_long(expr()); /* Read buffer size */ 
+	} else gen_push32_val(512);		/* defaults to 512 bytes */	
+  } else gen_push32_val(512);		/* defaults to 512 bytes */
 
-		  /* optional serial device name */
-		  if (sym == comma) {
-			insymbol();
-			if (expr() != stringtype) _error(4);	/* serial device name */
-		  } else gen_push32_val(0);		/* defaults to NULL */
-
-		  /* call open_serial function */
-		  gen_call_void("_OpenSerial",24);
-		}
-	  }
-	}
-  }
+  /* optional serial device name */
+  if (sym == comma) {
+	insymbol();
+	if (expr() != stringtype) _error(4);	/* serial device name */
+  } else gen_push32_val(0);		/* defaults to NULL */
+  
+  /* call open_serial function */
+  gen_call_void("_OpenSerial",24);
 }
 
 /* SERIAL CLOSE [#] channel */
@@ -123,68 +111,53 @@ void read_serial()
   char addrbuf[40];
 
   parse_channel();
-  if (sym != comma) _error(16);
-  else {
-	insymbol();						
-	if (sym == ident && obj == variable) /* buffer */ {
-	  /* if string variable/array doesn't exist, create a simple variable */
-	  if (!exist(id,variable) && !exist(id,array)) {
-		/* allocate a simple string variable */
-		enter(id,typ,obj,0);
-		enter_DATA("_nullstring:","dc.b 0");
-		gen_pea("_nullstring");
-		assign_to_string_variable(curr_item,MAXSTRLEN);
-	  }
-
-	  storage=curr_item;
-
-	  /* is it a string variable or array? */
-	  if (storage->type != stringtype) _error(4);
-	  else {
-		/* get address of string pointed to by variable/array element */
-		itoa(-1*storage->address,addrbuf,10);
-		strcat(addrbuf,frame_ptr[lev]);
-		
-		/* pass string address to function (on stack) */
-		if (storage->object == array) {
-		  point_to_array(storage,addrbuf);
-		  gen_load32d(addrbuf,0);
-		  gen_add32dd(7,0);
-		  gen_push32d(0);
-		} else gen_push32_var(addrbuf);
-
-		insymbol();
-		if (sym != comma) _error(16);
-		else {
-		  insymbol();
-		  make_sure_long(expr()); /* length */
-		  gen_call_void("_ReadSerial",12);
-		}
-	  }
+  if (sym != comma) {_error(16);return;}
+  insymbol();						
+  if (sym == ident && obj == variable) /* buffer */ {
+	/* if string variable/array doesn't exist, create a simple variable */
+	if (!exist(id,variable) && !exist(id,array)) {
+	  /* allocate a simple string variable */
+	  enter(id,typ,obj,0);
+	  enter_DATA("_nullstring:","dc.b 0");
+	  gen_pea("_nullstring");
+	  assign_to_string_variable(curr_item,MAXSTRLEN);
 	}
-	else _error(19); /* variable (or array) expected */      
-  }
+
+	storage=curr_item;
+	
+	/* is it a string variable or array? */
+	if (storage->type != stringtype) {_error(4);return;}
+
+	/* get address of string pointed to by variable/array element */
+	itoa(-1*storage->address,addrbuf,10);
+	strcat(addrbuf,frame_ptr[lev]);
+	
+	/* pass string address to function (on stack) */
+	if (storage->object == array) {
+	  point_to_array(storage,addrbuf);
+	  gen_load32d(addrbuf,0);
+	  gen_add32dd(7,0);
+	  gen_push32d(0);
+	} else gen_push32_var(addrbuf);
+	
+	insymbol();
+	if (sym != comma) _error(16);
+	else {
+	  insymbol();
+	  make_sure_long(expr()); /* length */
+	  gen_call_void("_ReadSerial",12);
+	}
+  } else _error(19); /* variable (or array) expected */      
   insymbol();
 }
 
 void write_serial()
 {
 /* write a specified number of bytes from a buffer.
-
    SERIAL WRITE [#] channel,buffer,length
 */
+  short tokens[] = {comma,16,stringtype/*buffer*/,4,comma,16,longtype/*length*/,0};
   parse_channel();
-  if (sym != comma) _error(16);
-  else {
-	insymbol();
-	if (expr() != stringtype) _error(4);			/* buffer */
-	else {
-	  if (sym != comma) _error(16);
-	  else {
-		insymbol();
-		make_sure_long(expr()); /* length */
-		gen_call_void("_WriteSerial",12);
-	  }	 	 
-	}
-  }
+  if (!expect_token_sequence(tokens)) return;
+  gen_call_void("_WriteSerial",12);
 }
