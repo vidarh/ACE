@@ -35,51 +35,8 @@ extern	int	sym;
 extern	int	lastsym;
 
 /* functions */
-void gadget_rectangle()
-{
 /* (x1,y1)-(x2,y2) */
-
-    if (sym != lparen) _error(14);
-    else
-    {
-     insymbol();
-     make_sure_long(expr());	/* x1 */
-
-     if (sym != comma) _error(16);
-     else
-     {
-      insymbol();
-      make_sure_long(expr()); /* y1 */
-
-      if (sym != rparen) _error(9);
-      else
-      {
-       insymbol();
-       if (sym != minus) _error(21);
-       else
-       {
-        insymbol();
-        if (sym != lparen) _error(14);
-        else
-        {
-         insymbol(); 
-     	 make_sure_long(expr());	/* x2 */
-
-         if (sym != comma) _error(16);
-         else
-         {
-          insymbol();
-     	  make_sure_long(expr());	/* y2 */
-
-          if (sym != rparen) _error(9);
-	  insymbol();
-         }
-	}
-       }
-      }
-     }
-    }
-}
+void gadget_rectangle() { parse_rect(); }
 
 /* GADGET CLOSE gadget-id */
 void close_gadget() {

@@ -56,6 +56,14 @@ static void wdwoutput() {
  gen_call_void("_ChangeOutputWdw",4);
 }
 
+
+BOOL parse_rect()
+{
+  short rect_tokens[] = {comma,16,lparen,14,longtype /*x1*/,0, comma, 16, longtype/*y1*/,0,rparen,9,
+						 minus,21,lparen,14,longtype /*x2*/,0, comma, 16, longtype/*y2*/,0,rparen,9,-1,-1};
+  return expect_token_sequence(rect_tokens);
+}
+
 void window()
 {
   int wtype;
@@ -65,8 +73,6 @@ void window()
 	 WINDOW OUTPUT wdw-id 
 	 WINDOW ON | OFF | STOP
   */
-  short rect_tokens[] = {comma,16,lparen,14,longtype /*x1*/,0, comma, 16, longtype/*y1*/,0,rparen,9,
-						 minus,21,lparen,14,longtype /*x2*/,0, comma, 16, longtype/*y2*/,0,rparen,9,-1,-1};
 
 
  insymbol();
@@ -86,7 +92,7 @@ void window()
 	   if (wtype != stringtype) _error(4); /* type mismatch */
 	 } else gen_push32_val(0);	/* NULL */
 	 
-	 if (!expect_token_sequence(rect_tokens)) return;
+	 if (!parse_rect()) return;
 	 insymbol();
 				 
 	 /* optional window type */
