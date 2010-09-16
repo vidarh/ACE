@@ -52,12 +52,13 @@ extern	CODE	*curr_code;
 extern	SYM	*curr_item;
 extern	char	id[MAXIDSIZE];
 
+/* (x,y) */
+static short point_tokens[] = {lparen,14,shorttype /*x*/,0,comma,16,shorttype/*y*/,0,rparen,9,-1,-1};
 
 
 int expect_token_sequence(short * seq)
 {
   while (*seq != -1) {
-	insymbol();
 	if (*seq == shorttype) {
 	  make_sure_short(expr());
 	} else if (*seq == longtype) {
@@ -74,52 +75,54 @@ int expect_token_sequence(short * seq)
 	  }
 	}
 	seq += 2;
+	insymbol();
   }
   return 1;
 }
 
+BOOL parse_step()
+{
+  insymbol();
+  if (sym == stepsym) {
+	insymbol();
+	return TRUE;
+  }
+  return FALSE;
+}
+
+static BOOL pen_color()
+{
+  insymbol();
+  if (sym != comma) return FALSE;
+  insymbol();
+  if (sym == comma) return FALSE; /* Handle case where there are more parameters coming. */
+  gen_pop_as_short(expr(),0);
+  gen_gfxcall("SetAPen");
+  return TRUE;
+}
+
+static void reset_pen(BOOL colorset)
+{
+  if (!colorset) return;
+  gen_load16d("_fgdpen",0);
+  gen_gfxcall("SetAPen");
+  enter_XREF("_fgdpen");
+}
 
 /* functions */
 void pset()
 {
   BOOL relative;
   BOOL colorset=FALSE;
-  
-  insymbol();
-  if (sym == stepsym) { 
-	insymbol();
-	relative=TRUE; 
-  } else relative=FALSE;
-  
-  if (sym != lparen) _error(14);
-  else {
-	/* x-coordinate */
-	insymbol();
-	make_sure_short(expr());
-	if (sym != comma) _error(16);
-	else {
-	  /* y-coordinate */
-	  insymbol();
-	  make_sure_short(expr());
-	  if (sym != rparen) _error(9);
-	  else {
-		insymbol();
-		if (sym == comma) {
-		  /* pen color */
-		  insymbol();
-		  gen_pop_as_short(expr(),0);
-		  gen_gfxcall("SetAPen");
-		  colorset=TRUE;
-		} else colorset=FALSE;
-	  }
-	  /* pop y-coordinate */
-	  gen_pop16d(1);
-	}
-	/* pop x-coordinate */
-	gen_pop16d(0);
-  }	
 
-  /* plot point */
+  relative = parse_step();
+  if (!expect_token_sequence(point_tokens)) return;
+
+  colorset = pen_color();
+
+  gen_pop16d(1); /* pop y-coordinate */
+  gen_pop16d(0); /* pop x-coordinate */
+
   if (!colorset) {
 	gen_load32a("_RPort",1);
 	enter_XREF("_RPort");
@@ -146,13 +149,7 @@ void pset()
   gen_move16dd(3,0);
   gen_move32aa(3,1);
   gen_libcall("WritePixel","Gfx");
-
-  if (colorset) {
-	/* change back to old pen */
-	gen_load16d("_fgdpen",0);
-	gen_gfxcall("SetAPen");
-	enter_XREF("_fgdpen");
-  }
+  reset_pen(colorset);
 }
 
 void paint() {
@@ -161,16 +158,7 @@ void paint() {
 
   /* PAINT (X,Y)[,paintcolor-id[,bordercolor-id]] */
 
-  insymbol();
-  if (sym != lparen) { _error(14); return; }
-  insymbol();
-  make_sure_short(expr()); /* X */
-	
-  if (sym != comma) { _error(16); return; }
-  insymbol();
-  make_sure_short(expr()); /* Y */
-	  
-  if (sym != rparen) { _error(9); return; }
+  if (!expect_token_sequence(point_tokens)) return;
   insymbol();
   if (sym == comma) {
 	insymbol();
@@ -205,38 +193,15 @@ void circle()
   BOOL end_angle=FALSE;
   BOOL aspect=FALSE;
   
-  insymbol();
-  if (sym == stepsym) { 
-	insymbol();
-	relative=TRUE; 
-  } else relative=FALSE;
-  
-  if (sym != lparen) { _error(14); return; }
-
-  /* x-coordinate */
-  insymbol();
-  make_sure_short(expr());
-  if (sym != comma) { _error(16); return; }
-
-  /* y-coordinate */
-  insymbol();
-  make_sure_short(expr());
-  if (sym != rparen) { _error(9); return; }
+  relative = parse_step();
+  if (!expect_token_sequence(point_tokens)) return;
   insymbol();
   if (sym != comma) { _error(29); return; } /* radius expected -> no point going on */
   /* radius */
   insymbol();
   gen_Flt(expr());
   
-  if (sym == comma) {
-	/* color */
-	insymbol();
-	if (sym != comma) {  /* else skipping to next parameter (start angle) */
-	  gen_pop_as_short(expr(),0);
-	  gen_gfxcall("SetAPen");
-	  colorset=TRUE;
-	}
-  } else colorset=FALSE;
+  colorset = pen_color();
   
   /* start & end angle in <<degrees>> */
   
@@ -309,13 +274,7 @@ void circle()
   enter_BSS("_shorty","ds.w 1");
   enter_BSS("_floatx","ds.l 1");
   enter_BSS("_floaty","ds.l 1");
-  
-  if (colorset) {
-	/* change back to old pen */
-	gen_load16d("_fgdpen",0);
-	gen_gfxcall("SetAPen");
-	enter_XREF("_fgdpen");
-  }          
+  reset_pen(colorset);
 }
 
 void draw_line()
@@ -325,155 +284,124 @@ void draw_line()
   BOOL box=FALSE;
   BOOL boxfill=FALSE;
   CODE *cx,*cx1,*cx2,*cx3,*cx4,*cx5,*cx6;
-  
-  if (sym == stepsym) {
-	relative=TRUE;
-	insymbol();
-  } else relative=FALSE;
- 
-  if (sym != lparen) _error(14);
-  else {
-	insymbol();
-	make_sure_short(expr());  /* x */
-	if (sym != comma) _error(16);
-	else {
-	  insymbol();
-	  make_sure_short(expr()); /* y */
-	  if (sym != rparen) _error(9);
-	  else {
-		gen_pop16d(1);   /* ymin */
-		gen_pop16d(0);   /* xmin */
-    
-		/* save x1 & y1 since they may be changed by expr() calls below. */
-		gen_save16d(0,"_xmin");    cx1=curr_code;
-		gen_save16d(1,"_ymin");    cx2=curr_code;
-		enter_BSS("_xmin","ds.w 1");
-		enter_BSS("_ymin","ds.w 1");
-		
-		if (!relative) {
-		  /* move to x,y */
-		  gen_gfxcall("Move");
-		  cx=curr_code;  /* don't need this Move for boxfill */
-		  /* XREF declared by box or line (see below) */
-		}
-		
-		insymbol();
-	  }
-	  
-	  /* second coordinate clause ? */
-	  if (sym != minus) {
-		if (relative) {
-		  /* no second coordinate clause */
-		  /* draw line from last pen position to x,y */
-		  gen_gfxcall("Draw");
-		} else _error(21);
-	  } else {
-		insymbol();
-		if (sym != lparen) _error(14);
-		else {
-		  insymbol();
-		  make_sure_short(expr());  /* x */
-		  if (sym != comma) _error(16);
-		  else {
-			insymbol();
-			make_sure_short(expr()); /* y */
-			if (sym != rparen) _error(9);
-			else {
-			  /* pen color ? */
-			  insymbol();
-			  if (sym == comma) {
-				insymbol();
-				if (sym != comma) {	/* ",," -> no color-id */
-				  colorset=TRUE;
-				  gen_push16_var("_xmin");	/* save d0 & d1 */
-				  cx3=curr_code;
-				  gen_push16_var("_ymin");
-				  cx4=curr_code;
-				  gen_pop_as_short(expr(),0);
-				  gen_gfxcall("SetAPen");
-				  gen_pop16_var("_ymin");
-				  cx5=curr_code;
-				  gen_pop16_var("_xmin");	/* restore d0 & d1 */
-				  cx6=curr_code;
-				} else colorset=FALSE;
-			  }
-			  
-			  /* box or boxfill? */
-			  if (sym == comma) {
-				insymbol();
-				if (sym == ident) {
-				  if ((id[0]=='B') && ((id[1]=='\0') || (id[1]==':'))) box=TRUE;
-				  else
-					if (((id[0]=='B') && (id[1]=='F'))
-						&& ((id[2]=='\0') || (id[2]==':'))) boxfill=TRUE;
-					else
-					  _error(20);
-				  insymbol();
-				}
-			  }
 
-			  /* draw the line, outline box, or filled box */
-			  if (box) {
-				gen_pop16d(5);  /* y2 */
-				gen_pop16d(4);  /* x2 */
-				gen_load16d("_ymin",3); /* y1 */
-				gen_load16d("_xmin",2); /* x1 */
-				/* x1=d2; y1=d3 x2=d4; y2=d5 */
-				/* already moved to x1,y1 */
-				
-				gen_move16dd(4,0);
-				gen_move16dd(3,1);
-				gen_gfxcall("Draw");     /* x1,y1 - x2,y1 */
-				gen_move16dd(4,0);
-				gen_move16dd(5,1);
-				gen_libcall("Draw","Gfx"); /* x2,y1 - x2,y2 */
-				gen_move16dd(2,0);
-				gen_move16dd(5,1);
-				gen_libcall("Draw","Gfx"); /* x2,y2 - x1,y2 */
-				gen_move16dd(2,0);
-				gen_move16dd(3,1);
-				gen_libcall("Draw","Gfx"); /* x1,y2 - x1,y1 */
-				enter_BSS("_xmin","ds.w 1");
-				enter_BSS("_ymin","ds.w 1");
-			  }	else if (boxfill) {
-				change(cx,"nop","  ","  ");   /* don't need Move */
-				gen_load32a("_RPort",1);
-				gen_pop16d(3);  /* ymax */
-				gen_pop16d(2);  /* xmax */
-				gen_load16d("_ymin",1); /* ymin */
-				gen_load16d("_xmin",0); /* xmin */
-				gen_libcall("RectFill","Gfx");
-				enter_BSS("_xmin","ds.w 1");
-				enter_BSS("_ymin","ds.w 1");
-			  } else {
-				/* draw line */
-				gen_load32a("_RPort",1);
-				gen_pop16d(1);  /* y2 */
-				gen_pop16d(0);  /* x2 */
-				/* already moved to x1,y1 */
-				gen_libcall("Draw","Gfx");
-				/* don't need to save x1 & x2 in _xmin & _ymin */
-				change(cx1,"nop","  ","  ");
-				change(cx2,"nop","  ","  ");
-				if (colorset) {
-				  change(cx3,"nop","  ","  ");
-				  change(cx4,"nop","  ","  ");
-				  change(cx5,"nop","  ","  ");
-				  change(cx6,"nop","  ","  ");
-				}
-			  }
-			} 
-		  }
-		}
-	  }
+  relative = parse_step();
+  if (!expect_token_sequence(point_tokens)) return;
+
+  gen_pop16d(1);   /* ymin */
+  gen_pop16d(0);   /* xmin */
+    
+  /* save x1 & y1 since they may be changed by expr() calls below. */
+  gen_save16d(0,"_xmin");    cx1=curr_code;
+  gen_save16d(1,"_ymin");    cx2=curr_code;
+  enter_BSS("_xmin","ds.w 1");
+  enter_BSS("_ymin","ds.w 1");
+		
+  if (!relative) {
+	/* move to x,y */
+	gen_gfxcall("Move");
+	cx=curr_code;  /* don't need this Move for boxfill */
+	/* XREF declared by box or line (see below) */
+  }
+		
+  /* second coordinate clause ? */
+  insymbol();
+  if (sym != minus) {
+	if (relative) {
+	  /* no second coordinate clause */
+	  /* draw line from last pen position to x,y */
+	  gen_gfxcall("Draw");
+	} else _error(21);
+	return;
+  }
+
+  insymbol();
+  if (!expect_token_sequence(point_tokens)) return;
+
+  /* pen color ? */
+  insymbol();
+  if (sym == comma) {
+	insymbol();
+	if (sym != comma) {	/* ",," -> no color-id */
+	  colorset=TRUE;
+	  gen_push16_var("_xmin");	/* save d0 & d1 */
+	  cx3=curr_code;
+	  gen_push16_var("_ymin");
+	  cx4=curr_code;
+	  gen_pop_as_short(expr(),0);
+	  gen_gfxcall("SetAPen");
+	  gen_pop16_var("_ymin");
+	  cx5=curr_code;
+	  gen_pop16_var("_xmin");	/* restore d0 & d1 */
+	  cx6=curr_code;
+	} else colorset=FALSE;
+  }
+	
+  /* box or boxfill? */
+  if (sym == comma) {
+	insymbol();
+	if (sym == ident) {
+	  if ((id[0]=='B') && ((id[1]=='\0') || (id[1]==':'))) box=TRUE;
+	  else
+		if (((id[0]=='B') && (id[1]=='F'))
+			&& ((id[2]=='\0') || (id[2]==':'))) boxfill=TRUE;
+		else
+		  _error(20);
+	  insymbol();
 	}
   }
-  if (colorset) {
-	/* change back to old pen */
-	gen_save16d("_fgdpen",0);
-	gen_gfxcall("SetAPen");
-	enter_XREF("_fgdpen");
+  
+  /* draw the line, outline box, or filled box */
+  if (box) {
+	gen_pop16d(5);  /* y2 */
+	gen_pop16d(4);  /* x2 */
+	gen_load16d("_ymin",3); /* y1 */
+	gen_load16d("_xmin",2); /* x1 */
+	/* x1=d2; y1=d3 x2=d4; y2=d5 */
+	/* already moved to x1,y1 */
+
+	gen_move16dd(4,0);
+	gen_move16dd(3,1);
+	gen_gfxcall("Draw");     /* x1,y1 - x2,y1 */
+	gen_move16dd(4,0);
+	gen_move16dd(5,1);
+	gen_libcall("Draw","Gfx"); /* x2,y1 - x2,y2 */
+	gen_move16dd(2,0);
+	gen_move16dd(5,1);
+	gen_libcall("Draw","Gfx"); /* x2,y2 - x1,y2 */
+	gen_move16dd(2,0);
+	gen_move16dd(3,1);
+	gen_libcall("Draw","Gfx"); /* x1,y2 - x1,y1 */
+	enter_BSS("_xmin","ds.w 1");
+	enter_BSS("_ymin","ds.w 1");
+  }	else if (boxfill) {
+	change(cx,"nop","  ","  ");   /* don't need Move */
+	gen_load32a("_RPort",1);
+	gen_pop16d(3);  /* ymax */
+	gen_pop16d(2);  /* xmax */
+	gen_load16d("_ymin",1); /* ymin */
+	gen_load16d("_xmin",0); /* xmin */
+	gen_libcall("RectFill","Gfx");
+	enter_BSS("_xmin","ds.w 1");
+	enter_BSS("_ymin","ds.w 1");
+  } else {
+	/* draw line */
+	gen_load32a("_RPort",1);
+	gen_pop16d(1);  /* y2 */
+	gen_pop16d(0);  /* x2 */
+	/* already moved to x1,y1 */
+	gen_libcall("Draw","Gfx");
+	/* don't need to save x1 & x2 in _xmin & _ymin */
+	change(cx1,"nop","  ","  ");
+	change(cx2,"nop","  ","  ");
+	if (colorset) {
+	  change(cx3,"nop","  ","  ");
+	  change(cx4,"nop","  ","  ");
+	  change(cx5,"nop","  ","  ");
+	  change(cx6,"nop","  ","  ");
+	}
   }
+  reset_pen(colorset);
 }
 
 
@@ -515,20 +443,11 @@ void area()
   BOOL relative;
   /* AREA [STEP](x,y) */
 
-  short tokens[] = {lparen, 14, shorttype /*x-coord*/,0, comma, 16, 
-					shorttype /*y-coord*/, 0, rparen, 9, -1, -1 };
-
-  insymbol();
-  if (sym == stepsym) {
-	relative=TRUE; 
-  } else relative=FALSE;
+  relative = parse_step();
+  if (!expect_token_sequence(point_tokens)) return;
   
-  if (!expect_token_sequence(tokens)) return;
-
-  /* pop y-coordinate */
-  gen_pop16d(1);
-  /* pop x-coordinate */
-  gen_pop16d(0);
+  gen_pop16d(1); /* pop y-coordinate */
+  gen_pop16d(0); /* pop x-coordinate */
   
   /* include point in area info' */
   if (relative) {
@@ -628,6 +547,7 @@ void scroll()
 	 lparen, 14, shorttype /*xmax*/, 0, comma, 16, shorttype /*ymax*/,0, rparen, 9, comma, 16,
 	 shorttype /* delta-x */,0, comma, shorttype /*delta-y*/,0,-1,-1};
 
+  insymbol();
   if (!expect_token_sequence(tokens)) return;
   
   /* pop parameters */
@@ -656,6 +576,7 @@ void text_style() {
 /* FONT name,size */
 void text_font() {
   short tokens[] = {stringtype,4,comma,16,longtype,0,-1,-1};
+  insymbol();
   if (expect_token_sequence(tokens)) gen_call_void("_change_text_font",8);
 }
 
