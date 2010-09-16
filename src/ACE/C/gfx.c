@@ -543,11 +543,10 @@ void scroll()
 {
   /* SCROLL (xmin,ymin)-(xmax,ymax),delta-x,delta-y */
   short tokens[] =
-	{lparen, 14, shorttype /*xmin*/, 0, comma, 16, shorttype /*ymin*/,0, rparen, 9, minus, 21, 
-	 lparen, 14, shorttype /*xmax*/, 0, comma, 16, shorttype /*ymax*/,0, rparen, 9, comma, 16,
-	 shorttype /* delta-x */,0, comma, shorttype /*delta-y*/,0,-1,-1};
+	{comma, 16, shorttype /* delta-x */,0, comma, shorttype /*delta-y*/,0,-1,-1};
 
   insymbol();
+  if (!parse_rect()) return;
   if (!expect_token_sequence(tokens)) return;
   
   /* pop parameters */
