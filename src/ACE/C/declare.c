@@ -66,588 +66,490 @@ extern	BOOL	end_of_source;
 
 
 /* functions */
+
+int sym_to_type()
+{
+  switch(sym) {
+  case bytesym     : return bytetype; break;
+  case shortintsym : return shorttype;  break;
+  case longintsym  : return longtype;   break;
+  case addresssym  : return longtype;   break;
+  case singlesym   : return singletype; break;
+  case stringsym   : return stringtype; break;
+  case ident       : return structure; break;
+  }
+  return undefined;
+}
+
 void define_structure()
 {
-/* define a structure data type */
+  /* define a structure data type */
 
-SHORT mem_count=0;
-SYM   *structdef_item,*struct_mbr_def;
-int   mem_type;
-int   oldlevel;
-LONG  string_size;
+  SHORT mem_count=0;
+  SYM   *structdef_item,*struct_mbr_def;
+  int   mem_type;
+  int   oldlevel;
+  LONG  string_size;
 
-/* define all structures 
-   at level ZERO */
-oldlevel=lev;
-lev=ZERO;
+  /* define all structures at level ZERO */
+  oldlevel=lev;
+  lev=ZERO;
 
-insymbol();
-if (sym != ident)
-   _error(7);
-else
-{
- if (exist(id,structdef))
-    _error(62);
- else
- {
-  /* create symbol table entry */
-  enter(id,notype,structdef,0);
-  structdef_item=curr_item;
-
-  /* get structure members */
   insymbol();
-  while (sym == endofline) insymbol();  /* skip blank line(s) */
+  if (sym != ident) _error(7);
+  else {
+	if (exist(id,structdef)) _error(62);
+	else {
+	  /* create symbol table entry */
+	  enter(id,notype,structdef,0);
+	  structdef_item=curr_item;
 
-  do
-  {
-   if ((sym != bytesym) && (sym != shortintsym) && (sym != addresssym) &&
-       (sym != longintsym) && (sym != singlesym) && (sym != stringsym) &&
-       (sym != ident))
-      { _error(63); insymbol(); }
-   else
-   {
-    struct_mbr_def = NULL;
+	  /* get structure members */
+	  insymbol();
+	  while (sym == endofline) insymbol();  /* skip blank line(s) */
 
-    /* type of member? */
-    switch(sym)
-    {
-     case bytesym     : mem_type=bytetype; break;
-     case shortintsym : mem_type=shorttype; break;
-     case longintsym  : mem_type=longtype; break;
-     case addresssym  : mem_type=longtype; break;
-     case singlesym   : mem_type=singletype; break;
-     case stringsym   : mem_type=stringtype; break;    
-     case ident       :	mem_type=structure; 
+	  do {
+		if ((sym != bytesym) && (sym != shortintsym) && (sym != addresssym) &&
+			(sym != longintsym) && (sym != singlesym) && (sym != stringsym) &&
+			(sym != ident))
+		  { _error(63); insymbol(); }
+		else {
+		  struct_mbr_def = NULL;
+		  
+		  /* type of member? */
+		  mem_type = sym_to_type();
+		  if (mem_type == structure) {
 			if (!exist(id,structdef) || 
 			    strcmp(id,structdef_item->name) == 0)
-			{
+			  {
 				_error(65); /* unknown or current structdef */
 				mem_type = undefined;
-			}
-			else
+			  } else
 				/* structure definition */
 			   	struct_mbr_def = curr_item;
-			break;
-    }
+		  }
+		  
+		  if (mem_type == undefined) insymbol();
+		  else {
+			insymbol();
+			if (sym != ident) { _error(7); insymbol(); }
+			else {
+			  add_struct_member(structdef_item,id,mem_type,struct_mbr_def); 
+			  mem_count++; 
+			}
+		  }
+		  
+		  insymbol();
+		  
+		  /* specify optional string size? */
+		  if ((mem_type == stringtype) && (sym == sizesym)) {
+			insymbol();
+			if (sym == shortconst) string_size=(LONG)shortval;
+			else if (sym == longconst) string_size=longval;
+			else if (sym == ident && exist(id,constant)) {
+			  /* short or long defined constant? */
+			  if (curr_item->type == shorttype)
+				string_size=(LONG)curr_item->numconst.shortnum;
+			  else if (curr_item->type == longtype)
+				string_size=curr_item->numconst.longnum;
+			  else _error(4);  /* needed a short or long constant */
+			} else _error(27); /* numeric constant expected */
+			
+			if (string_size <= 0L) _error(41);  /* non-positive string size! */
+			
+			insymbol();
+			
+			/* change member and struct info */
+			curr_structmem->strsize = string_size;
+			structdef_item->size -= MAXSTRLEN;  /* subtract default string size */
+			structdef_item->size += string_size; 
+		  } 
+		} while (sym == endofline) insymbol();  /* skip blank line(s) */
+	  } while (sym != endsym && sym != structsym && !end_of_source);
+	  
+	  if (sym != endsym) _error(64);
+	  else {				 
+		insymbol();
+		if (sym != structsym) _error(64); else insymbol();
+	  }
     
-    if (mem_type == undefined)
-	insymbol();
-    else
-    {
-      insymbol();
-      if (sym != ident)
-	  { _error(7); insymbol(); }
-      else
-      { 
-     	add_struct_member(structdef_item,id,mem_type,struct_mbr_def); 
-      	mem_count++; 
-      }
-    }
-
-    insymbol();
-
-    /* specify optional string size? */
-    if ((mem_type == stringtype) && (sym == sizesym))
-    {
-     insymbol();
-     if (sym == shortconst) string_size=(LONG)shortval;
-     else
-     if (sym == longconst) string_size=longval;
-     else 
-     if (sym == ident && exist(id,constant))
-     {
-	/* short or long defined constant? */
-	if (curr_item->type == shorttype)
-	   string_size=(LONG)curr_item->numconst.shortnum;
-	else
-	if (curr_item->type == longtype)
-	   string_size=curr_item->numconst.longnum;
-	else
-	    _error(4);  /* needed a short or long constant */
-     }
-     else
-         _error(27); /* numeric constant expected */
-
-     if (string_size <= 0L) _error(41);  /* non-positive string size! */
- 
-     insymbol();
-
-     /* change member and struct info */
-     curr_structmem->strsize = string_size;
-     structdef_item->size -= MAXSTRLEN;  /* subtract default string size */
-     structdef_item->size += string_size; 
-    } 
-   }
-   while (sym == endofline) insymbol();  /* skip blank line(s) */
+	  /* don't want to free memory if no member list! */
+	  if (mem_count == 0) structdef_item->object = undefined;
+	}
   }
-  while (sym != endsym && sym != structsym && !end_of_source);
-	
-  if (sym != endsym)
-     _error(64);
-  else
-  {				 
-   insymbol();
-   if (sym != structsym) _error(64); else insymbol();
-  }
-    
-  /* don't want to free memory if no member list! */
-  if (mem_count == 0) structdef_item->object = undefined;
- }
-}
-lev=oldlevel;  /* restore level */
+  lev=oldlevel;  /* restore level */
 }
 
 void declare_structure()
 {
-/* declare one or more instances
-   of a structure (at level ZERO).
+  /* declare one or more instances
+	 of a structure (at level ZERO).
+	 
+	 syntax: DECLARE STRUCT <struct-type> [*] <ident> [,[*] <ident>..]
+	 
+  */
+  STRUCM *curr_member;
+  BOOL   struct_pointer=FALSE;
+  char   addrbuf[40],numbuf[40];
+  char   structname[80],structlabel[80];
+  char   strsize[20],bss_spec[40];
+  
+  insymbol();
+  
+  if (sym != ident) { _error(7); insymbol(); }
+  else {
+	if (!exist(id,structdef))
+	  { _error(65); insymbol(); }  /* unknown structdef */
+	else {
+	  structdef_item = curr_item; /* pointer to structdef info */
  
-   syntax: DECLARE STRUCT <struct-type> [*] <ident> [,[*] <ident>..]
+	  do {
+		insymbol();
+		if (sym == multiply) { struct_pointer=TRUE; insymbol(); }
+		
+		if (sym != ident) _error(7);
+		else {
+		  if (exist(id,structure)) _error(66);
+		  else {
+			/* enter instance of structure in
+			   symbol table and get stack frame
+			   address.
+			*/
+			enter(id,notype,structure,0);
+			curr_item->other = structdef_item; /* ptr to structdef node in symtab */
+			
+			itoa(-1*curr_item->address,addrbuf,10);
+			strcat(addrbuf,frame_ptr[lev]);
+			
+			/* if a pointer to a structure
+			   make it NULL otherwise create 
+			   a BSS object.
+			*/
+			if (struct_pointer)
+			  gen_load32d_val(0,addrbuf); /* pointer to structure */
+			else {
+			  /* BSS structure name */
+			  strcpy(structname,"_structure");
+			  itoa(structcount++,numbuf,10);
+			  strcat(structname,numbuf); 
 
-*/
-STRUCM *curr_member;
-BOOL   struct_pointer=FALSE;
-char   addrbuf[40],numbuf[40];
-char   structname[80],structlabel[80];
-char   strsize[20],bss_spec[40];
+			  /* BSS structure label */
+			  strcpy(structlabel,structname);
+			  strcat(structlabel,":\0");
 
- insymbol();
+			  /* create BSS object - long word aligned! */
+			  enter_BSS("  ","CNOP 0,4");
+			  enter_BSS(structlabel,"  ");
 
- if (sym != ident)
-    { _error(7); insymbol(); }
- else
- {
-  if (!exist(id,structdef))
-     { _error(65); insymbol(); }  /* unknown structdef */
-  else
-  {
-   structdef_item = curr_item; /* pointer to structdef info */
- 
-   do
-   {
-    insymbol();
-    if (sym == multiply) { struct_pointer=TRUE; insymbol(); }
+			  curr_member = structdef_item->structmem->next; /* head has no mbr data */
+			  while (curr_member != NULL) {
+				switch(curr_member->type) {
+				case bytetype   : enter_BSS("  ","ds.b 1"); break;
+				case shorttype  : enter_BSS("  ","ds.w 1"); break;
+				case longtype   : enter_BSS("  ","ds.l 1"); break;
+				case singletype : enter_BSS("  ","ds.l 1"); break;
+				  
+				case stringtype : 
+				case structure  : ltoa(curr_member->strsize,strsize,10);
+				  strcpy(bss_spec,"ds.b ");
+				  strcat(bss_spec,strsize);
+				  enter_BSS("  ",bss_spec);
+				  break; 
+				}
+				curr_member = curr_member->next;
+			  }
 
-    if (sym != ident)
-       _error(7);
-    else
-    {
-     if (exist(id,structure))
-        _error(66);
-     else
-     {
-      /* enter instance of structure in
-         symbol table and get stack frame
-         address.
-      */
-      enter(id,notype,structure,0);
-      curr_item->other = structdef_item; /* ptr to structdef node in symtab */
-
-      itoa(-1*curr_item->address,addrbuf,10);
-      strcat(addrbuf,frame_ptr[lev]);
-
-      /* if a pointer to a structure
-         make it NULL otherwise create 
-         a BSS object.
-      */
-      if (struct_pointer)
-		gen_load32d_val(0,addrbuf); /* pointer to structure */
-      else
-      {
-       /* BSS structure name */
-       strcpy(structname,"_structure");
-       itoa(structcount++,numbuf,10);
-       strcat(structname,numbuf); 
-
-       /* BSS structure label */
-       strcpy(structlabel,structname);
-       strcat(structlabel,":\0");
-
-       /* create BSS object - long word aligned! */
-       enter_BSS("  ","CNOP 0,4");
-       enter_BSS(structlabel,"  ");
-
-       curr_member = structdef_item->structmem->next; /* head has no mbr data */
-       while (curr_member != NULL)
-       {
-        switch(curr_member->type)
-        {
-         case bytetype   : enter_BSS("  ","ds.b 1"); break;
-         case shorttype  : enter_BSS("  ","ds.w 1"); break;
-         case longtype   : enter_BSS("  ","ds.l 1"); break;
-         case singletype : enter_BSS("  ","ds.l 1"); break;
-
-	 case stringtype : 
-	 case structure  : ltoa(curr_member->strsize,strsize,10);
-			   strcpy(bss_spec,"ds.b ");
-			   strcat(bss_spec,strsize);
-			   enter_BSS("  ",bss_spec);
-			   break; 
-        }
-        curr_member = curr_member->next;
-       }
-
-       enter_BSS("  ","  ");  /* place a space before next BSS object! */
-
-       /* store address of BSS object 
-          in stack frame.
-       */
-       gen_pea(structname);
-       gen_pop32_var(addrbuf); 
-      }
-     }     
-    }
-    insymbol();
-   }
-   while (sym == comma);  
-  }
- } 
+			  enter_BSS("  ","  ");  /* place a space before next BSS object! */
+			  
+			  /* store address of BSS object in stack frame.
+			   */
+			  gen_pea(structname);
+			  gen_pop32_var(addrbuf); 
+			}
+		  }     
+		}
+		insymbol();
+	  } while (sym == comma);  
+	}
+  } 
 }
 
 void define_constant()
 {
-/* define a NUMERIC constant 
+  /* define a NUMERIC constant 
    syntax: CONST <ident>=[-|+]<numconst>[,..] 
-*/
-char  const_id[MAXIDSIZE];
-BOOL  numconstant;
-int   consttyp;
-SHORT shortc;
-LONG  longc;
-float singlec;
-BOOL  negate;
-int   oldlevel;
+  */
+  char  const_id[MAXIDSIZE];
+  BOOL  numconstant;
+  int   consttyp;
+  SHORT shortc;
+  LONG  longc;
+  float singlec;
+  BOOL  negate;
+  int   oldlevel;
+  
+  /* define all constants at level ZERO */
+  oldlevel=lev;
+  lev=ZERO;
+  
+  do {
+	numconstant=FALSE;
+	negate=FALSE;
 
- /* define all constants 
-    at level ZERO */
- oldlevel=lev;
- lev=ZERO;
+	insymbol();
+	if (sym != ident) _error(7);
+	else {
+	  strcpy(const_id,id); /* save name */
+	  insymbol();
+	  if (sym != equal) _error(5);
+	  else {
+		insymbol();
+		if (exist(const_id,constant)) /* don't try to reassign it! */
+		  _error(53);
+		else {
+		  /* unary minus or plus? (optional) */
+		  if ((sym == minus) || (sym == plus)) {
+			switch(sym) {
+			case minus : negate=TRUE;  break;
+			case plus  : negate=FALSE; break;
+			}
+			insymbol();
+		  }
 
- do
- {
-  numconstant=FALSE;
-  negate=FALSE;
+		  /* literal constant? */
+		  if ((sym == shortconst) || (sym == longconst) || (sym == singleconst)) {
+			numconstant=TRUE; 
+			consttyp=typ; 
+			switch(consttyp) {
+			case shorttype  : shortc=shortval; break;
+			case longtype   : longc=longval; break;
+			case singletype : singlec=singleval; break;
+			}
+		  } else 
+			/* defined constant? */
+			if ((sym == ident) && (exist(id,constant))) 
+			  {
+				consttyp=curr_item->type;
+				if (consttyp != stringtype) {
+				  numconstant=TRUE;
+				  switch(consttyp) {
+				  case shorttype  : shortc=curr_item->numconst.shortnum;   break;
+				  case longtype   : longc=curr_item->numconst.longnum;     break;
+				  case singletype : singlec=curr_item->numconst.singlenum; break;
+				  }
+				} else _error(27);
+			  } else _error(27);
+		}
 
-  insymbol();
-  if (sym != ident)
-     _error(7);
-  else
-  {
-   strcpy(const_id,id); /* save name */
-   insymbol();
-   if (sym != equal)
-      _error(5);
-   else
-   {
-    insymbol();
-    if (exist(const_id,constant)) /* don't try to reassign it! */
-       _error(53);
-    else
-    {
-     /* unary minus or plus? (optional) */
-     if ((sym == minus) || (sym == plus))
-     { 
-      switch(sym)
-      {
-       case minus : negate=TRUE;  break;
-       case plus  : negate=FALSE; break;
-      }
-      insymbol();
-     }
+		/* create a new numeric constant? */
+		if (numconstant) {
+		  switch(consttyp) {
+		  case shorttype   : enter(const_id,shorttype,constant,0); 
+			if (negate) shortc *= -1;
+			curr_item->numconst.shortnum=shortc;
+			break;
+			
+		  case longtype    : enter(const_id,longtype,constant,0);
+			if (negate) longc *= -1;
+			curr_item->numconst.longnum=longc;
+			break;
 
-     /* literal constant? */
-     if ((sym == shortconst) || (sym == longconst) || (sym == singleconst))
-     { 
-      numconstant=TRUE; 
-      consttyp=typ; 
-      switch(consttyp)
-      {
-       case shorttype  : shortc=shortval; break;
-       case longtype   : longc=longval; break;
-       case singletype : singlec=singleval; break;
-      }
-     }
-     else
-     /* defined constant? */
-     if ((sym == ident) && (exist(id,constant))) 
-     {
-      consttyp=curr_item->type;
-      if (consttyp != stringtype) 
-      {
-       numconstant=TRUE;
-       switch(consttyp)
-       {
-        case shorttype  : shortc=curr_item->numconst.shortnum;   break;
-        case longtype   : longc=curr_item->numconst.longnum;     break;
-        case singletype : singlec=curr_item->numconst.singlenum; break;
-       }
-      }
-      else _error(27);
-     }  
-     else _error(27);
-    }
+		  case singletype  : enter(const_id,singletype,constant,0);
+			if (negate) singlec = singlec * -1.0;
+			curr_item->numconst.singlenum=singlec;
+			break;
+		  }
+		  insymbol();
+		}
+	  }
+	}
+  } while (sym == comma);
 
-    /* create a new numeric constant? */
-    if (numconstant)
-    {          
-     switch(consttyp) 
-     {
-      case shorttype   : enter(const_id,shorttype,constant,0); 
-			 if (negate) shortc *= -1;
- 		         curr_item->numconst.shortnum=shortc;
-		         break;
-
-      case longtype    : enter(const_id,longtype,constant,0);
-			 if (negate) longc *= -1;
-       		         curr_item->numconst.longnum=longc;
-		         break;
-
-      case singletype  : enter(const_id,singletype,constant,0);
-		if (negate) singlec = singlec * -1.0;
-		curr_item->numconst.singlenum=singlec;
-		break;
-     }
-     insymbol();
-    }
-   }
-  }
- }
- while (sym == comma);
-
- /* restore level */
- lev=oldlevel;
+  /* restore level */
+  lev=oldlevel;
 }
 
-void declare_variable(vartype)
-int vartype;
+void declare_variable(int vartype)
 {
-/* declare a variable 
-   and initialise it. 
-*/
-char addrbuf[40];
-LONG string_size=MAXSTRLEN;
-BOOL normal_string_variable=TRUE;
-SYM  *str_item;
-
- do
- {
-  insymbol();
-  if (sym != ident) _error(7);
-  else
-  {
-   if (exist(id,variable)) { _error(54); insymbol(); }
-   else
-   {
-    enter(id,vartype,variable,0);
-
-    itoa(-1*curr_item->address,addrbuf,10);
-    strcat(addrbuf,frame_ptr[lev]);
-    
-    insymbol();
-
-    switch(vartype)
-    {
-	case shorttype  :  gen_load16_val(0,addrbuf); break;
-	case singletype: /* intentional fallthrough */
-	case longtype   :  gen_load32_val(0,addrbuf); break;
-	case stringtype :  str_item = curr_item;
-			if (sym == addresssym)
-			{
-			 normal_string_variable=FALSE;
-			 /* don't want to create a BSS object! */
-			 str_item->new_string_var=FALSE; 
-
- 		 	 insymbol();
-			 if (expr() != longtype)
-        		    _error(4);
-     			 else
-         		     /* store address of string in stack frame */
-         		     gen_pop32_var(addrbuf);	    
-			}
+  /* declare a variable and initialise it. */
+  char addrbuf[40];
+  LONG string_size=MAXSTRLEN;
+  BOOL normal_string_variable=TRUE;
+  SYM  *str_item;
+  
+  do {
+	
+	insymbol();
+	if (sym != ident) _error(7);
+	else {
+	  if (exist(id,variable)) { _error(54); insymbol(); }
+	  else {
+		enter(id,vartype,variable,0);
+		
+		itoa(-1*curr_item->address,addrbuf,10);
+		strcat(addrbuf,frame_ptr[lev]);
+	  
+		insymbol();
+		
+		switch(vartype) {
+		case shorttype  :  gen_load16_val(0,addrbuf); break;
+		case singletype: /* intentional fallthrough */
+		case longtype   :  gen_load32_val(0,addrbuf); break;
+		case stringtype :  str_item = curr_item;
+		  if (sym == addresssym) {
+			normal_string_variable=FALSE;
+			/* don't want to create a BSS object! */
+			str_item->new_string_var=FALSE; 
+			
+			insymbol();
+			if (expr() != longtype) _error(4);
 			else
-			if (sym == sizesym)
-			{
-			 insymbol();
-			 if (sym == shortconst) string_size=(LONG)shortval;
-			 else
-			 if (sym == longconst) string_size=longval;
-			 else 
-			 if (sym == ident && exist(id,constant))
-			 {
+			  /* store address of string in stack frame */
+			  gen_pop32_var(addrbuf);	    
+		  } else if (sym == sizesym) {
+			insymbol();
+			if (sym == shortconst) string_size=(LONG)shortval;
+			else if (sym == longconst) string_size=longval;
+			else if (sym == ident && exist(id,constant)) {
 			  if (curr_item->type == shorttype)
-			     string_size=(LONG)curr_item->numconst.shortnum;
-			  else	
-			  if (curr_item->type == longtype)
-			     string_size=curr_item->numconst.longnum;
-			  else
-			      _error(4);
-			 }
-			 else
-			 if (sym == singleconst) 
-			     _error(4);
-			 else
-			     _error(27); /* numeric constant expected */
-
-			 if (string_size <= 0L) _error(41); /* not positive! */
-
-			 insymbol();
-			}
+				string_size=(LONG)curr_item->numconst.shortnum;
+			  else	if (curr_item->type == longtype)
+				string_size=curr_item->numconst.longnum;
+			  else _error(4);
+			} else if (sym == singleconst) _error(4);
+			else _error(27); /* numeric constant expected */
 			
-			if (normal_string_variable)
-			{
-			 /* initialise with the NULL string */
-			 enter_DATA("_nullstring:","dc.b 0");
-			 gen_pea("_nullstring");
-			 assign_to_string_variable(str_item,string_size);
-			}
+			if (string_size <= 0L) _error(41); /* not positive! */
 			
-			str_item->decl=declared;
-			str_item->size=string_size; 
-
-			break;       
-    }
-   }
-  }
- }
- while (sym == comma); 
+			insymbol();
+		  }
+		  
+		  if (normal_string_variable) {
+			/* initialise with the NULL string */
+			enter_DATA("_nullstring:","dc.b 0");
+			gen_pea("_nullstring");
+			assign_to_string_variable(str_item,string_size);
+		  }
+		  
+		  str_item->decl=declared;
+		  str_item->size=string_size; 
+		  
+		  break;       
+		}
+	  }
+	}
+  } while (sym == comma); 
 }
 
 void define_external_object()
 {
- /* declare an external 
-    function or variable 
- */
- 
- insymbol();
- if (sym  == functionsym) 
-    define_external_function();
- else
-    define_external_variable();
-}
+  /* declare an external function or variable */
   
+  insymbol();
+  if (sym  == functionsym)  define_external_function();
+  else define_external_variable();
+}
+
 void define_external_variable()
 {
-/* declare an external variable */
-char buf[MAXIDSIZE],extvarid[MAXIDSIZE+1];
-int  oldlevel;
-int  vartype=undefined;
-
- /* all external variables are at level ZERO */
- oldlevel=lev;
- lev=ZERO;
-
- /* type identifiers */
- if (sym == shortintsym || sym == longintsym || sym == addresssym ||
-     sym == singlesym || sym == stringsym)
- {
-   switch(sym)
-   {
-    case shortintsym : vartype = shorttype;  break;
-    case longintsym  : vartype = longtype;   break;
-    case addresssym  : vartype = longtype;   break;
-    case singlesym   : vartype = singletype; break;
-    case stringsym   : vartype = stringtype; break;
-   }
-   insymbol();
- }
-
- /* get the variable's name */
- if (sym != ident)
- 	_error(7);
- {
+  /* declare an external variable */
+  char buf[MAXIDSIZE],extvarid[MAXIDSIZE+1];
+  int  oldlevel;
+  int  vartype=undefined;
+  
+  /* all external variables are at level ZERO */
+  oldlevel=lev;
+  lev=ZERO;
+  
+  /* type identifiers */
+  if (sym == shortintsym || sym == longintsym || sym == addresssym ||
+	  sym == singlesym || sym == stringsym)
+	{
+	  vartype = sym_to_type();
+	  insymbol();
+	}
+  
+  /* get the variable's name */
+  if (sym != ident) _error(7);
+  {
  	/* 
 	** Add an underscore prefix 
    	** if one is not present.
 	*/
 	strcpy(buf,ut_id);
 	remove_qualifier(buf);
-	if (buf[0] != '_')
-	{
-   		strcpy(extvarid,"_\0");
-   		strcat(extvarid,buf);
-  	}
-  	else 
-      		strcpy(extvarid,buf);
+	if (buf[0] != '_') {
+	  strcpy(extvarid,"_\0");
+	  strcat(extvarid,buf);
+	} else 
+	  strcpy(extvarid,buf);
 
   	/* enter variable into symbol table */
  	if (vartype == undefined) vartype = typ;
   	if (exist(extvarid,extvar))
-		_error(54);	/* variable exists */
-	else
-	{
-  		enter(extvarid,vartype,extvar,0);
-
-  		/* make an external reference to it */
-  		enter_XREF(extvarid);
+	  _error(54);	/* variable exists */
+	else {
+	  enter(extvarid,vartype,extvar,0);
+	  
+	  /* make an external reference to it */
+	  enter_XREF(extvarid);
 	}
-
+	
   	insymbol();
- } 
-
- lev=oldlevel;
+  } 
+  
+  lev=oldlevel;
 }
 
 void define_external_function()
 {
-/* declare an external function */
-char buf[MAXIDSIZE],extfuncid[MAXIDSIZE+1];
-int  oldlevel;
-int  functype=undefined;
-
+  /* declare an external function */
+  char buf[MAXIDSIZE],extfuncid[MAXIDSIZE+1];
+  int  oldlevel;
+  int  functype=undefined;
+  
  /* all external functions are at level ZERO */
- oldlevel=lev;
- lev=ZERO; 
-
- insymbol();
-
- /* type identifiers */
- if (sym == shortintsym || sym == longintsym || sym == addresssym ||
-     sym == singlesym || sym == stringsym)
- {
-   switch(sym)
-   {
-    case shortintsym : functype = shorttype;  break;
-    case longintsym  : functype = longtype;   break;
-    case addresssym  : functype = longtype;   break;
-    case singlesym   : functype = singletype; break;
-    case stringsym   : functype = stringtype; break;
-   }
-   insymbol();
- }
-
- /* get the function's name */
- if (sym != ident)
-    _error(7);
- {
-  /* add an underscore prefix 
-     if one is not present 
-  */
-  strcpy(buf,ut_id);
-  remove_qualifier(buf);
-  if (buf[0] != '_')
-  {
-   strcpy(extfuncid,"_\0");
-   strcat(extfuncid,buf);
-  }
-  else 
-      strcpy(extfuncid,buf);
+  oldlevel=lev;
+  lev=ZERO; 
   
-  /* enter function into symbol table */
-  if (functype == undefined) functype = typ; 
-  if (exist(extfuncid,extfunc))
-	_error(33);	/* duplicate function name */
-  else
-  {
-  	enter(extfuncid,functype,extfunc,0);
-  
-  	/* make an external reference to it */
-  	enter_XREF(extfuncid);
-  }
-
   insymbol();
- } 
-
- lev=oldlevel;
+  
+  /* type identifiers */
+  if (sym == shortintsym || sym == longintsym || sym == addresssym ||
+	  sym == singlesym || sym == stringsym)
+	{
+	  functype = sym_to_type();
+	  insymbol();
+	}
+  
+  /* get the function's name */
+  if (sym != ident) _error(7);
+  {
+	/* add an underscore prefix 
+	   if one is not present 
+	*/
+	strcpy(buf,ut_id);
+	remove_qualifier(buf);
+	if (buf[0] != '_') {
+	  strcpy(extfuncid,"_\0");
+	  strcat(extfuncid,buf);
+	} else strcpy(extfuncid,buf);
+  
+	/* enter function into symbol table */
+	if (functype == undefined) functype = typ; 
+	if (exist(extfuncid,extfunc))
+	  _error(33);	/* duplicate function name */
+	else {
+	  enter(extfuncid,functype,extfunc,0);
+	  
+	  /* make an external reference to it */
+	  enter_XREF(extfuncid);
+	}
+	
+	insymbol();
+  } 
+  
+  lev=oldlevel;
 }
 
 void call_external_function(extfuncid,need_symbol)
@@ -716,21 +618,12 @@ char bss_size[20];
  if (sym == shortintsym || sym == longintsym || sym == addresssym ||
      sym == singlesym || sym == stringsym)
  {
-   switch(sym)
-   {
-    case shortintsym : vartype = shorttype;  break;
-    case longintsym  : vartype = longtype;   break;
-    case addresssym  : vartype = longtype;   break;
-    case singlesym   : vartype = singletype; break;
-    case stringsym   : vartype = stringtype; break;
-   }
-
+   vartype = sym_to_type();
    insymbol();
  }
 
  /* get the variable's name */
- if (sym != ident)
- 	_error(7);
+ if (sym != ident) _error(7);
  {
  	/* 
 	** Add an underscore prefix 
@@ -767,77 +660,65 @@ char bss_size[20];
 		case longtype: 	 enter_BSS(extvarlabel,"ds.l 1");
 		  gen_load16_val(0,extvarid);
 		  insymbol(); break;
-
-			case stringtype: insymbol();
-				 	 if (sym == sizesym)
-					 { 
-			 			insymbol();
-
-						/* create own BSS object */
-			 			str_item->new_string_var = FALSE; 
-
-			 			if (sym == shortconst) string_size=(LONG)shortval;
-			 			else
-			 			if (sym == longconst) string_size=longval;
-			 			else 
-			 			if (sym == ident && exist(id,constant))
-			 			{
-			  				if (curr_item->type == shorttype)
-			     				  string_size=(LONG)curr_item->numconst.shortnum;
-			  				else	
-			  				if (curr_item->type == longtype)
-			     				  string_size=curr_item->numconst.longnum;
-			  				else
-			      				  _error(4);
-			 		 	}
-			 		 	else
-			 		 	if (sym == singleconst) 
-			     				_error(4);
-			 		 	else
-			     				_error(27); /* numeric constant expected */
-
-			 		 	if (string_size <= 0L) _error(41); /* not positive! */
-
-			 		 	insymbol();
-				 	}
+		  
+		case stringtype: insymbol();
+		  if (sym == sizesym) {
+			insymbol();
 			
-					str_item->decl=declared;
-					str_item->size=string_size; 
-
-					/*
-					** Create BSS object.
-					*/
-					sprintf(bss_size,"ds.l %d",string_size);
-					enter_BSS(extvarlabel,bss_size);
-
-				 	if (normal_string_variable)
-				 	{
-			 			/* initialise with the NULL string */
-			 			enter_DATA("_nullstring:","dc.b 0");
-			 			gen_load_addr(extvarid,0);
-			 			gen_load_addr("_nullstring",1);
-			 			gen_jsr("_strcpy");
-				 	}
+			/* create own BSS object */
+			str_item->new_string_var = FALSE; 
 			
-					break;       
+			if (sym == shortconst) string_size=(LONG)shortval;
+			else if (sym == longconst) string_size=longval;
+			else if (sym == ident && exist(id,constant)) {
+			  if (curr_item->type == shorttype)
+				string_size=(LONG)curr_item->numconst.shortnum;
+			  else if (curr_item->type == longtype)
+				string_size=curr_item->numconst.longnum;
+			  else _error(4);
+			} else if (sym == singleconst) _error(4);
+			else _error(27); /* numeric constant expected */
+
+			if (string_size <= 0L) _error(41); /* not positive! */
+
+			insymbol();
+		  }
+			
+		  str_item->decl=declared;
+		  str_item->size=string_size; 
+
+		  /*
+		  ** Create BSS object.
+		  */
+		  sprintf(bss_size,"ds.l %d",string_size);
+		  enter_BSS(extvarlabel,bss_size);
+		  
+		  if (normal_string_variable) {
+			/* initialise with the NULL string */
+			enter_DATA("_nullstring:","dc.b 0");
+			gen_load_addr(extvarid,0);
+			gen_load_addr("_nullstring",1);
+			gen_jsr("_strcpy");
+		  }
+		  
+		  break;       
 		}
-
+		
 		/*
 		** Only make it externally referenceable if it's a COMMON variable
 		** not a GLOBAL variable.
 		*/
-		if (varsym == commonsym)
-		{
-  			/* 
-			** Make it externally referenceable.
-			** The '*' is used by enter_XREF() 
-			** to make this an XDEF.
-			*/
-			extvarid[0] = '*';
-  			enter_XREF(extvarid);
+		if (varsym == commonsym) {
+		  /* 
+		  ** Make it externally referenceable.
+		  ** The '*' is used by enter_XREF() 
+		  ** to make this an XDEF.
+		  */
+		  extvarid[0] = '*';
+		  enter_XREF(extvarid);
 		}
 	}
  } 
-
+ 
  lev=oldlevel;
 }
