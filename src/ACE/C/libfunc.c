@@ -71,35 +71,33 @@ extern	BOOL	early_exit;
 /* Library Function routines */
 /* ------------------------- */
 
-BYTE check_for_ace_lib(libname)
-char *libname;
+BYTE check_for_ace_lib(const char * libname)
 {
-int c=0;
-/* 
-** If libname is a library used by ACE 
-** open & close it in the normal way.
-*/ 
+  int c=0;
+  /* 
+  ** If libname is a library used by ACE 
+  ** open & close it in the normal way.
+  */ 
 
- while(acelib[c].name[0] != '\0' && 
-       strcmp(acelib[c].name,"SENTINEL") !=0) 
- {
-  if (strcmp(acelib[c].name,libname)==0) 
-     { enter_XREF(acelib[c].base); return(c); }
-  c++;
- } 
- return(NEGATIVE);
+  while(acelib[c].name[0] != '\0' && 
+		strcmp(acelib[c].name,"SENTINEL") !=0) 
+	{
+	  if (strcmp(acelib[c].name,libname)==0) 
+		{ enter_XREF(acelib[c].base); return(c); }
+	  c++;
+	} 
+  return(NEGATIVE);
 }
 
-void enter_new_library(libname)
-char *libname;
+void enter_new_library(char * libname)
 {
-int  cc=0;
-/*
-** Enter a library into the list 
-** for future reference by function
-** declarations which don't specify
-** the library to be used.
-*/
+  int  cc=0;
+  /*
+  ** Enter a library into the list 
+  ** for future reference by function
+  ** declarations which don't specify
+  ** the library to be used.
+  */
 
   /* 
   ** Find libname, first free or maximum entry.
@@ -123,8 +121,7 @@ int  cc=0;
   }
 }
 
-void make_library_base(libname)
-char *libname;	
+void make_library_base(const char * libname)
 {
  strcpy(librarybase,"_\0");
  strcat(librarybase,libname);
@@ -132,25 +129,22 @@ char *libname;
  enter_BSS(librarybase,"ds.l 1");
 }
 
-void make_library_name(libname)
-char *libname;
+void make_library_name(const char * libname)
 {
  strcpy(libraryname,libname);
  strcat(libraryname,".library");
 }
 
-void make_bmap_name(libname)
-char *libname;
+void make_bmap_name(const char * libname)
 {
  strcpy(bmapname,"ACEbmaps:");
  strcat(bmapname,libname);
  strcat(bmapname,".bmap");
 }
 
-void get_libname(libname,ut_libname)
-char *libname,*ut_libname;
+void get_libname(char * libname,char * ut_libname)
 {
-char *tmp,*ut_tmp;
+  char *tmp,*ut_tmp;
 
    /* get raw library name (uppercase and untouched) */
    if (sym == ident) 
@@ -178,39 +172,36 @@ char *tmp,*ut_tmp;
  
 void library()
 {
-char libname[MAXIDSIZE],ut_libname[MAXIDSIZE];
-char lab[80],lablabel[80];
+  char libname[MAXIDSIZE],ut_libname[MAXIDSIZE];
+  char lab[80],lablabel[80];
 
  /* open or close a shared library */
 
  insymbol();
  if (sym == closesym) closelibrary();
- else
- {
+ else {
   if (sym != ident && sym != stringconst) 
-     _error(7);  /* identifier expected */
-  else
-  {
-   get_libname(libname,ut_libname);  /* without extension! */
+	_error(7);  /* identifier expected */
+  else {
+	get_libname(libname,ut_libname);  /* without extension! */
 
-   if (check_for_ace_lib(libname) == NEGATIVE)
-   {
-     make_library_name(ut_libname); /* exec names are case sensitive */
-     make_string_const(libraryname);
-     gen_pop_addr(1);   /* address of library name in a1 */
-     gen_jsr("_open_library");
-     make_library_base(libname);
-     gen_save32d(0,librarybase);
-     gen_tst32d(0);
-     make_label(lab,lablabel);
-     gen_bne(lab);
-     gen_jmp("_EXIT_PROG"); /* quit program if can't open library */
-     gen_label(lablabel);
-     enter_XREF("_open_library");
-
-     /* enter new library info' into "other libraries" list */
-     enter_new_library(libname);
-   }
+	if (check_for_ace_lib(libname) == NEGATIVE) {
+	  make_library_name(ut_libname); /* exec names are case sensitive */
+	  make_string_const(libraryname);
+	  gen_pop_addr(1);   /* address of library name in a1 */
+	  gen_jsr("_open_library");
+	  make_library_base(libname);
+	  gen_save32d(0,librarybase);
+	  gen_tst32d(0);
+	  make_label(lab,lablabel);
+	  gen_bne(lab);
+	  gen_jmp("_EXIT_PROG"); /* quit program if can't open library */
+	  gen_label(lablabel);
+	  enter_XREF("_open_library");
+	  
+	  /* enter new library info' into "other libraries" list */
+	  enter_new_library(libname);
+	}
   }
   insymbol();
  }
@@ -218,48 +209,43 @@ char lab[80],lablabel[80];
 
 void closelibrary()
 {
-char libname[MAXIDSIZE],ut_libname[MAXIDSIZE];
-int  cc;
- /* close one or more shared libraries */ 
+  char libname[MAXIDSIZE],ut_libname[MAXIDSIZE];
+  int  cc;
+  /* close one or more shared libraries */ 
 
- insymbol();
- if (sym != ident && sym != stringconst) 
- {
-   /* 
-   ** Close all open shared libraries not 
-   ** normally closed by ACE at the end of
-   ** the program run.
-   */
-   cc=0;
-   while (otherlib[cc].name[0] != '\0' &&
-	  strcmp(otherlib[cc].name,"SENTINEL") != 0)
-   {
+  insymbol();
+  if (sym != ident && sym != stringconst) {
+	/* 
+	** Close all open shared libraries not 
+	** normally closed by ACE at the end of
+	** the program run.
+	*/
+	cc=0;
+	while (otherlib[cc].name[0] != '\0' &&
+		   strcmp(otherlib[cc].name,"SENTINEL") != 0)
+	  {
     	gen_load32a(otherlib[cc].base,1);  /* library base in a1 */
     	gen_jsr("_close_library");
 		gen_save32_val(0,otherlib[cc].base);
         enter_XREF("_close_library");
-	cc++;
-   }  	
- }   
- else
- {
-  /* close a single shared library */
-  get_libname(libname,ut_libname);  /* without extension! */
-
-  if (check_for_ace_lib(libname) == NEGATIVE)
-  {
-    make_library_base(libname);
-    gen_load32a(librarybase,1);  /* library base in a1 */
-    gen_jsr("_close_library");
-    gen_save32_val(0,librarybase);
-    enter_XREF("_close_library");
+		cc++;
+	  }  	
+  } else {
+	/* close a single shared library */
+	get_libname(libname,ut_libname);  /* without extension! */
+	
+	if (check_for_ace_lib(libname) == NEGATIVE) {
+	  make_library_base(libname);
+	  gen_load32a(librarybase,1);  /* library base in a1 */
+	  gen_jsr("_close_library");
+	  gen_save32_val(0,librarybase);
+	  enter_XREF("_close_library");
+	}
+	insymbol();
   }
-  insymbol();
- }
 }
   
-void remove_qualifier(funcname)
-char *funcname;
+void remove_qualifier(char * funcname)
 {
 /* remove any trailing data type qualifier (%&#!$) @=& [=! */
 int cc=0;
@@ -271,107 +257,91 @@ int cc=0;
     ||(funcname[cc-1] == '[')||(funcname[cc-1] == '$')) funcname[cc-1]='\0';
 }
 
-BOOL search_func(bmap,func,declared_func)
-char *bmap;
-char *func;
-SYM  *declared_func;
+BOOL search_func(char * bmap,char * func,SYM * declared_func)
 {
-/* 
-** Search for function in .bmap file, recording register usage
-** and library base offset in symbol table entry for function. 
-*/
+  /* 
+  ** Search for function in .bmap file, recording register usage
+  ** and library base offset in symbol table entry for function. 
+  */
 
-unsigned char		*buf;
-FILE * f;
-char		ch,name[MAXIDSIZE];
-LONG	 		bmap_size,count,cc,rc;
-SHORT			offset=0;
-BOOL     		found=FALSE;
-
- if ((bmap_size=fsize(bmap)) == -1L)  /* if not -1 -> file exists and
-					 we get size of file in bytes. */
-    { _error(50); return(FALSE); }
- else
- {
-  /* read whole bmap file into a buffer */
-  buf = (unsigned char *)alloc(bmap_size);
-  f = fopen(bmap,"r");
-  if(!f) return FALSE;
-  if(fread(buf,1,bmap_size,f) < (ULONG)bmap_size) return FALSE;
-  fclose(f);
-
-  count=0;  /* start of buffer */
-
-  while (!found && count < bmap_size)
-  {
-   /* build function name */
-   cc=0;
-   while (count < bmap_size && cc < MAXIDSIZE)
-   {
-    ch=name[cc++]=buf[count++];
-    if (ch == '\0') break;  /* exit loop when EOS reached */
-   }
-
-   name[cc-1]='\0';  /* make sure we have an EOS symbol (may exit early) */
-
-   if (strcmp(name,func) != 0) 
-   {
-    /* skip 2-byte offset */
-    count += 2;
-    /* skip to next name */
-    while (count < bmap_size && (ch=buf[count++]) != '\0');
-   }
-   else found=TRUE;  /* that's it! -> get the info' */
-  }
-
-  if (!found) return(FALSE);
-
-  /* get library base offset (2 bytes) */
-  if (count < bmap_size)
-  {
-   ch=buf[count++];
-   offset += ch*256;
-  }
-  else 
-      return(FALSE);
-
-  if (count < bmap_size)
-  {
-   ch=buf[count++];
-   offset += ch;
-  }
-  else 
-      return(FALSE);
-
-  declared_func->address = (SHORT)offset;  /* record library base offset */
-
-  /* get n bytes of register data */
-  declared_func->reg = (UBYTE *)sym_alloc(15);
-  if (declared_func->reg == NULL)
-  {
-	puts("Can't allocate memory for function register info!");
-	early_exit=TRUE;
-	kill_all_lists();
-       	cleanup();
-  }
+  unsigned char		*buf;
+  FILE * f;
+  char		ch,name[MAXIDSIZE];
+  LONG	 		bmap_size,count,cc,rc;
+  SHORT			offset=0;
+  BOOL     		found=FALSE;
   
-  rc=0;
-  while (count < bmap_size && 
-        (ch=buf[count++]) != '\0') declared_func->reg[rc++]=ch;
+  if ((bmap_size=fsize(bmap)) == -1L)  /* if not -1 -> file exists and
+										  we get size of file in bytes. */
+    { _error(50); return(FALSE); }
+  else
+	{
+	  /* read whole bmap file into a buffer */
+	  buf = (unsigned char *)alloc(bmap_size);
+	  f = fopen(bmap,"r");
+	  if(!f) return FALSE;
+	  if(fread(buf,1,bmap_size,f) < (ULONG)bmap_size) return FALSE;
+	  fclose(f);
+	  
+	  count=0;  /* start of buffer */
+	  
+	  while (!found && count < bmap_size) {
+		/* build function name */
+		cc=0;
+		while (count < bmap_size && cc < MAXIDSIZE) {
+		  ch=name[cc++]=buf[count++];
+		  if (ch == '\0') break;  /* exit loop when EOS reached */
+		}
+		
+		name[cc-1]='\0';  /* make sure we have an EOS symbol (may exit early) */
+		
+		if (strcmp(name,func) != 0) {
+		  /* skip 2-byte offset */
+		  count += 2;
+		  /* skip to next name */
+		  while (count < bmap_size && (ch=buf[count++]) != '\0');
+		}
+		else found=TRUE;  /* that's it! -> get the info' */
+	  }
+	  
+	  if (!found) return(FALSE);
+	  
+	  /* get library base offset (2 bytes) */
+	  if (count < bmap_size) {
+		ch=buf[count++];
+		offset += ch*256;
+	  } else return(FALSE);
 
-  declared_func->no_of_params=rc;  /* record no. of parameters */
+	  if (count < bmap_size) {
+		ch=buf[count++];
+		offset += ch;
+	  } else return(FALSE);
 
-  if (ch != '\0') return(FALSE);  /* last character should be NULL */   
-
-  /* we found it -> return */
-  return(TRUE);
- }
+	  declared_func->address = (SHORT)offset;  /* record library base offset */
+	  
+	  /* get n bytes of register data */
+	  declared_func->reg = (UBYTE *)sym_alloc(15);
+	  if (declared_func->reg == NULL) {
+		puts("Can't allocate memory for function register info!");
+		early_exit=TRUE;
+		kill_all_lists();
+       	cleanup();
+	  }
+	  
+	  rc=0;
+	  while (count < bmap_size && 
+			 (ch=buf[count++]) != '\0') declared_func->reg[rc++]=ch;
+	  
+	  declared_func->no_of_params=rc;  /* record no. of parameters */
+	  
+	  if (ch != '\0') return(FALSE);  /* last character should be NULL */   
+	  
+	  /* we found it -> return */
+	  return(TRUE);
+	}
 }
 
-BOOL found_func(libname,ut_funcname,declared_func)
-char *libname;
-char *ut_funcname;
-SYM  *declared_func;
+BOOL found_func(char * libname,char * ut_funcname,SYM * declared_func)
 {
      /* 
      ** Search for function in bmap file and record register usage
@@ -432,23 +402,10 @@ BOOL found;
   insymbol();
 
   /* type identifiers */
-  if (sym == shortintsym || sym == longintsym || sym == addresssym ||
-      sym == singlesym || sym == stringsym)
-  {
-   switch(sym)
-   {
-    case shortintsym : functype = shorttype;  break;
-    case longintsym  : functype = longtype;   break;
-    case addresssym  : functype = longtype;   break;
-    case singlesym   : functype = singletype; break;
-    case stringsym   : functype = stringtype; break;
-   }
-   insymbol();
-  }
+  functype = sym_to_opt_type();
 
   if (sym != ident) _error(7);
-  else
-  {
+  else {
    /* get the function's name */
    strcpy(funcname,id);
    strcpy(ut_funcname,ut_id);  /* case sensitive version for search! */
@@ -475,20 +432,16 @@ BOOL found;
 
 	/* parameter */
 	if (sym != ident) _error(7);
-	else
-	    insymbol();
-    }
-    while (sym == comma);
+	else insymbol();
+    } while (sym == comma);
 
     if (sym != rparen) _error(9);
-    else
-        insymbol();
+    else insymbol();
    }
-
+   
    /* EXTERNAL or LIBRARY function? */
-   if (sym == externalsym) 
-   {
-	if (ut_funcname[0] != '_')
+   if (sym == externalsym) {
+	 if (ut_funcname[0] != '_')
 	{
 	   	strcpy(extfuncname,"_\0");
 		strcat(extfuncname,ut_funcname);
@@ -559,8 +512,7 @@ BOOL found;
  lev=oldlevel;
 }
 
-void load_func_params(func_item)
-SYM *func_item;
+void load_func_params(SYM * func_item)
 {
 /* 
 ** Parse a shared library function's actual parameter-list 

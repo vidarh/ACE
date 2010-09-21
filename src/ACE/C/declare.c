@@ -81,6 +81,18 @@ int sym_to_type()
   return undefined;
 }
 
+int sym_to_opt_type()
+{
+  int typ = undefined;
+  if (sym == shortintsym || sym == longintsym || sym == addresssym ||
+      sym == singlesym || sym == stringsym)
+  {
+	typ = sym_to_type();
+	insymbol();
+  }
+  return typ;
+}
+
 void define_structure()
 {
   /* define a structure data type */
