@@ -96,7 +96,7 @@ int sym_to_opt_type()
 void define_structure()
 {
   /* define a structure data type */
-
+  
   SHORT mem_count=0;
   SYM   *structdef_item,*struct_mbr_def;
   int   mem_type;
@@ -458,67 +458,28 @@ void define_external_object()
   /* declare an external function or variable */
   
   insymbol();
-  if (sym  == functionsym)  define_external_function();
-  else define_external_variable();
+  if (sym  == functionsym) define_ext(extfunc,33);
+  else define_ext(extvar,54);
 }
 
-void define_external_variable()
+static void add_underscore_prefix(char * id)
 {
-  /* declare an external variable */
-  char buf[MAXIDSIZE],extvarid[MAXIDSIZE+1];
-  int  oldlevel;
-  int  vartype=undefined;
-  
-  /* all external variables are at level ZERO */
-  oldlevel=lev;
-  lev=ZERO;
-  
-  /* type identifiers */
-  if (sym == shortintsym || sym == longintsym || sym == addresssym ||
-	  sym == singlesym || sym == stringsym)
-	{
-	  vartype = sym_to_type();
-	  insymbol();
-	}
-  
-  /* get the variable's name */
-  if (sym != ident) _error(7);
-  {
- 	/* 
-	** Add an underscore prefix 
-   	** if one is not present.
-	*/
-	strcpy(buf,ut_id);
-	remove_qualifier(buf);
-	if (buf[0] != '_') {
-	  strcpy(extvarid,"_\0");
-	  strcat(extvarid,buf);
-	} else 
-	  strcpy(extvarid,buf);
-
-  	/* enter variable into symbol table */
- 	if (vartype == undefined) vartype = typ;
-  	if (exist(extvarid,extvar))
-	  _error(54);	/* variable exists */
-	else {
-	  enter(extvarid,vartype,extvar,0);
-	  
-	  /* make an external reference to it */
-	  enter_XREF(extvarid);
-	}
-	
-  	insymbol();
-  } 
-  
-  lev=oldlevel;
+  char buf[MAXIDSIZE];
+  /* add an underscore prefix if one is not present  */
+  strcpy(buf,ut_id);
+  remove_qualifier(buf);
+  if (buf[0] != '_') {
+	strcpy(id,"_\0");
+	strcat(id,buf);
+  } else strcpy(id,buf);
 }
 
-void define_external_function()
+void define_ext(int obj, int dup_err)
 {
-  /* declare an external function */
-  char buf[MAXIDSIZE],extfuncid[MAXIDSIZE+1];
+  /* declare an external function or variable */
+  char extid[MAXIDSIZE+1];
   int  oldlevel;
-  int  functype=undefined;
+  int  type=undefined;
   
  /* all external functions are at level ZERO */
   oldlevel=lev;
@@ -527,35 +488,21 @@ void define_external_function()
   insymbol();
   
   /* type identifiers */
-  if (sym == shortintsym || sym == longintsym || sym == addresssym ||
-	  sym == singlesym || sym == stringsym)
-	{
-	  functype = sym_to_type();
-	  insymbol();
-	}
+  type = sym_to_opt_type();
   
   /* get the function's name */
-  if (sym != ident) _error(7);
-  {
-	/* add an underscore prefix 
-	   if one is not present 
-	*/
-	strcpy(buf,ut_id);
-	remove_qualifier(buf);
-	if (buf[0] != '_') {
-	  strcpy(extfuncid,"_\0");
-	  strcat(extfuncid,buf);
-	} else strcpy(extfuncid,buf);
+  if (sym != ident) _error(7); {
+	add_underscore_prefix(extid);
   
-	/* enter function into symbol table */
-	if (functype == undefined) functype = typ; 
-	if (exist(extfuncid,extfunc))
-	  _error(33);	/* duplicate function name */
+	/* enter function|variale into symbol table */
+	if (type == undefined) type = typ; 
+	if (exist(extid,obj))
+	  _error(dup_err);	/* duplicate function|variable name */
 	else {
-	  enter(extfuncid,functype,extfunc,0);
+	  enter(extid,type,obj,0);
 	  
 	  /* make an external reference to it */
-	  enter_XREF(extfuncid);
+	  enter_XREF(extid);
 	}
 	
 	insymbol();
@@ -564,145 +511,121 @@ void define_external_function()
   lev=oldlevel;
 }
 
-void call_external_function(extfuncid,need_symbol)
-char *extfuncid;
-BOOL *need_symbol;
-{
-/* CALL an external function -- level ZERO */
-SYM   *extfunc_item;
-int   i;
-SHORT popcount=0;
 
-  if (exist(extfuncid,extfunc)) /* preserve case */
-  {
+void call_external_function(char * extfuncid, BOOL * need_symbol)
+{
+  /* CALL an external function -- level ZERO */
+  SYM   *extfunc_item;
+  int   i;
+  SHORT popcount=0;
+
+  if (exist(extfuncid,extfunc)) { /* preserve case */
 	gen_save_registers();
 
-   extfunc_item=curr_item;
-   /* insymbol() is called before entry to this function */
-   if (sym == lparen) { load_mc_params(extfunc_item); *need_symbol=TRUE; } 
-   else
+	extfunc_item=curr_item;
+	/* insymbol() is called before entry to this function */
+	if (sym == lparen) { load_mc_params(extfunc_item); *need_symbol=TRUE; } 
+	else
       { extfunc_item->no_of_params=0; *need_symbol=FALSE; }
 
-   /* call routine */
-   gen_jsr(extfunc_item->name);
+	/* call routine */
+	gen_jsr(extfunc_item->name);
 
-     /* pop parameters? */
-     if (extfunc_item->no_of_params != 0)
-     {
+	/* pop parameters? */
+	if (extfunc_item->no_of_params != 0) {
       popcount=0;
-      for (i=0;i<extfunc_item->no_of_params;i++) 
-      {
-       if (extfunc_item->p_type[i] == shorttype) 
-           popcount += 2;
-       else
-	   popcount += 4;
+      for (i=0;i<extfunc_item->no_of_params;i++) {
+		if (extfunc_item->p_type[i] == shorttype) 
+		  popcount += 2;
+		else
+		  popcount += 4;
       }
       gen_pop_ignore(popcount);
-     }
+	}
 
-     gen_restore_registers();
+	gen_restore_registers();
   }
 }
 
-void define_common_or_global_variable(varsym)
-int varsym;
+void define_common_or_global_variable(int varsym)
 {
-/*
-** Declare a common or global variable.
-** Treated internally as an external variable.
-*/
-char buf[MAXIDSIZE];
-char extvarid[MAXIDSIZE+2],extvarlabel[MAXIDSIZE+3];
-int  oldlevel;
-int  vartype=undefined;
-SYM  *str_item;
-LONG string_size = MAXSTRLEN;
-BOOL normal_string_variable = TRUE;
-char bss_size[20];
+  /*
+  ** Declare a common or global variable.
+  ** Treated internally as an external variable.
+  */
+  char buf[MAXIDSIZE];
+  char extvarid[MAXIDSIZE+2],extvarlabel[MAXIDSIZE+3];
+  int  oldlevel;
+  int  vartype=undefined;
+  SYM  *str_item;
+  LONG string_size = MAXSTRLEN;
+  BOOL normal_string_variable = TRUE;
+  char bss_size[20];
+  
+  insymbol();
+  
+  /* all common variables are at level ZERO */
+  oldlevel=lev;
+  lev=ZERO;
 
- insymbol();
-
- /* all common variables are at level ZERO */
- oldlevel=lev;
- lev=ZERO;
-
- /* optional type identifiers */
- if (sym == shortintsym || sym == longintsym || sym == addresssym ||
-     sym == singlesym || sym == stringsym)
- {
-   vartype = sym_to_type();
-   insymbol();
- }
-
- /* get the variable's name */
- if (sym != ident) _error(7);
- {
- 	/* 
-	** Add an underscore prefix 
-   	** if one is not present.
-	*/
-	strcpy(buf,ut_id);
-	remove_qualifier(buf);
-	if (buf[0] != '_')
-	{
-		sprintf(extvarid,"_%s",buf);
-  	}
-  	else 
-      		strcpy(extvarid,buf);
+  /* optional type identifiers */
+  vartype = sym_to_opt_type();
+  
+  /* get the variable's name */
+  if (sym != ident) _error(7);
+  {
+	add_underscore_prefix(extvarid);
 	
   	/* enter variable into symbol table */
  	if (vartype == undefined) vartype = typ;
-  	if (exist(extvarid,extvar))
-		_error(54);	/* variable exists  */
-	else
-	{
-		enter(extvarid,vartype,extvar,0);
+  	if (exist(extvarid,extvar)) _error(54);	/* variable exists  */
+	else {
+	  enter(extvarid,vartype,extvar,0);
+	  
+	  /* 
+	  ** Make an appropriate BSS object.
+	  */
+	  sprintf(extvarlabel,"%s:",extvarid);
+	  switch(vartype) {
+	  case shorttype:	 enter_BSS(extvarlabel,"ds.w 1"); 
+		gen_load16_val(0,extvarid);
+		insymbol(); break;
 		
-		/* 
-		** Make an appropriate BSS object.
-		*/
-		sprintf(extvarlabel,"%s:",extvarid);
-		switch(vartype)
-		{
-			case shorttype:	 enter_BSS(extvarlabel,"ds.w 1"); 
-					 gen_load16_val(0,extvarid);
-					 insymbol(); break;
-
-		case singletype: /* intentional fallthrough */
-		case longtype: 	 enter_BSS(extvarlabel,"ds.l 1");
-		  gen_load16_val(0,extvarid);
-		  insymbol(); break;
+	  case singletype: /* intentional fallthrough */
+	  case longtype: 	 enter_BSS(extvarlabel,"ds.l 1");
+		gen_load16_val(0,extvarid);
+		insymbol(); break;
 		  
-		case stringtype: insymbol();
-		  if (sym == sizesym) {
-			insymbol();
-			
-			/* create own BSS object */
-			str_item->new_string_var = FALSE; 
-			
-			if (sym == shortconst) string_size=(LONG)shortval;
-			else if (sym == longconst) string_size=longval;
-			else if (sym == ident && exist(id,constant)) {
-			  if (curr_item->type == shorttype)
-				string_size=(LONG)curr_item->numconst.shortnum;
-			  else if (curr_item->type == longtype)
-				string_size=curr_item->numconst.longnum;
-			  else _error(4);
-			} else if (sym == singleconst) _error(4);
-			else _error(27); /* numeric constant expected */
-
-			if (string_size <= 0L) _error(41); /* not positive! */
-
-			insymbol();
-		  }
-			
-		  str_item->decl=declared;
-		  str_item->size=string_size; 
-
+	  case stringtype: insymbol();
+		if (sym == sizesym) {
+		  insymbol();
+		  
+		  /* create own BSS object */
+		  str_item->new_string_var = FALSE; 
+		  
+		  if (sym == shortconst) string_size=(LONG)shortval;
+		  else if (sym == longconst) string_size=longval;
+		  else if (sym == ident && exist(id,constant)) {
+			if (curr_item->type == shorttype)
+			  string_size=(LONG)curr_item->numconst.shortnum;
+			else if (curr_item->type == longtype)
+			  string_size=curr_item->numconst.longnum;
+			else _error(4);
+		  } else if (sym == singleconst) _error(4);
+		  else _error(27); /* numeric constant expected */
+		  
+		  if (string_size <= 0L) _error(41); /* not positive! */
+		  
+		  insymbol();
+		}
+		
+		str_item->decl=declared;
+		str_item->size=string_size; 
+		
 		  /*
 		  ** Create BSS object.
 		  */
-		  sprintf(bss_size,"ds.l %d",string_size);
+		sprintf(bss_size,"ds.l %d",string_size);
 		  enter_BSS(extvarlabel,bss_size);
 		  
 		  if (normal_string_variable) {
