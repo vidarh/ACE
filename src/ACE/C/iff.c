@@ -38,7 +38,7 @@ void parse_channel() {
 /* 
 ** IFF OPEN [#]channel,file-name
 */
-void	iff_open() {
+static void	iff_open() {
   parse_channel();
   if (sym != comma) _error(16);
   else {
@@ -50,7 +50,7 @@ void	iff_open() {
 }
 
 /*  IFF READ [#]channel[,screen-id] */
-void iff_read() {
+static void iff_read() {
   parse_channel();
   if (sym != comma) gen_push32_val(-1); /* no screen-id */
   else {
@@ -62,7 +62,7 @@ void iff_read() {
 }
 
 /* IFF CLOSE [#]channel */
-void  iff_close() {
+static void  iff_close() {
   parse_channel();
   gen_call_void("_IFFPicClose",4);
 }

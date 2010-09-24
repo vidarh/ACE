@@ -37,7 +37,7 @@ extern	char	id[MAXIDSIZE];
 extern	SYM	*curr_item;
 
 /* MESSAGE OPEN [#]channel,port-name,mode */
-void message_open() {
+static void message_open() {
   parse_channel();
   if (sym != comma) _error(16);
   else {
@@ -57,7 +57,7 @@ void message_open() {
 }
 
 /* MESSAGE READ [#]channel,message-string */
-void	message_read() {
+static void	message_read() {
   SYM	*storage;
   char	addrbuf[40];
 
@@ -120,26 +120,26 @@ void	message_read() {
 }
 
 /* MESSAGE WRITE [#]channel,message-string */
-void message_write() {
+static void message_write() {
   parse_channel();
   if (sym != comma) _error(16);
   else gen_fcall("_MessageWrite",expr(),"s",stringtype,"",8);
 }
 
 /* MESSAGE WAIT [#]channel */
-void message_wait() {
+static void message_wait() {
   parse_channel();
   gen_call_void("_MessageWait",4);
 }
 
 /* MESSAGE CLEAR [#]channel */
-void message_clear() {
+static void message_clear() {
   parse_channel();
   gen_call_void("_MessageClear",4);
 }
 
 /* MESSAGE CLOSE [#]channel */
-void message_close() {
+static void message_close() {
   parse_channel();
   gen_call_void("_MessageClose",4);
 }

@@ -38,23 +38,7 @@ extern	SYM	*curr_item;
 extern	char   	id[MAXIDSIZE]; 
 
 /* functions */
-void serial_command()
-{
-  /* parse a serial command */
-
-  insymbol();
- 
-  switch(sym) {
-  case opensym:	open_serial(); break;
-  case closesym:	close_serial();	break;
-  case readsym:	read_serial(); break;
-  case writesym:	write_serial();	break;
-  default:	_error(75);	/* open,close etc expected */
-	break;
-  }
-}
-
-void open_serial() {
+static void open_serial() {
 /* open a channel to a serial port.
     
    SERIAL OPEN [#] channel,unit,baud,"N|E|O|M|S<d><s>[A][X]"[,size][,name]
@@ -96,7 +80,7 @@ void open_serial() {
 }
 
 /* SERIAL CLOSE [#] channel */
-void close_serial()
+static void close_serial()
 {
   parse_channel();
   gen_call_void("_CloseSerial",4);
@@ -105,7 +89,7 @@ void close_serial()
 /* read a specified number of bytes into a buffer.
    SERIAL READ [#] channel,buffer,length
 */
-void read_serial()
+static void read_serial()
 {
   SYM  *storage;
   char addrbuf[40];
@@ -151,7 +135,7 @@ void read_serial()
   insymbol();
 }
 
-void write_serial()
+static void write_serial()
 {
 /* write a specified number of bytes from a buffer.
    SERIAL WRITE [#] channel,buffer,length
@@ -161,3 +145,20 @@ void write_serial()
   if (!expect_token_sequence(tokens)) return;
   gen_call_void("_WriteSerial",12);
 }
+
+void serial_command()
+{
+  /* parse a serial command */
+
+  insymbol();
+ 
+  switch(sym) {
+  case opensym:	open_serial(); break;
+  case closesym:	close_serial();	break;
+  case readsym:	read_serial(); break;
+  case writesym:	write_serial();	break;
+  default:	_error(75);	/* open,close etc expected */
+	break;
+  }
+}
+

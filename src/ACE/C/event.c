@@ -282,21 +282,7 @@ void turn_event_off(char * eventHandler)
 	{ gad_event=FALSE; gad_event_label_exists=FALSE; }
 }
 
-void check_for_event()
-{
-/* produce code for event trapping */
- if (break_opt)   	ctrl_c_test();
- if (break_event) 	break_event_test();
- if (menu_event)  	menu_event_test();
- if (wdw_close_opt)	wdw_close_test(); 
- if (wdw_event) 	wdw_event_test();
- if (gad_event) 	gad_event_test();
- if (mouse_event) 	mouse_event_test();
- if (timer_event) 	timer_event_test();
- if (error_event) 	error_event_test();
-}
-
-void event_test(const char * test, const char * label, int branch)
+static void event_test(const char * test, const char * label, int branch)
 {
   char lab[80],lablabel[80];
   make_label(lab,lablabel);
@@ -311,33 +297,33 @@ void event_test(const char * test, const char * label, int branch)
   gen_label(lablabel);
 }
 
-void ctrl_c_test() {
+static void ctrl_c_test() {
   event_test("_ctrl_c_test","_EXIT_PROG", gotosym);
 }
 
-void break_event_test() {
+static void break_event_test() {
   event_test("_ctrl_c_test",break_event_label, break_event_branch);
 }
 
-void menu_event_test() {
+static void menu_event_test() {
   event_test("_menu_test",menu_event_label, menu_event_branch);
 }
 
-void mouse_event_test() {
+static void mouse_event_test() {
   event_test("_mouse", mouse_event_label, mouse_event_branch);
 }
 
-void timer_event_test() {
+static void timer_event_test() {
   gen_load32d(ontimer_seconds,0);
   event_test("_ontimer", timer_event_label, timer_event_branch);
   enter_XREF("_MathBase");  /* timer routines need mathffp.library */
 }
 
-void error_event_test() {
+static void error_event_test() {
   event_test("_testerror",error_event_label, error_event_branch);
 }
 
-void wdw_close_test()
+static void wdw_close_test()
 {
   char lab[80],lablabel[80];
   
@@ -358,7 +344,7 @@ void wdw_close_test()
   gen_label(lablabel);
 }
 
-void wdw_event_test()
+static void wdw_event_test()
 {
 char lab[80],lablabel[80];
 
@@ -388,9 +374,9 @@ char lab[80],lablabel[80];
    gen_label(lablabel);
 }
 
-void gad_event_test()
+static void gad_event_test()
 {
-char lab[80],lablabel[80];
+  char lab[80],lablabel[80];
 
 /* Test for user-defined gadget selection 
    in current output window and transfer 
@@ -413,3 +399,18 @@ char lab[80],lablabel[80];
 	   gen_branch("jmp",gad_event_label);
    gen_label(lablabel);
 }
+
+void check_for_event()
+{
+/* produce code for event trapping */
+ if (break_opt)   	ctrl_c_test();
+ if (break_event) 	break_event_test();
+ if (menu_event)  	menu_event_test();
+ if (wdw_close_opt)	wdw_close_test(); 
+ if (wdw_event) 	wdw_event_test();
+ if (gad_event) 	gad_event_test();
+ if (mouse_event) 	mouse_event_test();
+ if (timer_event) 	timer_event_test();
+ if (error_event) 	error_event_test();
+}
+

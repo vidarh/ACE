@@ -60,7 +60,7 @@ extern	BOOL	have_equal;
 extern	BOOL	have_lparen;
 
 /* functions */
-void block_if(CODE * cx1) {
+static void block_if(CODE * cx1) {
   char labname1[80],lablabel1[80];
   char labname2[80],lablabel2[80];
   char labname3[80],lablabel3[80];
@@ -355,7 +355,7 @@ void case_statement() {
  }
 }
 
-int for_assign(char * addr)
+static int for_assign(char * addr)
 {
   SYM  *storage_item;
   int  exprtype;

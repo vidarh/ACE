@@ -643,12 +643,10 @@ void	print_statement();
 void	gen_printscode();
 void	prints_statement();
 
-void	block_if();
 void	if_statement();
 void	while_statement();
 void	repeat_statement();
 void	case_statement();
-int	for_assign();
 void	for_statement();
 void	gen_branch();
 void	on_branch();
@@ -680,11 +678,8 @@ void	scroll();
 
 void	window();
 
-void	gadget_rectangle();
+BOOL parse_rect();
 void	gadget();
-void	wait_gadget();
-void	modify_gadget();
-void	close_gadget();
 void	bevel_box();
 
 void	MsgBox();
@@ -705,24 +700,9 @@ void	chdir();
 void	files();
 
 void	serial_command();
-void	open_serial();
-void	close_serial();
-void	read_serial();
-void	write_serial();
-void	name_serial();
-
 void	message();
-void	message_open();
-void	message_close();
-void	message_read();
-void	message_write();
-void	message_wait();
-void	message_clear();
 
 void	iff();
-void	iff_open();
-void	iff_read();
-void	iff_close();
 void parse_channel();
 
 BYTE 	check_for_ace_lib();
@@ -741,28 +721,15 @@ void	declare();
 void 	load_func_params();
 void 	load_mc_params();
 
-void	sound();
-
 void	get_event_trap_label();
 void	change_event_trapping_status();
 void	check_for_event();
-void	ctrl_c_test();
-void	break_event_test();
-void	menu_event_test();
-void	mouse_event_test();
-void	timer_event_test();
-void	error_event_test();
-void	wdw_close_test();
-void 	wdw_event_test();
-void	gad_event_test();
 
 void	define_structure();
 void	declare_structure();
 void	define_constant();
 void	declare_variable();
 void	define_external_object();
-void	define_external_variable();
-void	define_external_function();
 
 void	call_external_function();
 
@@ -772,7 +739,6 @@ void	pokel();
 void	get_obj_info();
 void	swap();
 
-void	handle_label();
 void	statement();
 
 void	forward_ref();

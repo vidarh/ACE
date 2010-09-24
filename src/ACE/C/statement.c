@@ -188,7 +188,7 @@ static void increment_decrement(int opsym) {
 }
 
 
-void call_statement() {
+static void call_statement() {
   char  func_name[MAXIDSIZE],func_address[MAXIDSIZE+9];
   SYM * func_item, * mc_item;
   BYTE  libnum;
@@ -284,7 +284,7 @@ void call_statement() {
 /* sound */
 /* ------*/
 
-void sound()
+static void sound()
 {
 /* make a tone of given period, duration and volume through 
    the specified channel */
@@ -322,7 +322,7 @@ BOOL volume=FALSE;
  enter_XREF("_MathBase");
 }   
 
-void handle_label(char * label_name)
+static void handle_label(char * label_name)
 {
   int  oldlevel;
   char label_lab[50];

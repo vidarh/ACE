@@ -453,15 +453,6 @@ void declare_variable(int vartype)
   } while (sym == comma); 
 }
 
-void define_external_object()
-{
-  /* declare an external function or variable */
-  
-  insymbol();
-  if (sym  == functionsym) define_ext(extfunc,33);
-  else define_ext(extvar,54);
-}
-
 static void add_underscore_prefix(char * id)
 {
   char buf[MAXIDSIZE];
@@ -474,7 +465,7 @@ static void add_underscore_prefix(char * id)
   } else strcpy(id,buf);
 }
 
-void define_ext(int obj, int dup_err)
+static void define_ext(int obj, int dup_err)
 {
   /* declare an external function or variable */
   char extid[MAXIDSIZE+1];
@@ -511,6 +502,14 @@ void define_ext(int obj, int dup_err)
   lev=oldlevel;
 }
 
+void define_external_object()
+{
+  /* declare an external function or variable */
+  
+  insymbol();
+  if (sym  == functionsym) define_ext(extfunc,33);
+  else define_ext(extvar,54);
+}
 
 void call_external_function(char * extfuncid, BOOL * need_symbol)
 {
