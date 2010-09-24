@@ -238,7 +238,7 @@ void declare_structure()
 			   a BSS object.
 			*/
 			if (struct_pointer)
-			  gen_load32d_val(0,addrbuf); /* pointer to structure */
+			  gen_save32_val(0,addrbuf); /* pointer to structure */
 			else {
 			  /* BSS structure name */
 			  strcpy(structname,"_structure");
@@ -552,7 +552,6 @@ void define_common_or_global_variable(int varsym)
   ** Declare a common or global variable.
   ** Treated internally as an external variable.
   */
-  char buf[MAXIDSIZE];
   char extvarid[MAXIDSIZE+2],extvarlabel[MAXIDSIZE+3];
   int  oldlevel;
   int  vartype=undefined;

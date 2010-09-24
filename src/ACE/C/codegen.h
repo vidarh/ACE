@@ -137,9 +137,27 @@ void gen_jmp_fwd(const char * label,const char * flag);
 void gen_pop_indirect32(unsigned char r);
 void gen_pop_indirect16(unsigned char r);
 void gen_move16(const char * src, const char * dest);
+void gen_move32da(unsigned char srcreg, unsigned char destreg);
+void gen_sub16dd(BYTE r1, BYTE r2);
+void gen_comment(const char * c);
+void gen_load16_val(long val, const char * label);
+void gen_load32_val(long val, const char * label);
+void gen_sub32dd(BYTE r1, BYTE r2);
+void gen_asr32dd(unsigned char reg1, unsigned char reg2);
+void gen_asl32dd(BYTE r1, BYTE r2);
+void gen_load_indirect(unsigned char ar, unsigned char dr);
+void gen_asm(const char * line);
+void gen_save16d(unsigned char reg, const char * label);
+void gen_save32d_val(long val, BYTE r);
+void gen_save_registers();
+void gen_restore_registers();
+void gen_load16d(const char * label, unsigned char reg);
+void gen_add16dd(BYTE reg1, BYTE reg2);
+void gen_add16d_var(const char * var, BYTE r);
 
 /* Mid level */
 
+int parse_gen_params(int type, const char * params);
 int gen_fcall(const char * funcname, int type, const char * params, int ret, const char * callargs, int stackadj);
 void gen_libcall(const char * lvo, const char * base);
 void gen_gfxcall(const char * lvo);

@@ -555,6 +555,9 @@ void	free_code();
 BOOL	alloc_code_members();
 void	free_code_members();
 
+/* declare.c */
+int sym_to_opt_type();
+
 /* sym.c */
 void	kill_all_lists();
 void	new_symtab();
@@ -591,6 +594,7 @@ int	gen_single_func();
 BOOL	numfunc();
 int	numericfunction();	
 int  	address_of_object();
+void load_temp_string(unsigned char reg);
 
 /* functions in main ace modules */
 void	make_temp_long();
@@ -664,6 +668,9 @@ void	text_style();
 void	text_font();
 void	gfx_get();
 void	gfx_put();
+
+/* FIXME: Move somewhere more appropriate than gfx.c */
+int expect_token_sequence(short * seq);
 
 void	input();
 void	point_to_array();

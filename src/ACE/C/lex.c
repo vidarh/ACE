@@ -50,6 +50,7 @@
 
 #include "lexvar.c"
 #include <math.h>
+#include "codegen.h"
 
 /* globals */
 BOOL 	inside_string = FALSE;	/* see last line of nextch() */

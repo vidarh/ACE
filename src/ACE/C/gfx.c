@@ -177,10 +177,10 @@ void paint() {
 
   /* pop parameters */
   if (bordercolor) gen_pop16d(3);
-  else gen_load32d(-1,3);  /* flag no border color-id */
+  else gen_load32d_val(-1,3);  /* flag no border color-id */
   
   if (paintcolor) gen_pop16d(2);
-  else gen_load32d(-1,2);  /* flag no paint color-id */
+  else gen_load32d_val(-1,2);  /* flag no paint color-id */
   
   gen_call_args("_paint","d1.w,d0.w",0);
 }
@@ -468,11 +468,11 @@ void areafill()
   
   if ((sym == shortconst) && ((shortval == 0) || (shortval == 1))) {
 	switch(shortval) {
-	case 0 : gen_load16d(0,0); break;
-	case 1 : gen_load16d(1,0); break;
+	case 0 : gen_load16d_val(0,0); break;
+	case 1 : gen_load16d_val(1,0); break;
 	}
 	insymbol();
-  } else gen_load16d(0,0);
+  } else gen_load16d_val(0,0);
   
   gen_jsr("_areafill");
 }
