@@ -73,9 +73,9 @@ int expect_token_sequence(short * seq)
 		_error(seq[1]);
 		return 0;
 	  }
+	  insymbol();
 	}
 	seq += 2;
-	insymbol();
   }
   return 1;
 }

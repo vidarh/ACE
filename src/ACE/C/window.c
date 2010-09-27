@@ -93,7 +93,6 @@ void window()
 	 } else gen_push32_val(0);	/* NULL */
 	 
 	 if (!parse_rect()) return;
-	 insymbol();
 				 
 	 /* optional window type */
 	 if (sym == comma) {
