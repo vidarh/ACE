@@ -346,12 +346,14 @@ void compile(char * source_name,const char * dest_name)
   if (!early_exit) printf("\ncreating %s\n",dest_name);
   else printf("\nfreeing code list...\n");
   
-  if (!early_exit) write_xrefs();
+  if (!early_exit && target->write_xrefs) write_xrefs();
   
   /* startup code */
-  fprintf(dest,"\n\tSECTION code,CODE\n\n");
   
+  target->code_section(dest);
+
   if (!module_opt) m68k_amiga_startup(dest);
+
   
   /* write code & kill code list */
   kill_code();
@@ -364,7 +366,7 @@ void compile(char * source_name,const char * dest_name)
 	write_bss();
   }
   
-  fprintf(dest,"\n\tEND\n");
+  target->end_program(dest);
   
   /* errors? */
   if (errors > 0) putchar('\n');
@@ -425,7 +427,7 @@ void help()
 		 " -l         Display each line as it is being compiled\n"
 		 " -m         Create a linkable module with no startup code\n"
 		 " -O         Enable the peephole optimizer\n"
-		 " -t[name]   Set code generation target (valid: m68k-amiga i386-aros x86_64-aros; default: m68k-amiga)\n"
+		 " -t[name]   Set code generation target (valid: m68k-amiga i386-aros x86_64-linux; default: m68k-amiga)\n"
 		 " -w         Include automatic window close-gadget checks\n"
 		 " -W         List keywords (formerly 'words' command)\n"
 		 "\n"
@@ -510,6 +512,7 @@ int main(int argc,char * argv[]) {
 
   if (targetstr) {
 	if (!strcmp(targetstr,"i386-aros")) codegen_set_target(&i386_aros_target);
+	else if (!strcmp(targetstr,"x86_64-linux")) codegen_set_target(&x86_64_linux_target);
 	else if (!strcmp(targetstr,"m68k-amiga")) codegen_set_target(&m68k_target);
 	else { fprintf(stderr,"ERROR: Unknown target '%s'\n",targetstr); exit(10); }
   } else {

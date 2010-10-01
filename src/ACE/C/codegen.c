@@ -111,6 +111,7 @@ void gen_branch(char * branch, char * labname) {
 void gen_link() { gen("link","a5","  "); }
 void gen_unlk() { gen("unlk","a5","  "); }
 static void generic_rts() { gen("rts","  ","  "); }
+static void generic_ret() { gen("ret","  ","  "); }
 void gen_bne(const char * label) { gen_bxx(notequal, label); }
 void gen_beq(const char * label) { gen_bxx(equal, label); }
 void gen_bge(const char * label) { gen_bxx(gtorequal, label); }
@@ -124,7 +125,16 @@ void gen_pea(const char * target) { gen("pea",target,"  "); }
 void gen_nop() { gen("nop","  ","  "); }
 
 void gen_jsr(const char * label) { 
+  target->jsr(label);
+}
+
+static void m68k_jsr(const char * label) {
   gen("jsr",label,"  "); enter_XREF(label);
+  cur_libbase[0] = 0;
+}
+
+static void x86_call(const char * label) { 
+  gen("call",label,"  "); enter_XREF(label);
   cur_libbase[0] = 0;
 }
 void gen_move16(const char * src, const char * dest) { gen("move.w",src,dest); }
@@ -291,6 +301,8 @@ void gen_push32_val(long val) {
 	gen("move.l",buf,"-(sp)");
   }
 }
+
+
 
 void gen_load32d_val(signed long val, unsigned char reg) {
   char buf[16];
@@ -818,24 +830,71 @@ static void m68k_cmp(int simptype, int op)
 }
 
 
+static void m68k_code_section(FILE * dest)
+{
+  fprintf(dest,"\n\tSECTION code,CODE\n\n");
+}
+
+static void m68k_end_program(FILE * dest)
+{
+  fprintf(dest,"\n\tEND\n");
+}
+
 /* The m68k target */
 
 struct codegen_target m68k_target = {
   m68k_cmp,
   m68k_eor,
+  m68k_jsr,
   m68k_muls,
   m68k_neg,
   m68k_or,
   generic_rts,
+  
+  m68k_code_section,
+  m68k_end_program,
+
+  1 /* write_xrefs? */
 };
 
+static void nop()
+{
+}
+
+static void x86_code_section(FILE * dest)
+{
+  fprintf(dest,"\t.text\n\n");
+}
 
 struct codegen_target i386_aros_target = {
   m68k_cmp,
   m68k_eor,
+  x86_call,
   m68k_muls,
   m68k_neg,
   m68k_or,
-  generic_rts,
+  generic_ret,
+  
+  x86_code_section,
+  nop,
+
+  0 /* write_xrefs? */
+};
+
+
+
+struct codegen_target x86_64_linux_target = {
+  m68k_cmp,
+  m68k_eor,
+  x86_call,
+  m68k_muls,
+  m68k_neg,
+  m68k_or,
+  generic_ret,
+
+  x86_code_section,
+  nop,
+
+  0 /* write_xrefs? */
 };
 

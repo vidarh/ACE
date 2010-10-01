@@ -1,6 +1,8 @@
 #ifndef CODEGEN_H
 #define CODEGEN_H
 
+#include "acedef.h"
+
 /* A "vtable" for the code generators, to present a CPU independent interface.
    Once complete, retargeting to a new CPU should be a matter of copying an
    existing codegen_target structure that most closely resembles the new CPU,
@@ -12,10 +14,16 @@ struct codegen_target {
 
   void (* cmp)(int,int);
   void (* eor)(int);
+  void (* jsr)(const char *); 
   int (* muls)(int);
   void (* neg)(int type);
   void (* or)(int);
   void (* rts)();
+
+  void (* code_section)(FILE *);
+  void (* end_program)(FILE *);
+
+  BOOL write_xrefs;
 };
 
 struct codegen_target * target;
@@ -25,6 +33,7 @@ void codegen_set_target(struct codegen_target * t);
 /* Current targets */
 extern struct codegen_target m68k_target;
 extern struct codegen_target i386_aros_target;
+extern struct codegen_target x86_64_linux_target;
 
 /* Low level code generation functions */
 

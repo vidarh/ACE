@@ -1,3 +1,5 @@
+#ifndef __ACEDEF_H
+#define __ACEDEF_H
 /* << ACE >> 
 
    -- Amiga BASIC Compiler --
@@ -769,3 +771,4 @@ void random_file_put();
 void ace_rename();
 void pattern();
 
+#endif
