@@ -18,6 +18,8 @@ struct codegen_target {
   int (* muls)(int);
   void (* neg)(int type);
   void (* or)(int);
+  void (* pea)(const char *);
+  void (* push32d)(unsigned char);
   void (* rts)();
 
   void (* code_section)(FILE *);

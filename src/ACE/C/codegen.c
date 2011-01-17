@@ -36,6 +36,8 @@ static void gen(const char * opcode,const char * srcopr,const char *destopr)
 static char * dreg[] = {"d0","d1","d2","d3","d4","d5","d6","d7"};
 static char * areg[] = {"a0","a1","a2","a3","a4","a5","a6","a7"};
 
+/* FIXME: Need proper register allocation... */
+static char * x86reg[] = {"%eax","%ebx","%ecx",0,0,"%edx",0,"%edx"};
 
 
 static const char *cond_branch_op(int op) {
@@ -119,7 +121,10 @@ void gen_bgt(const char * label) { gen("bgt.s",label,"  "); }
 void gen_blt(const char * label) { gen("blt.s",label,"  "); }
 void gen_jmp(const char * label) { gen("jmp",label,"  "); }
 void gen_jmp_fwd(const char * label,const char * flag) { gen("jmp",label,flag); }
-void gen_pea(const char * target) { gen("pea",target,"  "); }
+
+void m68k_pea(const char * target) { gen("pea",target,"  "); }
+
+void gen_pea(const char * label) { target->pea(label); }
 
 /* Used to create ops to possibly cange later */
 void gen_nop() { gen("nop","  ","  "); }
@@ -133,10 +138,6 @@ static void m68k_jsr(const char * label) {
   cur_libbase[0] = 0;
 }
 
-static void x86_call(const char * label) { 
-  gen("call",label,"  "); enter_XREF(label);
-  cur_libbase[0] = 0;
-}
 void gen_move16(const char * src, const char * dest) { gen("move.w",src,dest); }
 void gen_move32(const char * src, const char * dest) { gen("move.l",src,dest); }
 
@@ -196,7 +197,10 @@ void gen_push_indirect16(unsigned char r) {
   gen("move.w",buf,"-(sp)");
 }
 
-void gen_push32d(unsigned char reg) { gen("move.l",dreg[reg],"-(sp)"); }
+void m68k_push32d(unsigned char reg) { gen("move.l",dreg[reg],"-(sp)"); }
+
+void gen_push32d(unsigned char reg) { target->push32d(reg); }
+
 
 void gen_load_indirect(unsigned char ar, unsigned char dr)
 {
@@ -849,6 +853,8 @@ struct codegen_target m68k_target = {
   m68k_muls,
   m68k_neg,
   m68k_or,
+  m68k_pea,
+  m68k_push32d,
   generic_rts,
   
   m68k_code_section,
@@ -866,35 +872,5 @@ static void x86_code_section(FILE * dest)
   fprintf(dest,"\t.text\n\n");
 }
 
-struct codegen_target i386_aros_target = {
-  m68k_cmp,
-  m68k_eor,
-  x86_call,
-  m68k_muls,
-  m68k_neg,
-  m68k_or,
-  generic_ret,
-  
-  x86_code_section,
-  nop,
-
-  0 /* write_xrefs? */
-};
-
-
-
-struct codegen_target x86_64_linux_target = {
-  m68k_cmp,
-  m68k_eor,
-  x86_call,
-  m68k_muls,
-  m68k_neg,
-  m68k_or,
-  generic_ret,
-
-  x86_code_section,
-  nop,
-
-  0 /* write_xrefs? */
-};
-
+struct codegen_target i386_aros_target;
+struct codegen_target x86_64_linux_target;
