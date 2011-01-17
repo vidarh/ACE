@@ -423,14 +423,12 @@ void color() {
 	gen_save16d(0,"_bg");  /* background pen for text color change */
 	gen_save16d(0,"_bgpen"); /* change global background pen color */
 	gen_gfxcall("SetBPen");
-	enter_XREF("_bgpen");
-	enter_BSS("_bg","ds.w 1");
   } else {
 	/* default to current background pen */
 	gen_move16("_bgpen","_bg");
-	enter_XREF("_bgpen");
-	enter_BSS("_bg","ds.w 1");
   }
+  enter_XREF("_bgpen");
+  enter_BSS("_bg","ds.w 1");
   
   /* call text color change routine */
   gen_load16d("_fg",0);
