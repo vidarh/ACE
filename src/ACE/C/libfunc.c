@@ -169,11 +169,25 @@ void get_libname(char * libname,char * ut_libname)
 	*ut_tmp = '\0';
    }
 }
+
+void gen_open_library(const char * libname, const char * librarybase)
+{
+  char lab[80],lablabel[80];
+  gen_pop_addr(1);   /* address of library name in a1 */
+  gen_jsr("_open_library");
+  make_library_base(libname);
+  gen_save32d(0,librarybase);
+  gen_tst32d(0);
+  make_label(lab,lablabel);
+  gen_bne(lab);
+  gen_jmp("_EXIT_PROG"); /* quit program if can't open library */
+  gen_label(lablabel);
+  enter_XREF("_open_library");
+}
  
 void library()
 {
   char libname[MAXIDSIZE],ut_libname[MAXIDSIZE];
-  char lab[80],lablabel[80];
 
  /* open or close a shared library */
 
@@ -188,17 +202,7 @@ void library()
 	if (check_for_ace_lib(libname) == NEGATIVE) {
 	  make_library_name(ut_libname); /* exec names are case sensitive */
 	  make_string_const(libraryname);
-	  gen_pop_addr(1);   /* address of library name in a1 */
-	  gen_jsr("_open_library");
-	  make_library_base(libname);
-	  gen_save32d(0,librarybase);
-	  gen_tst32d(0);
-	  make_label(lab,lablabel);
-	  gen_bne(lab);
-	  gen_jmp("_EXIT_PROG"); /* quit program if can't open library */
-	  gen_label(lablabel);
-	  enter_XREF("_open_library");
-	  
+	  gen_open_library(libname,librarybase);
 	  /* enter new library info' into "other libraries" list */
 	  enter_new_library(libname);
 	}
@@ -206,6 +210,14 @@ void library()
   insymbol();
  }
 }       
+
+void gen_close_library(const char * librarybase)
+{
+  gen_load32a(librarybase,1);  /* library base in a1 */
+  gen_jsr("_close_library");
+  gen_save32_val(0,librarybase);
+  enter_XREF("_close_library");
+}
 
 void closelibrary()
 {
@@ -236,10 +248,7 @@ void closelibrary()
 	
 	if (check_for_ace_lib(libname) == NEGATIVE) {
 	  make_library_base(libname);
-	  gen_load32a(librarybase,1);  /* library base in a1 */
-	  gen_jsr("_close_library");
-	  gen_save32_val(0,librarybase);
-	  enter_XREF("_close_library");
+	  gen_close_library(librarybase);
 	}
 	insymbol();
   }
