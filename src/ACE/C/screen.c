@@ -65,27 +65,13 @@ void	screen() {
   } else {
 	/* SCREEN screen-id,width,height,colors,mode */
 	/* open a screen */
-	make_sure_short(expr()); /* screen-id */
-	if (sym != comma) _error(16);
-	else {
-	  insymbol();
-	  make_sure_short(expr()); /* width */
-	  if (sym != comma) _error(16);
-	  else {
-		insymbol();
-		make_sure_short(expr()); /* height */
-		if (sym != comma) _error(16);
-		else {
-		  insymbol();
-		  make_sure_short(expr()); /* depth */
-		  if (sym != comma) _error(16);
-		  else {
-			insymbol();
-			make_sure_short(expr()); /* mode */
-			gen_call_args("_openscreen","d4.w,d3.w,d2.w,d1.w,d0.w",0);
-		  }
-		}
-	  }
+
+	static short tokens[] = {shorttype /* screen-d */,0, comma, 16, shorttype /* width */   ,0, comma, 16,
+							 shorttype /* height */  ,0, comma, 16, shorttype /* depth */   ,0, comma, 16,
+							 shorttype /* mode */    ,0, -1   , -1};
+
+	if (expect_token_sequence(&tokens)) {
+	  gen_call_args("_openscreen","d4.w,d3.w,d2.w,d1.w,d0.w",0);
 	}
   }
 }
