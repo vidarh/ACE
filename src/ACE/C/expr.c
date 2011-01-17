@@ -75,6 +75,48 @@ BOOL coerce(int * typ1,int * typ2,CODE * cx[])
  return(TRUE); /* both shorttype, longtype or singletype OR notype! */
 }
 
+/* Target specific code generation functions */
+
+void gen_fmod() 
+{
+  /* single MOD */
+  gen_pop32d(1);   /* divisor */
+  gen_pop32d(0);   /* dividend */
+  gen_call("_modffp",0);
+  enter_XREF("_MathBase");
+}
+
+void gen_fdiv()
+{
+  gen_pop32d(1);  /* 2nd operand */
+  gen_pop32d(0);  /* 1st operand */
+  gen_libcall("SPDiv","Math");  
+}
+
+void gen_power()
+{
+  gen_call("_power",8);	/* - Call exponentiation function. */
+  enter_XREF("_MathTransBase"); /* opens FFP+IEEE SP transcendental libraries */
+}
+
+void gen_lmod() { gen_call("ace_lrem",8); }
+void gen_ldiv() { gen_call("ace_ldiv",8); }
+void gen_fsub() { gen_libcall("SPSub","Math"); }
+void gen_fadd() { gen_libcall("SPAdd","Math"); }
+
+void gen_str_concat() 
+{
+  gen_pop_addr(2); /* 2nd */
+  gen_call_args("_strcpy","a1,t0",0);
+  /* prepare for strcat */
+  gen_load_addr(tempstrname,0);
+  gen_move32aa(2,1);
+  gen_jsr("_strcat");
+  gen_pea(tempstrname);
+}
+
+/******/
+
 static int ptr_term()
 {
   /* pointer operators -- higher precedence
@@ -166,8 +208,7 @@ static int expterm()
 		gen_Flt(factype);
 	  }
 
-	  gen_call("_power",8);	/* - Call exponentiation function. */
-	  enter_XREF("_MathTransBase"); /* opens FFP+IEEE SP transcendental libraries */
+	  gen_power();
 
 	  localtype=singletype;  /* MUST always return a single-precision value
 								because exponent might be -ve! */ 
@@ -275,9 +316,7 @@ static int prodterm()
 	  switch(op) {
 	  case multiply: localtype = gen_muls(coercedtype); break;
 	  case fdiv:
-		gen_pop32d(1);  /* 2nd operand */
-		gen_pop32d(0);  /* 1st operand */
-		gen_libcall("SPDiv","Math");  
+		gen_fdiv();
 		localtype=singletype;
 		break;
 	  }
@@ -294,7 +333,6 @@ static int prodterm()
 static int idivterm()
 {
   /* integer division -- LONG = LONG \ LONG */
-  int  i;
   int  firsttype,localtype,prodtype;
   int  targettype=longtype;
   CODE *cx[5];
@@ -304,7 +342,7 @@ static int idivterm()
   
   while (sym == idiv) {
 	firsttype=make_integer(firsttype);  /* short or long -> 1st approximation */ 
-	alloc_coerce_space(firsttype,cx,3);
+	alloc_coerce_space(longtype,cx,3);
 	
 	if (firsttype == undefined) return(firsttype);
 	
@@ -322,9 +360,7 @@ static int idivterm()
 		if (prodtype == shorttype) make_long();  /* ensure that divisor is LONG! */
 		prodtype=longtype;
 		localtype=prodtype;
-		
-		/* integer division - args on stack */
-		gen_call("ace_ldiv",8);
+		gen_ldiv();
 	  } else _error(4); /* notype -> type mismatch */
 	firsttype=localtype;  /* moving record of last sub-expression type */
   }
@@ -374,15 +410,9 @@ static int modterm()
 		
 		localtype=idivtype;  /* short or single */
 		
-		if (localtype == longtype) {
-		  /* integer MOD - args on stack */
-		  gen_call("ace_lrem",8);
-		} else {
-		  /* single MOD */
-		  gen_pop32d(1);   /* divisor */
-		  gen_pop32d(0);   /* dividend */
-		  gen_call("_modffp",0);
-		  enter_XREF("_MathBase");
+		if (localtype == longtype) gen_lmod();
+		else {
+		  gen_fmod();
 		  localtype=singletype;
 		}
 	  } else _error(4); /* notype -> type mismatch */
@@ -414,23 +444,15 @@ static int simple_expr()
 		switch(localtype) {
 		case shorttype: gen_add16dd(1,0); break;
 		case longtype:  gen_add32dd(1,0); break;
-		case singletype: gen_libcall("SPAdd","Math"); break;
-		case stringtype : 	/* copy source to temp string */
-		  gen_pop_addr(2); /* 2nd */
-		  gen_call_args("_strcpy","a1,t0",0);
-		  /* prepare for strcat */
-		  gen_load_addr(tempstrname,0);
-		  gen_move32aa(2,1);
-		  gen_jsr("_strcat");
-		  gen_pea(tempstrname);
-		  break;
+		case singletype: gen_fadd(); 
+		case stringtype : gen_str_concat(); break;
 		}
 		break;
 	  case minus : 
 		switch(localtype) {
 		case shorttype: gen_sub16dd(1,0); break;
 		case longtype:  gen_sub32dd(1,0); break;
-		case singletype : gen_libcall("SPSub","Math"); break;
+		case singletype : gen_fsub(); break; 
 		case stringtype : 	_error(4); break;
 		}
 	  }
