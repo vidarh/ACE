@@ -364,13 +364,9 @@ char lab[80],lablabel[80];
    gen_tst32d(0);
    gen_beq(lab);
  
-  if (wdw_event_branch == callsym)
-	gen_jsr(wdw_event_label);
-   else
-	 if (wdw_event_branch == gosubsym) 
-	   gen_branch("jsr",wdw_event_label);
-	 else
-	   gen_branch("jmp",wdw_event_label);
+   if (wdw_event_branch == callsym) gen_jsr(wdw_event_label);
+   else if (wdw_event_branch == gosubsym) gen_branch("jsr",wdw_event_label);
+   else gen_branch("jmp",wdw_event_label);
    gen_label(lablabel);
 }
 
@@ -390,13 +386,9 @@ static void gad_event_test()
    gen_tst32d(0);
    gen_beq(lab);
 
-   if (gad_event_branch == callsym)
-	 gen_jsr(gad_event_label);
-   else
-	 if (gad_event_branch == gosubsym) 
-	   gen_branch("jsr",gad_event_label);
-	 else
-	   gen_branch("jmp",gad_event_label);
+   if (gad_event_branch == callsym) gen_jsr(gad_event_label);
+   else if (gad_event_branch == gosubsym) gen_branch("jsr",gad_event_label);
+   else gen_branch("jmp",gad_event_label);
    gen_label(lablabel);
 }
 
