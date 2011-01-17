@@ -304,12 +304,7 @@ static int idivterm()
   
   while (sym == idiv) {
 	firsttype=make_integer(firsttype);  /* short or long -> 1st approximation */ 
-	
-	/* may need to coerce to long */
-	for (i=0;i<=2;i++) {
-	  gen_nop();
-	  cx[i]=curr_code;
-	}
+	alloc_coerce_space(firsttype,cx,3);
 	
 	if (firsttype == undefined) return(firsttype);
 	
