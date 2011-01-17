@@ -57,7 +57,6 @@
 #include "codegen.h"
 
 /* externals */
-extern  void m68k_amiga_startup(FILE *);
 extern  void m68k_amiga_cleanup(FILE *);
 
 extern	char	*srcfile,*destfile;
@@ -352,7 +351,7 @@ void compile(char * source_name,const char * dest_name)
   
   target->code_section(dest);
 
-  if (!module_opt) m68k_amiga_startup(dest);
+  if (!module_opt) target->startup(dest);
 
   
   /* write code & kill code list */

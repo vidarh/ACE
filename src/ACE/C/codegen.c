@@ -13,7 +13,7 @@ extern	char	tempstrname[80];
 
 void kill_all_lists();
 
-static void gen(const char * opcode,const char * srcopr,const char *destopr)
+void gen(const char * opcode,const char * srcopr,const char *destopr)
 {
  /* allocate memory for a new node & each field */
  if ((new_code = (CODE *)alloc_code(opcode,srcopr,destopr)) == NULL) {
@@ -35,10 +35,6 @@ static void gen(const char * opcode,const char * srcopr,const char *destopr)
 
 static char * dreg[] = {"d0","d1","d2","d3","d4","d5","d6","d7"};
 static char * areg[] = {"a0","a1","a2","a3","a4","a5","a6","a7"};
-
-/* FIXME: Need proper register allocation... */
-static char * x86reg[] = {"%eax","%ebx","%ecx",0,0,"%edx",0,"%edx"};
-
 
 static const char *cond_branch_op(int op) {
   switch(op) {
@@ -112,8 +108,8 @@ void gen_branch(char * branch, char * labname) {
 
 void gen_link() { gen("link","a5","  "); }
 void gen_unlk() { gen("unlk","a5","  "); }
-static void generic_rts() { gen("rts","  ","  "); }
-static void generic_ret() { gen("ret","  ","  "); }
+void generic_rts() { gen("rts","  ","  "); }
+void generic_ret() { gen("ret","  ","  "); }
 void gen_bne(const char * label) { gen_bxx(notequal, label); }
 void gen_beq(const char * label) { gen_bxx(equal, label); }
 void gen_bge(const char * label) { gen_bxx(gtorequal, label); }
@@ -785,7 +781,7 @@ static int m68k_muls(int type)
   return notype;
 }
 
-static void m68k_cmp(int simptype, int op)
+void m68k_cmp(int simptype, int op)
 {
   /* compare on basis of type -> d5 = d0 op d1 */
   char labname[80],lablabel[80];
@@ -833,7 +829,6 @@ static void m68k_cmp(int simptype, int op)
    }
 }
 
-
 static void m68k_code_section(FILE * dest)
 {
   fprintf(dest,"\n\tSECTION code,CODE\n\n");
@@ -845,6 +840,7 @@ static void m68k_end_program(FILE * dest)
 }
 
 /* The m68k target */
+void m68k_amiga_startup(FILE * dest);
 
 struct codegen_target m68k_target = {
   m68k_cmp,
@@ -859,18 +855,12 @@ struct codegen_target m68k_target = {
   
   m68k_code_section,
   m68k_end_program,
+  m68k_amiga_startup,
 
   1 /* write_xrefs? */
 };
 
-static void nop()
+void nop()
 {
 }
 
-static void x86_code_section(FILE * dest)
-{
-  fprintf(dest,"\t.text\n\n");
-}
-
-struct codegen_target i386_aros_target;
-struct codegen_target x86_64_linux_target;

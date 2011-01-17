@@ -25,8 +25,12 @@ struct codegen_target {
   void (* code_section)(FILE *);
   void (* end_program)(FILE *);
 
+  void (* startup)(FILE *);
+
   BOOL write_xrefs;
 };
+
+extern char cur_libbase[200];
 
 struct codegen_target * target;
 
@@ -45,6 +49,9 @@ static inline void gen_or(int type) { target->or(type); }
 static inline void gen_neg(int type) { target->neg(type); }
 static inline int gen_muls(int type) { return target->muls(type); }
 static inline void gen_cmp(int type,int op) { target->cmp(type,op); }
+
+void generic_rts();
+void generic_ret();
 
 void gen_link();
 void gen_unlk();
@@ -175,4 +182,10 @@ void gen_gfxcall(const char * lvo);
 void gen_call_args(const char * label, const char * args, unsigned int stack);
 static inline void gen_call_void(const char * label, unsigned int stack) { gen_call_args(label,"",stack); }
 static inline void gen_call(const char * label, unsigned int stack) { gen_call_args(label,":d0",stack); }
+
+
+
+
+void nop();
+
 #endif
