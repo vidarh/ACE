@@ -164,8 +164,7 @@ void gen_move32(const char * src, const char * dest) { gen("move.l",src,dest); }
  * allow using diff against "old" ace as a regression test
  */
 void gen_test() { gen("cmpi.l","#0",dreg[0]); }
-
-void gen_tst16d(BYTE reg) { gen("cmp.w","#0",dreg[reg]); }
+void gen_test16() { gen("cmp.w","#0",dreg[0]); }
 void gen_cmp16dd(BYTE r1, BYTE r2) { gen("cmp.w",dreg[r1],dreg[r2]); }
 void gen_cmp32dd(BYTE r1, BYTE r2) { gen("cmp.l",dreg[r1],dreg[r2]); }
 void gen_not16d(unsigned char reg) { gen("not.w",dreg[reg],"  "); }

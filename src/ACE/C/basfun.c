@@ -547,7 +547,7 @@ int numericfunction() {
 	  gen_load_indirect(0,0);
 	  gen_ext8to16(0);
 	  /* if n<0 n=255-not(n) */
-	  gen_tst16d(0);
+	  gen_test16();
 	  make_label(labname,lablabel);
 	  gen_bge(labname);
 	  gen_not16d(0);
