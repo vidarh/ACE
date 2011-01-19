@@ -160,8 +160,6 @@ void gen_comment(const char * c);
 void gen_load16_val(long val, const char * label);
 void gen_load32_val(long val, const char * label);
 void gen_sub32dd(BYTE r1, BYTE r2);
-void gen_asr32dd(unsigned char reg1, unsigned char reg2);
-void gen_asl32dd(BYTE r1, BYTE r2);
 void gen_load_indirect(unsigned char ar, unsigned char dr);
 void gen_asm(const char * line);
 void gen_save16d(unsigned char reg, const char * label);

@@ -430,8 +430,6 @@ static void m68k_eor(int type)
   else gen("eor.l","d1","d0");
 }
 
-void gen_asr32dd(unsigned char reg1, unsigned char reg2) { gen("asr.l",dreg[reg1],dreg[reg2]); }
-void gen_asl32dd(BYTE r1, BYTE r2) { gen("asl.l",dreg[r1],dreg[r2]); }
 void gen_sub16dd(BYTE r1, BYTE r2) { gen("sub.w",dreg[r1],dreg[r2]); }
 void gen_sub32dd(BYTE r1, BYTE r2) { gen("sub.l",dreg[r1],dreg[r2]); }
 
@@ -912,7 +910,7 @@ void gen_shl()
 {
   gen_pop32d(1);
   gen_pop32d(0);
-  gen_asl32dd(1,0);
+  gen("asl.l",dreg[1],dreg[0]); 
   push_result(longtype);
 }
 
@@ -920,7 +918,7 @@ void gen_shr()
 {
   gen_pop32d(1);
   gen_pop32d(0);
-  gen_asr32dd(1,0);
+  gen("asr.l",dreg[1],dreg[0]);
   push_result(longtype);
 }
 
