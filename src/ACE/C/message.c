@@ -106,10 +106,7 @@ static void	message_read() {
 	  ** (on stack).
 	  */
 	  if (storage->object == array) {
-		point_to_array(storage,addrbuf);
-		gen_load32d(addrbuf,0);
-		gen_add32dd(7,0);
-		gen_push32d(0);
+		gen_push_deref_array(storage,addrbuf);
 	  } else
 		gen_push32_var(addrbuf);
 	  

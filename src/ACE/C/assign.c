@@ -100,10 +100,10 @@ int assign_coerce(int storetype,int exptype)
  } else if ((storetype == longtype) && (exptype == shorttype)) {
    gen_pop16d(0);
    gen_ext16to32(0);
-   gen_push32d(0);
+   push_result(longtype);
  } else if ((storetype == shorttype) && (exptype == longtype)) {
    gen_pop32d(0);
-   gen_push16d(0);
+   push_result(shorttype);
  }
 
  return(storetype);  /* could be bytetype (for struct member) */
@@ -769,7 +769,7 @@ void read_data() {
 
 	  case longtype:
 		gen_jsr("_htol");
-		gen_push32d(0);
+		push_result(longtype);
 		make_integer(singletype);
 		if (storage->object == variable) {
 		  if ((storage->shared) && (lev == ONE)) {
@@ -783,7 +783,7 @@ void read_data() {
 
 	  case shorttype:
 		gen_jsr("_htol");
-		gen_push32d(0);
+		push_result(longtype);
 		make_sure_short(singletype);
 		if (storage->object == variable) {
 		  if ((storage->shared) && (lev == ONE)) {

@@ -65,7 +65,6 @@ void gen_jsr(const char * label);
 void gen_push32d(unsigned char reg);
 void gen_push32_val(long val);
 void gen_pop32d(BYTE reg);
-void gen_push16d(unsigned char reg);
 void gen_pop16d(unsigned char reg);
 void gen_load_indirect_addr(unsigned char ar, unsigned char dest);
 void gen_load_indirect32(unsigned char ar, unsigned char dr);

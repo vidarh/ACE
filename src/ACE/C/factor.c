@@ -197,12 +197,12 @@ static int handleident() {
 	  if (fact_item->object == subprogram && 
 		  fact_item->address != extfunc)
 		gen_push16_var(srcbuf);
-	  else gen_push16d(0);
+	  else push_result(shorttype);
 	} else {  /* string, long, single */
 	  if (fact_item->object == subprogram &&
 		  fact_item->address != extfunc)
 		gen_push32_var(srcbuf); /* push value */
-	  else gen_push32d(0);
+	  else push_result(longtype);
 	}
 	ftype=fact_item->type;
   } else if (obj == function) {	/* library function */
@@ -216,8 +216,7 @@ static int handleident() {
 	strcat(func_address,"(a6)");
 	gen_jsr(func_address);
 	
-	if (fact_item->type == shorttype) gen_push16d(0);
-	else gen_push32d(0); /* push return value */
+	push_result(fact_item->type);
 	
 	if (restore_a4) { gen_load32a("_a4_temp",4); restore_a4=FALSE; }
 	if (restore_a5) { gen_load32a("_a5_temp",5); restore_a5=FALSE; }
@@ -227,9 +226,7 @@ static int handleident() {
 	/* external function call */
 	insymbol();
 	call_external_function(ext_name,&need_symbol);
-	/* push return value */
-	if (fact_item->type == shorttype) gen_push16d(0);
-	else gen_push32d(0);
+	push_result(fact_item->type);
 	ftype=fact_item->type;
   } else if (obj == array) {
 	push_indices(fact_item);

@@ -86,6 +86,9 @@ static void close_serial()
   gen_call_void("_CloseSerial",4);
 }
 
+
+
+
 /* read a specified number of bytes into a buffer.
    SERIAL READ [#] channel,buffer,length
 */
@@ -118,10 +121,7 @@ static void read_serial()
 	
 	/* pass string address to function (on stack) */
 	if (storage->object == array) {
-	  point_to_array(storage,addrbuf);
-	  gen_load32d(addrbuf,0);
-	  gen_add32dd(7,0);
-	  gen_push32d(0);
+	  gen_push_deref_array(storage,addrbuf);
 	} else gen_push32_var(addrbuf);
 	
 	insymbol();

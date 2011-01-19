@@ -220,7 +220,6 @@ void m68k_push32d(unsigned char reg) { gen("move.l",dreg[reg],"-(sp)"); }
 
 void gen_push32d(unsigned char reg) { target->push32d(reg); }
 
-
 void gen_load_indirect(unsigned char ar, unsigned char dr)
 {
   char buf[5];
@@ -504,7 +503,7 @@ void gen_pop16_var(const char * label) {
   gen("move.w","(sp)+",label);
 }
 
-void gen_push16d(unsigned char reg) {
+static void gen_push16d(unsigned char reg) {
   gen("move.w",dreg[reg],"-(sp)");
 }
 
@@ -903,8 +902,34 @@ void gen_fmod()
 void gen_translate() { gen_libcall("Translate","Trans"); }
 void gen_roundl() 
 { 
+  gen_pop32d(0);
   gen_libcall("SPFloor","Math");
   gen_libcall("SPFix","Math");
+  push_result(longtype);
+}
+
+void gen_shl()
+{
+  gen_pop32d(1);
+  gen_pop32d(0);
+  gen_asl32dd(1,0);
+  push_result(longtype);
+}
+
+void gen_shr()
+{
+  gen_pop32d(1);
+  gen_pop32d(0);
+  gen_asr32dd(1,0);
+  push_result(longtype);
+}
+
+void gen_point()
+{
+  gen_pop16d(1);  /* y */
+  gen_pop16d(0);  /* x */
+  gen_gfxcall("ReadPixel");
+  push_result(longtype);
 }
 
 void gen_gfx_move() { gen_libcall("Move", "Gfx"); }
@@ -918,7 +943,12 @@ void gen_setapen() { gen_gfxcall("SetAPen"); }
 void gen_setbpen() { gen_gfxcall("SetBPen"); }
 void gen_forbid() { gen_libcall("Forbid","AbsExec"); }
 void gen_permit() { gen_libcall("Permit","AbsExec"); }
-void gen_fix() { gen_libcall("SPFix","Math"); }
+void gen_fix()
+{
+  gen_pop32d(0);
+  gen_libcall("SPFix","Math"); 
+  push_result(longtype);
+}
 
 void gen_atan() { gen_libcall("SPAtan","MathTrans"); }
 void gen_tan() { gen_libcall("SPTan","MathTrans"); }
@@ -994,3 +1024,13 @@ void gen_kill()
   gen_pop32d(1);
   gen_jsr("_kill");
 }
+
+void gen_push_deref_array(SYM * storage, char * addrbuf)
+{
+  point_to_array(storage,addrbuf);
+  gen_load32d(addrbuf,0);
+  gen_add32dd(7,0);
+  push_result(longtype);
+}
+
+

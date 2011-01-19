@@ -392,7 +392,7 @@ int gen_single_func(void (* func)(),int nftype)
 	  if (nftype != singletype) gen_Flt(nftype);  
 	  gen_pop32d(0);
 	  (*func)();
-	  gen_push32d(0);
+	  push_result(longtype);
 	  enter_XREF("_MathBase");
 	  nftype=singletype;
 	}
@@ -496,9 +496,7 @@ int numericfunction() {
   case expsym  : nftype = gen_single_func(&gen_exp,nftype); break;
   case fixsym  : /* n */
 	if (nftype == singletype) {
-	  gen_pop32d(0);
-	  gen_fix(); 
-	  gen_push32d(0);
+	  gen_fix();
 	  nftype=longtype;
 	} else if (nftype == stringtype) { _error(4); nftype=undefined; }
 	/* else if short or long, leave on stack 
@@ -512,9 +510,7 @@ int numericfunction() {
 	
   case intsym  : /* n */
 	if (nftype == singletype) {
-	  gen_pop32d(0);
 	  gen_roundl();
-	  gen_push32d(0);
 	  nftype=longtype;
 	} else if (nftype == stringtype) { _error(4); nftype=undefined; }
 	/* else if short or long, leave on stack 
@@ -559,7 +555,7 @@ int numericfunction() {
 	  gen_sub16dd(0,1);
 	  gen_move16dd(1,0);
 	  gen_label(lablabel);
-	  gen_push16d(0);
+	  push_result(shorttype);
 	  nftype=shorttype;
 	} else { _error(4); nftype=undefined; }
 	break;
@@ -589,12 +585,7 @@ int numericfunction() {
 	break;
 	
   case pointsym :	/* w,w */
-	if ((nftype = parse_gen_params(nftype,"w,w"))  != undefined) {
-	  gen_pop16d(1);  /* y */
-	  gen_pop16d(0);  /* x */
-	  gen_gfxcall("ReadPixel");
-	  gen_push32d(0);
-	}
+	if ((nftype = parse_gen_params(nftype,"w,w"))  != undefined) gen_point();
 	break;
 	
   case potxsym :   nftype = gen_fcall("_potx",nftype,"w",shorttype, ":d0.w",0); break;
@@ -614,23 +605,13 @@ int numericfunction() {
 	break; 
 	
   case shlsym  : /* l,l */
-	if ((nftype = parse_gen_params(nftype,"l,l")) != undefined) {
-	  gen_pop32d(0);
-	  gen_pop32d(1);
-	  gen_asl32dd(0,1);
-	  gen_push32d(1);
-	}
+	if ((nftype = parse_gen_params(nftype,"l,l")) != undefined) gen_shl();
 	break;
 	
   case shrsym  : /* l, l */
-	if ((nftype = parse_gen_params(nftype,"l,l")) != undefined) {
-	  gen_pop32d(0);
-	  gen_pop32d(1);
-	  gen_asr32dd(0,1);
-	  gen_push32d(1);
-	}
+	if ((nftype = parse_gen_params(nftype,"l,l")) != undefined) gen_shl(); 
 	break;
-	
+
   case sqrsym:    nftype = gen_single_func(&gen_sqrt,nftype); break;
   case sinsym:    nftype = gen_single_func(&gen_sin,nftype); break;
   case sizeofsym: nftype = find_object_size(); break;
@@ -712,7 +693,7 @@ int address_of_object() {
 		gen_push_indirect32(0);
 	  } else
 		/* absolute address in frame of variable */
-		gen_push32d(0);
+		push_result(longtype);
 	return(longtype);    
   } else if ((exist(id,array)) || (exist(id,structure))) {
 	varptr_item=curr_item;
@@ -776,7 +757,7 @@ int address_of_object() {
 		get_abs_ndx(varptr_item); /* offset -> d7 */
 		gen_pop32d(0); /* array start */
 		gen_add32dd(7,0); /* start+offset=addr */
-		gen_push32d(0); /* push address */
+		push_result(longtype);
 		insymbol(); /* symbol after rparen */
 	  }
 	}

@@ -310,7 +310,7 @@ int push_struct(SYM * item)
 		if (mbr_type == bytetype) {
 		  gen_load8d(absbuf,0);
 		  gen_ext8to16(0);
-		  gen_push16d(0);
+		  push_result(shorttype);
 		  mbr_type=shorttype;              /* byte */
 		} else if (mbr_type == shorttype)
 		  gen_push16_var(absbuf);  /* short */
