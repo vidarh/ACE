@@ -65,20 +65,18 @@ void open_a_file()
 
  insymbol();
  if (expr() != stringtype) _error(4);  /* mode = I, O or A */
- else
- {
-  if (sym != comma) _error(16);
-  else
-  {
-   insymbol();
-   parse_channel();
+ else {
    if (sym != comma) _error(16);
    else {
-    insymbol();
-    if (expr() != stringtype) _error(4);  /* filespec */
-    else gen_call_args("_openfile","a1,d0,a0",0);
+	 insymbol();
+	 parse_channel();
+	 if (sym != comma) _error(16);
+	 else {
+	   insymbol();
+	   if (expr() != stringtype) _error(4);  /* filespec */
+	   else gen_call_args("_openfile","a1,d0,a0",0);
+	 }
    }
-  }
  }    
 }
 
@@ -413,6 +411,13 @@ void kill() {
   }
 }
 
+void gen_rename()
+{
+  gen_pop32d(2);  /* <filespec2> */
+  gen_pop32d(1);  /* <filespec1> */
+  gen_jsr("_rename");
+}
+
 /* NAME <filespec1> AS <filespec2> */
 void ace_rename() {
   check_for_event();
@@ -420,9 +425,8 @@ void ace_rename() {
   if (expr() != stringtype) { _error(4); return; }
   if (sym != assym) { _error(72); return; }
   if (expr() != stringtype) { _error(4); return; }
-  gen_pop32d(2);  /* <filespec2> */
-  gen_pop32d(1);  /* <filespec1> */
-  gen_jsr("_rename");
+
+  gen_rename();
 }
 
 /* CHDIR <dirname> */

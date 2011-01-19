@@ -97,7 +97,7 @@ static BOOL pen_color()
   insymbol();
   if (sym == comma) return FALSE; /* Handle case where there are more parameters coming. */
   gen_pop_as_short(expr(),0);
-  gen_gfxcall("SetAPen");
+  gen_setapen();
   return TRUE;
 }
 
@@ -105,7 +105,7 @@ static void reset_pen(BOOL colorset)
 {
   if (!colorset) return;
   gen_load16d("_fgdpen",0);
-  gen_gfxcall("SetAPen");
+  gen_setapen();
   enter_XREF("_fgdpen");
 }
 
@@ -130,7 +130,7 @@ void pset()
 
   if (relative) {
 	gen_rport_rel_xy();
-	gen_libcall("Move","Gfx");
+	gen_gfx_move();
   }
 
   /* 
@@ -140,7 +140,7 @@ void pset()
   gen_move32aa(1,3);
   gen_move16dd(0,3);
   gen_move16dd(1,4);
-  gen_libcall("Move","Gfx");
+  gen_gfx_move();
   
   /* 
   ** Restore appropriate registers for call to WritePixel().
@@ -148,7 +148,7 @@ void pset()
   gen_move16dd(4,1);
   gen_move16dd(3,0);
   gen_move32aa(3,1);
-  gen_libcall("WritePixel","Gfx");
+  gen_writepixel();
   reset_pen(colorset);
 }
 
@@ -182,7 +182,7 @@ void paint() {
   if (paintcolor) gen_pop16d(2);
   else gen_load32d_val(-1,2);  /* flag no paint color-id */
   
-  gen_call_args("_paint","d1.w,d0.w",0);
+  gen_paint();
 }
 
 void circle()
@@ -252,12 +252,12 @@ void circle()
   /* convert x & y values to floats */
   gen_load16d("_shortx",0);
   gen_ext16to32(0);
-  gen_libcall("SPFlt","Math");
+  gen_flt();
   gen_save32d(0,"_floatx");
   
   gen_load16d("_shorty",0);
   gen_ext16to32(0);
-  gen_libcall("SPFlt","Math");
+  gen_flt();
   gen_save32d(0,"_floaty");
   
   gen_load32d("_floatx",0);
@@ -329,7 +329,7 @@ void draw_line()
 	  gen_push16_var("_ymin");
 	  cx4=curr_code;
 	  gen_pop_as_short(expr(),0);
-	  gen_gfxcall("SetAPen");
+	  gen_setapen();
 	  gen_pop16_var("_ymin");
 	  cx5=curr_code;
 	  gen_pop16_var("_xmin");	/* restore d0 & d1 */
@@ -362,16 +362,16 @@ void draw_line()
 
 	gen_move16dd(4,0);
 	gen_move16dd(3,1);
-	gen_gfxcall("Draw");     /* x1,y1 - x2,y1 */
+	gen_draw();     /* x1,y1 - x2,y1 */
 	gen_move16dd(4,0);
 	gen_move16dd(5,1);
-	gen_libcall("Draw","Gfx"); /* x2,y1 - x2,y2 */
+	gen_draw(); /* x2,y1 - x2,y2 */
 	gen_move16dd(2,0);
 	gen_move16dd(5,1);
-	gen_libcall("Draw","Gfx"); /* x2,y2 - x1,y2 */
+	gen_draw(); /* x2,y2 - x1,y2 */
 	gen_move16dd(2,0);
 	gen_move16dd(3,1);
-	gen_libcall("Draw","Gfx"); /* x1,y2 - x1,y1 */
+	gen_draw(); /* x1,y2 - x1,y1 */
 	enter_BSS("_xmin","ds.w 1");
 	enter_BSS("_ymin","ds.w 1");
   }	else if (boxfill) {
@@ -381,7 +381,7 @@ void draw_line()
 	gen_pop16d(2);  /* xmax */
 	gen_load16d("_ymin",1); /* ymin */
 	gen_load16d("_xmin",0); /* xmin */
-	gen_libcall("RectFill","Gfx");
+	gen_rectfill();
 	enter_BSS("_xmin","ds.w 1");
 	enter_BSS("_ymin","ds.w 1");
   } else {
@@ -390,7 +390,7 @@ void draw_line()
 	gen_pop16d(1);  /* y2 */
 	gen_pop16d(0);  /* x2 */
 	/* already moved to x1,y1 */
-	gen_libcall("Draw","Gfx");
+	gen_draw();
 	/* don't need to save x1 & x2 in _xmin & _ymin */
 	change(cx1,"nop","  ","  ");
 	change(cx2,"nop","  ","  ");
@@ -412,7 +412,7 @@ void color() {
   gen_pop_as_short(expr(),0);
   gen_save16d(0,"_fg");    /* foreground pen for text color change */
   gen_save16d(0,"_fgdpen");  /* change global foreground color holder */
-  gen_gfxcall("SetAPen");
+  gen_setapen();
   enter_XREF("_fgdpen");
   enter_BSS("_fg","ds.w 1");
   
@@ -422,7 +422,7 @@ void color() {
 	gen_pop_as_short(expr(),0);
 	gen_save16d(0,"_bg");  /* background pen for text color change */
 	gen_save16d(0,"_bgpen"); /* change global background pen color */
-	gen_gfxcall("SetBPen");
+	gen_setbpen();
   } else {
 	/* default to current background pen */
 	gen_move16("_bgpen","_bg");
@@ -558,7 +558,7 @@ void scroll()
   gen_pop16d(2);  		/* xmin */
   
   /* call ScrollRaster function */
-  gen_gfxcall("ScrollRaster");
+  gen_scrollraster();
 } 
 
 

@@ -77,6 +77,29 @@ static void gen_bxx(int op, const char * label) {
 void gen_incr_indirect16() { gen("add.w","#1","(a0)"); }
 void gen_incr_indirect32() { gen("add.l","#1","(a0)"); }
 
+static void gen_libbase(const char * base) {
+  char buf[200];
+  strcpy(buf,"_");
+  strncat(buf,base,sizeof(buf)-1);
+  strncat(buf,"Base",sizeof(buf)-strlen(buf));
+  if (strncmp(buf,cur_libbase,200) == 0) return;
+  strncpy(cur_libbase,buf,199);
+  cur_libbase[199] = 0;
+  gen_load32a(buf,6);
+  enter_XREF(buf);
+}
+
+static void gen_libcall(const char * lvo, const char * base) {
+  char buf[200];
+  gen_libbase(base);
+  strcpy(buf,"_LVO");
+  strncat(buf,lvo,sizeof(buf)-4);
+  enter_XREF(buf);
+  strncat(buf,"(a6)",sizeof(buf)-strlen(buf));
+  gen("jsr",buf,"  ");
+}
+
+
 void gen_incr_indirect_float() {
   gen("move.l","(a0)","d0");
   gen("move.l","#$80000041","d1");
@@ -669,27 +692,7 @@ void make_long() {
  gen_push32d(0);
 }
 
-static void gen_libbase(const char * base) {
-  char buf[200];
-  strcpy(buf,"_");
-  strncat(buf,base,sizeof(buf)-1);
-  strncat(buf,"Base",sizeof(buf)-strlen(buf));
-  if (strncmp(buf,cur_libbase,200) == 0) return;
-  strncpy(cur_libbase,buf,199);
-  cur_libbase[199] = 0;
-  gen_load32a(buf,6);
-  enter_XREF(buf);
-}
 
-void gen_libcall(const char * lvo, const char * base) {
-  char buf[200];
-  gen_libbase(base);
-  strcpy(buf,"_LVO");
-  strncat(buf,lvo,sizeof(buf)-4);
-  enter_XREF(buf);
-  strncat(buf,"(a6)",sizeof(buf)-strlen(buf));
-  gen("jsr",buf,"  ");
-}
 
 void gen_gfxcall(const char * lvo) {
   gen_load32a("_RPort",1);
@@ -864,3 +867,63 @@ void nop()
 {
 }
 
+
+void gen_lmod() { gen_call("ace_lrem",8); }
+void gen_ldiv() { gen_call("ace_ldiv",8); }
+void gen_fsub() { gen_libcall("SPSub","Math"); }
+void gen_fadd() { gen_libcall("SPAdd","Math"); }
+void gen_fcmp() { gen_libcall("SPCmp","Math"); }
+void gen_fdiv() { gen_libcall("SPDiv","Math"); }
+
+void gen_power()
+{
+  gen_call("_power",8);	/* - Call exponentiation function. */
+  enter_XREF("_MathTransBase"); /* opens FFP+IEEE SP transcendental libraries */
+}
+
+
+void gen_str_concat() 
+{
+  gen_pop_addr(2); /* 2nd */
+  gen_call_args("_strcpy","a1,t0",0);
+  /* prepare for strcat */
+  gen_load_addr(tempstrname,0);
+  gen_move32aa(2,1);
+  gen_jsr("_strcat");
+  gen_pea(tempstrname);
+}
+
+void gen_fmod() 
+{
+  /* single MOD */
+  gen_call("_modffp",0);
+  enter_XREF("_MathBase");
+}
+
+void gen_translate() { gen_libcall("Translate","Trans"); }
+void gen_roundl() 
+{ 
+  gen_libcall("SPFloor","Math");
+  gen_libcall("SPFix","Math");
+}
+
+void gen_gfx_move() { gen_libcall("Move", "Gfx"); }
+void gen_writepixel() { gen_libcall("WritePixel", "Gfx"); }
+void gen_paint() { gen_call_args("_paint","d1.w,d0.w",0); }
+void gen_flt() { gen_libcall("SPFlt","Math"); }
+void gen_draw() { gen_libcall("Draw","Gfx"); }
+void gen_rectfill() { gen_libcall("RectFill","Gfx"); }
+void gen_scrollraster() { gen_gfxcall("ScrollRaster"); }
+void gen_setapen() { gen_gfxcall("SetAPen"); }
+void gen_setbpen() { gen_gfxcall("SetBPen"); }
+void gen_forbid() { gen_libcall("Forbid","AbsExec"); }
+void gen_permit() { gen_libcall("Permit","AbsExec"); }
+void gen_fix() { gen_libcall("SPFix","Math"); }
+
+void gen_atan() { gen_libcall("SPAtan","MathTrans"); }
+void gen_tan() { gen_libcall("SPTan","MathTrans"); }
+void gen_cos() { gen_libcall("SPCos","MathTrans"); }
+void gen_exp() { gen_libcall("SPExp","MathTrans"); }
+void gen_log() { gen_libcall("SPLog","MathTrans"); }
+void gen_sqrt() { gen_libcall("SPSqrt","MathTrans"); }
+void gen_sin() { gen_libcall("SPSin","MathTrans"); }

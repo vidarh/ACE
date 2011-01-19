@@ -75,48 +75,6 @@ BOOL coerce(int * typ1,int * typ2,CODE * cx[])
  return(TRUE); /* both shorttype, longtype or singletype OR notype! */
 }
 
-/* Target specific code generation functions */
-
-void gen_fmod() 
-{
-  /* single MOD */
-  gen_pop32d(1);   /* divisor */
-  gen_pop32d(0);   /* dividend */
-  gen_call("_modffp",0);
-  enter_XREF("_MathBase");
-}
-
-void gen_fdiv()
-{
-  gen_pop32d(1);  /* 2nd operand */
-  gen_pop32d(0);  /* 1st operand */
-  gen_libcall("SPDiv","Math");  
-}
-
-void gen_power()
-{
-  gen_call("_power",8);	/* - Call exponentiation function. */
-  enter_XREF("_MathTransBase"); /* opens FFP+IEEE SP transcendental libraries */
-}
-
-void gen_lmod() { gen_call("ace_lrem",8); }
-void gen_ldiv() { gen_call("ace_ldiv",8); }
-void gen_fsub() { gen_libcall("SPSub","Math"); }
-void gen_fadd() { gen_libcall("SPAdd","Math"); }
-
-void gen_str_concat() 
-{
-  gen_pop_addr(2); /* 2nd */
-  gen_call_args("_strcpy","a1,t0",0);
-  /* prepare for strcat */
-  gen_load_addr(tempstrname,0);
-  gen_move32aa(2,1);
-  gen_jsr("_strcat");
-  gen_pea(tempstrname);
-}
-
-/******/
-
 static int ptr_term()
 {
   /* pointer operators -- higher precedence
@@ -316,6 +274,8 @@ static int prodterm()
 	  switch(op) {
 	  case multiply: localtype = gen_muls(coercedtype); break;
 	  case fdiv:
+		gen_pop32d(1);  /* 2nd operand */
+		gen_pop32d(0);  /* 1st operand */
 		gen_fdiv();
 		localtype=singletype;
 		break;
@@ -412,6 +372,8 @@ static int modterm()
 		
 		if (localtype == longtype) gen_lmod();
 		else {
+		  gen_pop32d(1);   /* divisor */
+		  gen_pop32d(0);   /* dividend */
 		  gen_fmod();
 		  localtype=singletype;
 		}

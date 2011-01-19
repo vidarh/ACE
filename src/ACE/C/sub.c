@@ -228,7 +228,7 @@ void load_params(SYM * sub_ptr) {
 	else {
 	  /* disable multi-tasking 
 		 before passing parameters */
-	  gen_libcall("Forbid","AbsExec");
+	  gen_forbid();
 
 	  /* load parameters into next frame */
 	  for (n=0;n<sub_ptr->no_of_params;n++) {
@@ -256,7 +256,7 @@ void sub_params(SYM * sub_ptr) {
 	return; /* no parameters -> return sym */
   } else {
 	/* if actual parameters passed, Forbid() called -> Permit() */
-	gen_libcall("Permit","AbsExec");
+	gen_permit();
 	
 	/* formal parameters expected */
 	do {

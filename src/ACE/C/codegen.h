@@ -177,14 +177,18 @@ void gen_add16d_var(const char * var, BYTE r);
 
 int parse_gen_params(int type, const char * params);
 int gen_fcall(const char * funcname, int type, const char * params, int ret, const char * callargs, int stackadj);
-void gen_libcall(const char * lvo, const char * base);
 void gen_gfxcall(const char * lvo);
 void gen_call_args(const char * label, const char * args, unsigned int stack);
 static inline void gen_call_void(const char * label, unsigned int stack) { gen_call_args(label,"",stack); }
 static inline void gen_call(const char * label, unsigned int stack) { gen_call_args(label,":d0",stack); }
 
-
-
+void gen_atan();
+void gen_cos();
+void gen_tan();
+void gen_exp();
+void gen_log();
+void gen_sqrt();
+void gen_sin();
 
 void nop();
 
