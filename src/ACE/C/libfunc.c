@@ -177,7 +177,7 @@ void gen_open_library(const char * libname, const char * librarybase)
   gen_jsr("_open_library");
   make_library_base(libname);
   gen_save32d(0,librarybase);
-  gen_tst32d(0);
+  gen_test();
   make_label(lab,lablabel);
   gen_bne(lab);
   gen_jmp("_EXIT_PROG"); /* quit program if can't open library */

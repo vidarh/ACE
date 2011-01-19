@@ -59,6 +59,14 @@ extern	BOOL	end_of_source;
 extern	BOOL	have_equal;
 extern	BOOL	have_lparen;
 
+void gen_test_ne(char * labname1, char * lablabel1)
+{
+  gen_pop32d(0);
+  gen_test();
+  make_label(labname1,lablabel1);
+  gen_bne(labname1);
+}
+
 /* functions */
 static void block_if(CODE * cx1) {
   char labname1[80],lablabel1[80];
@@ -129,14 +137,11 @@ void if_statement() {
 	gen_nop();
 	cx[i]=curr_code;
   }
-  coerce(&exprtype,&targettype,cx);
- 
+  coerce(&exprtype,&targettype,cx); 
+
   if (exprtype == longtype) {
 	if ((sym == thensym) || (sym == gotosym)) {
-	  gen_pop32d(0);
-	  gen_tst32d(0);
-	  make_label(labname1,lablabel1);
-	  gen_bne(labname1);
+	  gen_test_ne(labname1,lablabel1);
 	  gen_nop();  /* jump past THEN code section */
 	  cx1=curr_code;
 	  gen_label(lablabel1); /* execute THEN code */
@@ -243,10 +248,7 @@ void while_statement() {
   coerce(&exprtype,&targettype,cx);  /* cx necessary if change from SHORT */
 
   if (exprtype == longtype) {
-	gen_pop32d(0);
-	gen_tst32d(0);
-	make_label(labname2,lablabel2);
-	gen_bne(labname2);
+	gen_test_ne(labname2, lablabel2);
 	gen_nop();   /* jump out of loop when condition is FALSE */
 	cx2=curr_code;
 	gen_label(lablabel2);
@@ -284,10 +286,7 @@ void repeat_statement() {
 	check_for_event();
 	insymbol();
 	make_sure_long(expr());
-	gen_pop32d(0);
-	gen_tst32d(0);
-	make_label(labname2,lablabel2);
-	gen_bne(labname2);
+	gen_test_ne(labname2,lablabel2);
 	gen_jmp(labname1); 	/* loop until condition is TRUE */
 	gen_label(lablabel2); 
   } else _error(51);
@@ -312,10 +311,7 @@ void case_statement() {
 	  if (sym == colon) {
 		insymbol();
    
-		gen_pop32d(0);
-		gen_tst32d(0);
-		make_label(labname1,lablabel1);
-		gen_bne(labname1);
+		gen_test_ne(labname1,lablabel1);
 		gen_nop();	/* try next case */
 		cx = curr_code;
 		gen_label(lablabel1);   /* execute code for THIS case */

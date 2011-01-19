@@ -288,7 +288,7 @@ static void event_test(const char * test, const char * label, int branch)
   make_label(lab,lablabel);
   
   gen_jsr(test);
-  gen_tst32d(0);
+  gen_test();
   gen_beq(lab);
 
   if (branch == callsym) gen_jsr(label);
@@ -338,7 +338,7 @@ static void wdw_close_test()
 
   gen_push32_val(1);
   gen_call_void("_wdw_close_test",4);
-  gen_tst32d(0);
+  gen_test();
   gen_beq(lab);
   gen_jmp("_EXIT_PROG");
   gen_label(lablabel);
@@ -361,7 +361,7 @@ char lab[80],lablabel[80];
 
    gen_push32_val(0);
    gen_call_void("_wdw_close_test",4);
-   gen_tst32d(0);
+   gen_test();
    gen_beq(lab);
  
    if (wdw_event_branch == callsym) gen_jsr(wdw_event_label);
@@ -383,7 +383,7 @@ static void gad_event_test()
 
    gen_push32_val(0);
    gen_call_void("_gadget_event_test",4);
-   gen_tst32d(0);
+   gen_test();
    gen_beq(lab);
 
    if (gad_event_branch == callsym) gen_jsr(gad_event_label);
