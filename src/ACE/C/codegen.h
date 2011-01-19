@@ -98,7 +98,6 @@ void gen_blt(const char * label);
 void gen_bgt(const char * label);
 void gen_bge(const char * label);
 void gen_jmp(const char * label);
-void gen_tst32d(BYTE reg);
 void gen_tst16d(BYTE reg);
 void gen_load32a(const char * label, unsigned char reg);
 void gen_load32d(const char * label, unsigned char reg);
