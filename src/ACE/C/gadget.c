@@ -102,7 +102,8 @@ void gadget()
    GADGET ON | OFF | STOP
 */
 int  gtype;
-
+ int val;
+ 
 	insymbol();
 	
 	if (sym == onsym || sym == offsym || sym == stopsym)
@@ -154,25 +155,18 @@ int  gtype;
 		  ** Gadget Type.
 		  */
 		  insymbol();
-
-		  if (sym == buttonsym) {
-			gen_push32_val(1);
-			insymbol();
-		  } else if (sym == stringsym) {
-			gen_push32_val(2);
-			insymbol();
-		  } else if (sym == longintsym) {
-			gen_push32_val(3);
-			insymbol();
-		  } else if (sym == potxsym) {
-			gen_push32_val(4);
-			insymbol();
-		  } else if (sym == potysym) {
-			gen_push32_val(5);
-			insymbol();
-		  } else {
+		  
+		  val = -1;
+		  switch (sym) {
+		  case buttonsym:  val = 1; break;
+		  case stringsym:  val = 2; break;
+		  case longintsym: val = 3; break;
+		  case potxsym:    val = 4; break;
+		  case potysym:    val = 5; break;
+		  default:
 			make_sure_long(expr()); /* type */
 		  }
+		  if (val != -1) insymbol();
 		}
 
 		/*

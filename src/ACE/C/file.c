@@ -153,8 +153,8 @@ void write_to_file() {
 
   insymbol();
   make_sure_long(expr());
-  
-  gen_pop32_var("_seq_filenumber");
+
+  gen_pop_filenumber();
   
   if (sym != comma) { _error(16); return; }
   /* get expressions */
@@ -164,44 +164,19 @@ void write_to_file() {
 	
 	switch(wtype) {
 	case undefined : _error(0);  break; /* expression expected */ 
-	case shorttype : 	gen_pop16d(1);
-	  gen_load32d("_seq_filenumber",0);
-	  gen_jsr("_writeshort");
-	  break;
-	  
-	case longtype : 	gen_pop32d(1);
-	  gen_load32d("_seq_filenumber",0);
-	  gen_jsr("_writelong");
-	  break;
-	  
-	case singletype : 	gen_pop32d(1);
-	  gen_load32d("_seq_filenumber",0);
-	  gen_jsr("_writesingle");
-	  enter_XREF("_MathBase");
-	  break;
-	  
-	case stringtype :  gen_load32d("_seq_filenumber",0);
-	  gen_jsr("_writequote");	
-	  gen_pop_addr(0);
-	  gen_load32d("_seq_filenumber",0);
-	  gen_jsr("_writestring");
-	  gen_load32d("_seq_filenumber",0);
-	  gen_jsr("_writequote");
+	case shorttype : gen_writeshort(); break;
+	case longtype :  gen_writelong(); break;
+	case singletype : gen_writesingle(); break;
+	case stringtype : gen_writestring();
 	  break;
 	}
 	
 	/* need a delimiter? */
-	if (sym == comma) {
-	  gen_load32d("_seq_filenumber",0);
-	  gen_jsr("_writecomma"); 
-	}
-	
+	if (sym == comma) gen_writecomma();
   } while (sym == comma);  
 	
-  /* write LF to mark EOLN */
-  gen_load32d("_seq_filenumber",0);
-  gen_jsr("_write_eoln");
-  
+  gen_write_eoln();
+
   enter_BSS("_seq_filenumber:","ds.l 1");
 }
 
@@ -210,12 +185,11 @@ void gen_writecode(int code)
  /* write special character sequence to a file */
 
  check_for_event();
- gen_load32d("_seq_filenumber",0);
 
  switch(code) {
- case LF_CODE:  gen_jsr("_write_eoln"); break;
- case TAB_CODE: gen_jsr("_writeTAB"); break;
- case SPACE_CODE: gen_jsr("_writeSPC"); break;
+ case LF_CODE:  gen_write_eoln(); break;
+ case TAB_CODE: gen_writetab(); break;
+ case SPACE_CODE: gen_writespc(); break;
  }
 }
 
@@ -228,7 +202,7 @@ void print_to_file() {
  insymbol();
  make_sure_long(expr());
 
- gen_pop32_var("_seq_filenumber");
+ gen_pop_filenumber("_seq_filenumber");
  enter_BSS("_seq_filenumber:","ds.l 1");
 
  if (sym != comma) _error(16);
@@ -353,8 +327,7 @@ void input_from_file() {
 
   if (make_integer(expr()) == shorttype) make_long();
   
-  gen_pop32_var("_seq_filenumber");
-  enter_BSS("_seq_filenumber:","ds.l 1");
+  gen_pop_filenumber();
   
   if (sym != comma) _error(16);
   else {
@@ -405,17 +378,7 @@ void kill() {
   check_for_event();
   insymbol();
   if (expr() != stringtype) _error(4);
-  else {
-	gen_pop32d(1);
-	gen_jsr("_kill");
-  }
-}
-
-void gen_rename()
-{
-  gen_pop32d(2);  /* <filespec2> */
-  gen_pop32d(1);  /* <filespec1> */
-  gen_jsr("_rename");
+  else gen_kill();
 }
 
 /* NAME <filespec1> AS <filespec2> */
@@ -475,7 +438,7 @@ void push_struct_var_info(SYM * structVar) {
 }
 
 /* Put/Get data to/from a random file */
-void random_file_action(const char * func) {
+void random_file_action() {
   SYM *structVar;
 
   check_for_event(); 
@@ -501,15 +464,16 @@ void random_file_action(const char * func) {
 	/* Don't seek before read/write */
 	gen_push32_val(0);
   }
-  gen_call_void(func,16);
 }
 
 /* SYNTAX: GET [#]fileNum, structVar [, recordNum] */
 void random_file_get() {
-  random_file_action("_GetRecord");
+  random_file_action();
+  gen_call_void("_GetRecord",16);
 }
 
 /* SYNTAX: PUT [#]fileNum, structVar [, recordNum] */
 void random_file_put() {
-  random_file_action("_PutRecord");
+  random_file_action();
+  gen_call_void("_PutRecord",16);
 }

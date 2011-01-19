@@ -927,3 +927,70 @@ void gen_exp() { gen_libcall("SPExp","MathTrans"); }
 void gen_log() { gen_libcall("SPLog","MathTrans"); }
 void gen_sqrt() { gen_libcall("SPSqrt","MathTrans"); }
 void gen_sin() { gen_libcall("SPSin","MathTrans"); }
+
+void gen_writeshort() {
+  gen_pop16d(1);
+  gen_load32d("_seq_filenumber",0);
+  gen_jsr("_writeshort");
+}
+
+void gen_writelong() {
+  gen_pop32d(1);
+  gen_load32d("_seq_filenumber",0);
+  gen_jsr("_writelong");
+}
+
+void gen_writesingle() {
+  gen_pop32d(1);
+  gen_load32d("_seq_filenumber",0);
+  gen_jsr("_writesingle");
+  enter_XREF("_MathBase");
+}
+
+void gen_writestring() {
+  gen_load32d("_seq_filenumber",0);
+  gen_jsr("_writequote");	
+  gen_pop_addr(0);
+  gen_load32d("_seq_filenumber",0);
+  gen_jsr("_writestring");
+  gen_load32d("_seq_filenumber",0);
+  gen_jsr("_writequote");
+}
+
+void gen_writecomma() {
+  gen_load32d("_seq_filenumber",0);
+  gen_jsr("_writecomma"); 
+}
+
+void gen_write_eoln() {
+  gen_load32d("_seq_filenumber",0);
+  gen_jsr("_write_eoln");
+}
+
+void gen_pop_filenumber() {
+  gen_pop32_var("_seq_filenumber");
+  enter_BSS("_seq_filenumber:","ds.l 1");
+}
+
+void gen_writetab() { 
+  gen_load32d("_seq_filenumber",0);
+  gen_jsr("_writeTAB"); 
+}
+
+void gen_writespc() { 
+  gen_load32d("_seq_filenumber",0);
+  gen_jsr("_writeSPC");
+}
+
+void gen_rename()
+{
+  gen_pop32d(2);  /* <filespec2> */
+  gen_pop32d(1);  /* <filespec1> */
+  gen_jsr("_rename");
+}
+
+void gen_kill()
+{
+  gen_pop32d(1);
+  gen_jsr("_kill");
+}
