@@ -870,7 +870,12 @@ void gen_ldiv() { gen_call("ace_ldiv",8); }
 void gen_fsub() { gen_libcall("SPSub","Math"); }
 void gen_fadd() { gen_libcall("SPAdd","Math"); }
 void gen_fcmp() { gen_libcall("SPCmp","Math"); }
-void gen_fdiv() { gen_libcall("SPDiv","Math"); }
+
+void gen_fdiv() { 
+  gen_pop32d(1);  /* 2nd operand */
+  gen_pop32d(0);  /* 1st operand */
+  gen_libcall("SPDiv","Math"); 
+}
 
 void gen_power()
 {

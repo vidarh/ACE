@@ -274,8 +274,6 @@ static int prodterm()
 	  switch(op) {
 	  case multiply: localtype = gen_muls(coercedtype); break;
 	  case fdiv:
-		gen_pop32d(1);  /* 2nd operand */
-		gen_pop32d(0);  /* 1st operand */
 		gen_fdiv();
 		localtype=singletype;
 		break;
