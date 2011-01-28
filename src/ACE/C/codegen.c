@@ -167,7 +167,7 @@ void gen_test() { gen("cmpi.l","#0",dreg[0]); }
 void gen_test16() { gen("cmp.w","#0",dreg[0]); }
 void gen_cmp16dd(BYTE r1, BYTE r2) { gen("cmp.w",dreg[r1],dreg[r2]); }
 void gen_cmp32dd(BYTE r1, BYTE r2) { gen("cmp.l",dreg[r1],dreg[r2]); }
-void gen_not16d(unsigned char reg) { gen("not.w",dreg[reg],"  "); }
+static void gen_not16d(unsigned char reg) { gen("not.w",dreg[reg],"  "); }
 void gen_neg16d(unsigned char r) { gen("neg.w",dreg[r],"  "); }
 
 void m68k_neg(int type)
@@ -902,7 +902,46 @@ void gen_fmod()
   enter_XREF("_MathBase");
 }
 
-void gen_translate() { gen_libcall("Translate","Trans"); }
+void gen_translate() { 
+  gen_pop_addr(0); /* instr */
+  load_temp_string(1); /* outstr */
+  gen_move32aa(0,2);
+  gen_jsr("_strlen"); /* inlen in d0 */
+  gen_load32d_val(MAXSTRLEN,1); /* outlen = MAXSTRLEN */
+  gen_libcall("Translate","Trans"); 
+  gen_pea(tempstrname); /* outstr on stack */
+}
+
+void gen_val()
+{
+  gen_call("_val",4); /* string is on the stack */
+  enter_XREF("_MathBase");  /* _val needs math libs */
+  enter_XREF("_MathTransBase");
+}
+
+void gen_peek(int nftype)
+{
+  char labname[80];
+  char lablabel[80];
+
+  /* get address */
+  if (nftype == shorttype) gen_pop_short_addr(0,0);
+  else gen_pop_addr(0); 
+  /* get value */
+  gen_load_indirect(0,0);
+  gen_ext8to16(0);
+  /* if n<0 n=255-not(n) */
+  gen_test16();
+  make_label(labname,lablabel);
+  gen_bge(labname);
+  gen_not16d(0);
+  gen_load16d_val(255,1);
+  gen_sub16dd(0,1);
+  gen_move16dd(1,0);
+  gen_label(lablabel);
+  push_result(shorttype);
+}
+
 void gen_roundl() 
 { 
   gen_pop32d(0);

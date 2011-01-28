@@ -354,13 +354,7 @@ int stringfunction()
    case tabsym:  sftype = gen_fcall("_horiz_tab",sftype,"w",stringtype,":a0",0); break;
    case translatestrsym : /* s */
 	 if (sftype == stringtype) {
-	   gen_pop_addr(0); /* instr */
-	   load_temp_string(1); /* outstr */
-	   gen_move32aa(0,2);
-	   gen_jsr("_strlen"); /* inlen in d0 */
-	   gen_load32d_val(MAXSTRLEN,1); /* outlen = MAXSTRLEN */
 	   gen_translate();
-	   gen_pea(tempstrname); /* outstr on stack */
 	   sftype=stringtype;
 	 } else { _error(4); sftype=undefined; }
 	 break;
@@ -369,9 +363,7 @@ int stringfunction()
 	 
    case valsym : /* s */
 	  if (sftype == stringtype) {
-		gen_call("_val",4); /* string is on the stack */
-		enter_XREF("_MathBase");  /* _val needs math libs */
-		enter_XREF("_MathTransBase");
+		gen_val();
 		sftype=singletype;
 	  } else { _error(4); sftype=undefined; } 
 	  break;
@@ -540,22 +532,7 @@ int numericfunction() {
   case peeksym : /* i */
 	nftype=make_integer(nftype);
 	if ((nftype == longtype) || (nftype == shorttype)) {
-	  /* get address */
-	  if (nftype == shorttype) gen_pop_short_addr(0,0);
-	  else gen_pop_addr(0); 
-	  /* get value */
-	  gen_load_indirect(0,0);
-	  gen_ext8to16(0);
-	  /* if n<0 n=255-not(n) */
-	  gen_test16();
-	  make_label(labname,lablabel);
-	  gen_bge(labname);
-	  gen_not16d(0);
-	  gen_load16d_val(255,1);
-	  gen_sub16dd(0,1);
-	  gen_move16dd(1,0);
-	  gen_label(lablabel);
-	  push_result(shorttype);
+	  gen_peek(nftype);
 	  nftype=shorttype;
 	} else { _error(4); nftype=undefined; }
 	break;
