@@ -174,9 +174,9 @@ void gen_move32(const char * src, const char * dest) { gen("move.l",src,dest); }
  * allow using diff against "old" ace as a regression test
  */
 void gen_test() { gen("cmpi.l","#0",dreg[0]); }
-void gen_test16() { gen("cmp.w","#0",dreg[0]); }
-void gen_cmp16dd(BYTE r1, BYTE r2) { gen("cmp.w",dreg[r1],dreg[r2]); }
-void gen_cmp32dd(BYTE r1, BYTE r2) { gen("cmp.l",dreg[r1],dreg[r2]); }
+void gen_cmp16dd() { gen("cmp.w","d1","d0"); }
+void gen_cmp32dd() { gen("cmp.l","d1","d0"); }
+
 void m68k_neg(int type)
 {
   switch(type) {
@@ -773,14 +773,14 @@ void m68k_cmp(int simptype, int op)
 	  gen_pop16d(1);  /* 2nd */
 	  gen_pop16d(0);  /* 1st */
 	  gen_load32d_val(-1,5); /* assume true */
-	  gen_cmp16dd(1,0);
+	  gen_cmp16dd();
 	  break;
 
     case longtype:
 	  gen_pop32d(1);  /* 2nd */
 	  gen_pop32d(0);  /* 1st */
 	  gen_load32d_val(-1,5); /* assume true */
-	  gen_cmp32dd(1,0);
+	  gen_cmp32dd();
 	  break;
 
     case singletype : 	
@@ -920,7 +920,7 @@ void gen_peek(int nftype)
   gen_load_indirect(0,0);
   gen_ext8to16(0);
   /* if n<0 n=255-not(n) */
-  gen_test16();
+  gen("cmp.w","#0","d0");
   make_label(labname,lablabel);
   gen_bge(labname);
   gen("not.w","d0","  ");

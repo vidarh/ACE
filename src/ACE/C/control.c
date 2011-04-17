@@ -453,13 +453,13 @@ void for_statement()
 		gen_cmp16_val(0,stepaddr);
 		make_label(labname2,lablabel2);
 		gen_blt(labname2);
-		gen_cmp16dd(1,0);
+		gen_cmp16dd();
 		gen_bgt("  ");	  /* if STEP +ve -> counter>limit? */
 		cx1=curr_code;
 		make_label(labname3,lablabel3); /* don't want to do -ve step test too! */
 		gen_jmp(labname3);
 		gen_label(lablabel2);
-		gen_cmp16dd(1,0);
+		gen_cmp16dd();
 		gen_blt("  ");      /* if STEP -ve -> counter<limit? */
 		cx2=curr_code;
 		gen_label(lablabel3);    /* label for bypassing -ve step test */
@@ -469,13 +469,13 @@ void for_statement()
 		gen_cmp32_val(0,stepaddr);
 		make_label(labname2,lablabel2);
 		gen_blt(labname2);
-		gen_cmp32dd(1,0);
+		gen_cmp32dd();
 		gen_bgt("  ");	  /* if STEP +ve -> counter>limit? */
 		cx1=curr_code;
 		make_label(labname3,lablabel3); /* don't want to do -ve step test too! */
 		gen_jmp(labname3);
 		gen_label(lablabel2);
-		gen_cmp32dd(1,0);
+		gen_cmp32dd();
 		gen_blt("  ");      /* if STEP -ve -> counter<limit? */
 		cx2=curr_code;
 		gen_label(lablabel3);    /* label for bypassing -ve step test */
