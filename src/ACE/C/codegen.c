@@ -239,28 +239,12 @@ void gen_load_indirect32(unsigned char ar, unsigned char dr) {
   gen("move.l", buf, dreg[dr]);
 }
 
-void gen_save_indirect16(unsigned char dr, unsigned char ar) {
-  char buf[5];
-  sprintf(buf,"(a%c)", ar + '0');
-  gen("move.w", dreg[dr],buf);
-}
+void gen_save_indirect16() {  gen("move.w", "d0","(a0)"); }
+void gen_save_indirect8()  {  gen("move.w", "d0","(a0)"); }
+void gen_save_indirect32() {  gen("move.l", "d0","(a0)"); }
 
-void gen_save_indirect8(unsigned char dr, unsigned char ar) {
-  char buf[5];
-  sprintf(buf,"(a%c)", ar + '0');
-  gen("move.w", dreg[dr],buf);
-}
-
-void gen_save_indirect32(unsigned char dr, unsigned char ar) {
-  char buf[5];
-  sprintf(buf,"(a%c)", ar + '0');
-  gen("move.l", dreg[dr],buf);
-}
-
-void gen_save_indirect_indexed32(const char * label, unsigned char ar, unsigned char dr) {
-  char buf[20];
-  sprintf(buf,"0(%s,%s.L)", areg[ar], dreg[dr]);
-  gen("move.l", label,buf);
+void gen_save_indirect_indexed32(const char * label) {
+  gen("move.l", label,"0(a2,d7.L)");
 }
 
 void gen_pop_indirect_indexed32(unsigned char ar, unsigned char dr) {
@@ -275,10 +259,8 @@ void gen_pop_indirect_indexed16(unsigned char ar, unsigned char dr) {
   gen("move.w", "(sp)+",buf);
 }
 
-void gen_save_indirect_indexed16(const char * label, unsigned char ar, unsigned char dr) {
-  char buf[20];
-  sprintf(buf,"0(%s,%s.L)", areg[ar], dreg[dr]);
-  gen("move.w", label,buf);
+void gen_save_indirect_indexed16(const char * label) {
+  gen("move.w", label,"0(a2,d7.L)");
 }
 
 void gen_load_indirect_addr(unsigned char ar, unsigned char dest) {

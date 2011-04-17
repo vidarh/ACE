@@ -49,7 +49,7 @@ void poke() {
 	  insymbol();
 	  gen_pop_as_short(expr(),0); /* data to be poked */
 	  gen_pop_addr(0);   /* address */
-	  gen_save_indirect8(0,0);  /* poke (a0),d0 */
+	  gen_save_indirect8();  /* poke (a0),d0 */
 	}
   }
 }
@@ -62,7 +62,7 @@ void pokew() {
 	  insymbol();
 	  gen_pop_as_short(expr(), 0); /* data to be poked */
 	  gen_pop_addr(0);   /* address */
-	  gen_save_indirect16(0,0);   /* pokew (a0),d0 */
+	  gen_save_indirect16();   /* pokew (a0),d0 */
 	}
   }
 }
@@ -82,7 +82,7 @@ void pokel() {
 		  gen_ext16to32(0);
 		} else gen_pop32d(0);   /* data to be poked */
 		gen_pop_addr(0);       /* address */
-		gen_save_indirect32(0,0); /* pokel (a0),d0 */
+		gen_save_indirect32(); /* pokel (a0),d0 */
 	  } else _error(4);
 	}
   }

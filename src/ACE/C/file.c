@@ -265,12 +265,12 @@ void input_short(SYM * storage,const char * func, char * addrbuf) {
   if (storage->object == variable) {
 	if ((storage->shared) && (lev == ONE)) {
 	  gen_load32a(addrbuf,0); /* abs address of store */
-	  gen_save_indirect16(0,0);
+	  gen_save_indirect16();
 	} else gen_save16d(0,addrbuf); /* ordinary variable */
   } else if (storage->object == array) {
 	gen_save16d(0,"_short_input_temp");
 	point_to_array(storage,addrbuf);
-	gen_save_indirect_indexed16("_short_input_temp",2,7);
+	gen_save_indirect_indexed16("_short_input_temp");
 	enter_BSS("_short_input_temp:","ds.w 1");
   }
 }
@@ -280,12 +280,12 @@ void input_long(SYM * storage, const char * func, char * addrbuf) {
  if (storage->object == variable) {
    if ((storage->shared) && (lev == ONE)) {
 	 gen_load32a(addrbuf,0);  /* abs address of store */
-	 gen_save_indirect32(0,0);
+	 gen_save_indirect32();
    } else gen_save32d(0,addrbuf); /* ordinary variable */
  } else  if (storage->object == array) {
    gen_save32d(0,"_long_input_temp");
    point_to_array(storage,addrbuf);
-   gen_save_indirect_indexed32("_long_input_temp",2,7);
+   gen_save_indirect_indexed32("_long_input_temp");
    enter_BSS("_long_input_temp:","ds.l 1");
  }
 }
@@ -295,12 +295,12 @@ void input_single(SYM * storage, const char * func, char * addrbuf) {
   if (storage->object == variable) {
 	if ((storage->shared) && (lev == ONE)) {
 	  gen_load32a(addrbuf,0);  /* abs address of store */
-	  gen_save_indirect32(0,0);
+	  gen_save_indirect32();
 	} else gen_save32d(0,addrbuf); /* ordinary variable */
   } else  if (storage->object == array) {
 	gen_save32d(0,"_long_input_temp");
 	point_to_array(storage,addrbuf);
-	gen_save_indirect_indexed32("_long_input_temp",2,7);
+	gen_save_indirect_indexed32("_long_input_temp");
 	enter_BSS("_long_input_temp:","ds.l 1");
   }
   enter_XREF("_MathBase"); /* need math libs */

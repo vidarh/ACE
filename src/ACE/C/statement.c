@@ -759,7 +759,7 @@ BOOL  need_symbol=TRUE;
 	   insymbol();
 	   gen_pop_as_short(expr(),0); /* expression */
 	   gen_pop_addr(0);  /* pop address */
-	   gen_save_indirect16(0,0);  /* store expression */
+	   gen_save_indirect16();  /* store expression */
 	 }
    }
    break;
@@ -774,7 +774,7 @@ BOOL  need_symbol=TRUE;
 	  make_sure_long(expr());
 	  gen_pop32d(0);  /* pop expression */ 
 	  gen_pop_addr(0);  /* pop address */
-	  gen_save_indirect32(0,0);  /* store expression */
+	  gen_save_indirect32();  /* store expression */
 	}
   }
   break;
@@ -789,7 +789,7 @@ BOOL  need_symbol=TRUE;
 	   gen_Flt(expr());
 	   gen_pop32d(0);  /* pop expression */ 
 	   gen_pop_addr(0);  /* pop address */
-	   gen_save_indirect32(0,0);  /* store expression */
+	   gen_save_indirect32();  /* store expression */
 	 }
    }
    break;

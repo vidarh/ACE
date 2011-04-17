@@ -745,58 +745,48 @@ void read_data() {
 	  /* get next item from DATA list */
 	  if (typ != stringtype) gen_load32a("_dataptr",1);   /* for _htol */
 
-	  switch(storage->type) {
-	  case stringtype:	
+	  if (storage->type == stringtype) {
 		gen_push16_var("_dataptr"); /* addr of source */
 		if (storage->object == variable) assign_to_string_variable(storage,MAXSTRLEN);
 		else if (storage->object == array) assign_to_string_array(addrbuf);
-		break;
-
-	  case singletype :   
+	  } else {
 		gen_jsr("_htol"); /* return LONG from (a1) */
-		if (storage->object == variable) {
-		  if ((storage->shared) && (lev == ONE)) {
-			gen_load32a(addrbuf,0);   /* abs addr of store */
-			gen_save_indirect32(0,0);
-		  } else gen_save32d(0,addrbuf);
-		} else if (storage->object == array)
-		  gen_save_indirect_indexed32("d0",2,7);
-		break;
 
-	  case longtype:
-		gen_jsr("_htol");
-		push_result(longtype);
-		make_integer(singletype);
-		if (storage->object == variable) {
-		  if ((storage->shared) && (lev == ONE)) {
-			/* FIXME: Why is this so different? */
-			gen_load32a(addrbuf,0);   /* abs addr of store */
-			gen_pop_indirect32(0);
-		  } else gen_pop32_var(addrbuf);
-		} else if (storage->object == array)
-		  gen_pop_indirect_indexed32(2,7);
-		break;
+		/* FIXME: Why push the result only for long and short, and then proceed to treat floats completely different?
+		 * It looks like the float(single) and long cases could be entirely the same.
+		 */
+		if (storage->type == longtype) {
+		  push_result(longtype);
+		  make_integer(singletype);
+		} else if (storage->type == shorttype) {
+		  push_result(longtype);
+		  make_sure_short(singletype);
+		}
 
-	  case shorttype:
-		gen_jsr("_htol");
-		push_result(longtype);
-		make_sure_short(singletype);
 		if (storage->object == variable) {
 		  if ((storage->shared) && (lev == ONE)) {
 			gen_load32a(addrbuf,0);   /* abs addr of store */
-			gen_pop_indirect16(0);
-		  } else gen_pop16_var(addrbuf);
-		} else if (storage->object == array)
-		  gen_pop_indirect_indexed16(2,7);
-		break;
+			if (storage->type == singletype)     gen_save_indirect32();
+			else if (storage->type == longtype)  gen_pop_indirect32(0);
+			else if (storage->type == shorttype) gen_pop_indirect16(0);
+		  } else {
+			if (storage->type == singletype)     gen_save32d(0,addrbuf);
+			else if (storage->type == longtype)  gen_pop32_var(addrbuf);
+			else if (storage->type == shorttype) gen_pop16_var(addrbuf);
+		  }
+		} else if (storage->object == array) {
+		  if (storage->type == singletype)       gen_save_indirect_indexed32("d0");
+		  else if (storage->type == longtype)    gen_pop_indirect_indexed32(2,7);
+		  else if (storage->type == shorttype)   gen_pop_indirect_indexed16(2,7);
+		}
 	  }
-	} 
-	else _error(19);  /* variable expected */ 			
-			
+	} else _error(19);  /* variable expected */ 			
+
 	/* advance to next DATA item */
 	gen_load32a("_dataptr",2);
 	gen_jsr("_strlen");
 	gen_add32d_val(1,0); /* include EOS in length */
+	/* FIXME: Why does it do this rather than add,l d0, _dataptr ? */
 	gen_load32d("_dataptr",1);
 	gen_add32dd(0,1);
 	gen_save32d(1,"_dataptr");

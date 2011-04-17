@@ -511,6 +511,7 @@ int main(int argc,char * argv[]) {
 
   if (targetstr) {
 	if (!strcmp(targetstr,"i386-aros")) codegen_set_target(&i386_aros_target);
+	else if (!strcmp(targetstr,"i386-linux")) codegen_set_target(&i386_linux_target);
 	else if (!strcmp(targetstr,"x86_64-linux")) codegen_set_target(&x86_64_linux_target);
 	else if (!strcmp(targetstr,"m68k-amiga")) codegen_set_target(&m68k_target);
 	else { fprintf(stderr,"ERROR: Unknown target '%s'\n",targetstr); exit(10); }
