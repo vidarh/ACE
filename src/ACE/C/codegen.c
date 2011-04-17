@@ -399,8 +399,6 @@ void gen_rport_rel_xy() {
   gen_rport_rel_y(1);
 }
 
-void gen_add16dd(BYTE reg1, BYTE reg2) { gen("add.w",dreg[reg1],dreg[reg2]); }
-
 static void m68k_or(int type)
 {
   if (type == shorttype) gen("or.w","d1","d0");
@@ -413,8 +411,19 @@ static void m68k_eor(int type)
   else gen("eor.l","d1","d0");
 }
 
-void gen_sub16dd(BYTE r1, BYTE r2) { gen("sub.w",dreg[r1],dreg[r2]); }
-void gen_sub32dd(BYTE r1, BYTE r2) { gen("sub.l",dreg[r1],dreg[r2]); }
+void gen_sub(int t)
+{
+  if (t == shorttype)     gen("sub.w","d1","d0");
+  else if (t == longtype) gen("sub.l","d1","d0");
+  else gen_libcall("SPSub","Math");
+}
+
+void gen_add(int t)
+{
+  if (t == shorttype)     gen("add.w","d1","d0");
+  else if (t == longtype) gen("add.l","d1","d0");
+  else gen_libcall("SPAdd","Math");
+}
 
 void gen_add32a_val(long val, unsigned char reg) {
   char buf[16];
@@ -856,8 +865,6 @@ void nop()
 
 void gen_lmod() { gen_call("ace_lrem",8); }
 void gen_ldiv() { gen_call("ace_ldiv",8); }
-void gen_fsub() { gen_libcall("SPSub","Math"); }
-void gen_fadd() { gen_libcall("SPAdd","Math"); }
 void gen_fcmp() { gen_libcall("SPCmp","Math"); }
 
 void gen_fdiv() { 
@@ -925,7 +932,7 @@ void gen_peek(int nftype)
   gen_bge(labname);
   gen("not.w","d0","  ");
   gen_load16d_val(255,1);
-  gen_sub16dd(0,1);
+  gen("sub.w","d0","d1");
   gen_move16dd(1,0);
   gen_label(lablabel);
   push_result(shorttype);
@@ -1074,7 +1081,7 @@ void gen_push_deref_array(SYM * storage, char * addrbuf)
 {
   point_to_array(storage,addrbuf);
   gen_load32d(addrbuf,0);
-  gen_add32dd(7,0);
+  gen("add.l","d7","d0");
   push_result(longtype);
 }
 

@@ -398,26 +398,17 @@ static int simple_expr()
 	if (localtype == undefined) return(localtype);
 	coercion=coerce(&firsttype,&localtype,cx);
 	if (coercion) {
-	  if (localtype != stringtype) pop_operands(localtype);
-	  switch(op) {
-	  case plus :  
-		switch(localtype) {
-		case shorttype: gen_add16dd(1,0); break;
-		case longtype:  gen_add32dd(1,0); break;
-		case singletype: gen_fadd(); 
-		case stringtype : gen_str_concat(); break;
-		}
-		break;
-	  case minus : 
-		switch(localtype) {
-		case shorttype: gen_sub16dd(1,0); break;
-		case longtype:  gen_sub32dd(1,0); break;
-		case singletype : gen_fsub(); break; 
-		case stringtype : 	_error(4); break;
-		}
+	  if (localtype == stringtype) {
+		if (op == plus) gen_str_concat();
+		else _error(4);
+	  } else if (localtype == notype) _error(4);
+	  else {
+		pop_operands(localtype);
+		if (op == plus) gen_add(localtype);
+		else gen_sub(localtype);
+		pop_operands(localtype);
 	  }
-	  if (localtype != stringtype) pop_operands(localtype);
-    } else _error(4); /* notype -> type mismatch */
+	}
 	firsttype=localtype;  /* moving record of last sub-expression type */
   }
  return(localtype);
