@@ -476,15 +476,9 @@ static int notexpr() {
   if (op == notsym) {
 	localtype=make_integer(localtype);
 	if (localtype == notype) return(localtype);
-	if (localtype == shorttype) gen_not16sp();
-	else gen_not32sp();
+	gen_not(localtype);
   }
   return(localtype);
-}
-
-static void gen_and(int localtype) {
-  if (localtype == shorttype)  gen_and16dd(1,0);
-  else gen_and32dd(1,0);
 }
 
 static int andexpr() { return generic_expr(andsym, &notexpr,&gen_and); }

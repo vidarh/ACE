@@ -74,9 +74,6 @@ static void gen_bxx(int op, const char * label) {
   enter_XREF(label);
 }
 
-void gen_incr_indirect16() { gen("add.w","#1","(a0)"); }
-void gen_incr_indirect32() { gen("add.l","#1","(a0)"); }
-
 static void gen_libbase(const char * base) {
   char buf[200];
   strcpy(buf,"_");
@@ -99,22 +96,35 @@ static void gen_libcall(const char * lvo, const char * base) {
   gen("jsr",buf,"  ");
 }
 
-
-void gen_incr_indirect_float() {
-  gen("move.l","(a0)","d0");
-  gen("move.l","#$80000041","d1");
-  gen_libcall("SPAdd","Math");
-  gen("move.l","d0","(a0)");
+static void m68k_and(int localtype) {
+  if (localtype == shorttype)  gen("and.w","d1","d0");
+  else gen("and.l","d1","d0");
 }
 
-void gen_decr_indirect16() { gen("sub.w","#1","(a0)"); }
-void gen_decr_indirect32() { gen("sub.l","#1","(a0)"); }
+static void m68k_incr_indir(int type) {
+  switch(type) {
+  case shorttype  : gen("add.w","#1","(a0)");  break;
+  case longtype   : gen("add.l","#1","(a0)");  break;
+  case singletype : 
+	gen("move.l","(a0)","d0");
+	gen("move.l","#$80000041","d1");
+	gen_libcall("SPAdd","Math");
+	gen("move.l","d0","(a0)");
+	break;
+  }
+}
 
-void gen_decr_indirect_float() {
-  gen("move.l","(a0)","d0");
-  gen("move.l","#$80000041","d1");
-  gen_libcall("SPSub","Math");
-  gen("move.l","d0","(a0)");
+static void m68k_decr_indir(int type) {
+  switch(type) {
+  case shorttype  : gen("sub.w","#1","(a0)");  break;
+  case longtype   : gen("sub.l","#1","(a0)");  break;
+  case singletype : 
+	gen("move.l","(a0)","d0");
+	gen("move.l","#$80000041","d1");
+	gen_libcall("SPSub","Math");
+	gen("move.l","d0","(a0)");
+	break;
+  }
 }
 
 void gen_branch(char * branch, char * labname) {
@@ -129,8 +139,8 @@ void gen_branch(char * branch, char * labname) {
   gen(branch,labname,destbuf);
 }
 
-void gen_link() { gen("link","a5","  "); }
-void gen_unlk() { gen("unlk","a5","  "); }
+void m68k_link() { gen("link","a5","  "); }
+void m68k_unlk() { gen("unlk","a5","  "); }
 void generic_rts() { gen("rts","  ","  "); }
 void generic_ret() { gen("ret","  ","  "); }
 void gen_bne(const char * label) { gen_bxx(notequal, label); }
@@ -167,9 +177,6 @@ void gen_test() { gen("cmpi.l","#0",dreg[0]); }
 void gen_test16() { gen("cmp.w","#0",dreg[0]); }
 void gen_cmp16dd(BYTE r1, BYTE r2) { gen("cmp.w",dreg[r1],dreg[r2]); }
 void gen_cmp32dd(BYTE r1, BYTE r2) { gen("cmp.l",dreg[r1],dreg[r2]); }
-static void gen_not16d(unsigned char reg) { gen("not.w",dreg[reg],"  "); }
-void gen_neg16d(unsigned char r) { gen("neg.w",dreg[r],"  "); }
-
 void m68k_neg(int type)
 {
   switch(type) {
@@ -183,12 +190,11 @@ void m68k_neg(int type)
   }
 }
 
-void gen_neg16sp() { gen("neg.w","(sp)","  "); }
-void gen_neg32sp() { gen("neg.l","(sp)","  "); }
+void m68k_not(int localtype) {
+	if (localtype == shorttype) gen("not.w","(sp)","  ");
+	else gen("not.l","(sp)","  ");
+}
 
-
-void gen_not16sp() { gen("not.w","(sp)","  "); }
-void gen_not32sp() { gen("not.l","(sp)","  "); }
 void gen_push_indirect_indexed16() { gen("move.w","0(a0,d7.L)","-(sp)"); }
 void gen_push_indirect_indexed32() { gen("move.l","0(a0,d7.L)","-(sp)"); }
 
@@ -412,11 +418,6 @@ void gen_rport_rel_xy() {
 }
 
 void gen_add16dd(BYTE reg1, BYTE reg2) { gen("add.w",dreg[reg1],dreg[reg2]); }
-void gen_and32dd(BYTE reg1, BYTE reg2) { gen("and.l",dreg[reg1],dreg[reg2]); }
-void gen_and16dd(BYTE reg1, BYTE reg2) { gen("and.w",dreg[reg1],dreg[reg2]); }
-
-void gen_or32dd(unsigned char reg1, unsigned char reg2) { gen("or.l",dreg[reg1],dreg[reg2]); }
-void gen_or16dd(unsigned char reg1, unsigned char reg2) { gen("or.w",dreg[reg1],dreg[reg2]); }
 
 static void m68k_or(int type)
 {
@@ -843,15 +844,21 @@ static void m68k_end_program(FILE * dest)
 void m68k_amiga_startup(FILE * dest);
 
 struct codegen_target m68k_target = {
+  m68k_and,
   m68k_cmp,
+  m68k_decr_indir,
   m68k_eor,
+  m68k_incr_indir,
   m68k_jsr,
+  m68k_link,
   m68k_muls,
   m68k_neg,
+  m68k_not,
   m68k_or,
   m68k_pea,
   m68k_push32d,
   generic_rts,
+  m68k_unlk,
   
   m68k_code_section,
   m68k_end_program,
@@ -934,7 +941,7 @@ void gen_peek(int nftype)
   gen_test16();
   make_label(labname,lablabel);
   gen_bge(labname);
-  gen_not16d(0);
+  gen("not.w","d0","  ");
   gen_load16d_val(255,1);
   gen_sub16dd(0,1);
   gen_move16dd(1,0);
@@ -980,7 +987,21 @@ void gen_paint() { gen_call_args("_paint","d1.w,d0.w",0); }
 void gen_flt() { gen_libcall("SPFlt","Math"); }
 void gen_draw() { gen_libcall("Draw","Gfx"); }
 void gen_rectfill() { gen_libcall("RectFill","Gfx"); }
-void gen_scrollraster() { gen_gfxcall("ScrollRaster"); }
+void gen_scrollraster() { 
+  /* pop parameters */
+  gen_pop16d(1);		/* delta-y */
+  gen("neg.w","d1","   ");
+  gen_pop16d(0);		/* delta-x */
+  gen("neg.w","d0","   ");
+  gen_pop16d(5);  		/* ymax */
+  gen_pop16d(4);  		/* xmax */
+  gen_pop16d(3);  		/* ymin */
+  gen_pop16d(2);  		/* xmin */
+  
+  gen_gfxcall("ScrollRaster"); 
+}
+
+
 void gen_setapen() { gen_gfxcall("SetAPen"); }
 void gen_setbpen() { gen_gfxcall("SetBPen"); }
 void gen_forbid() { gen_libcall("Forbid","AbsExec"); }

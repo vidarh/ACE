@@ -167,20 +167,8 @@ static void increment_decrement(int opsym) {
 		address_of_object();
 		gen_pop_addr(0);
 		
-		if (opsym == increment) {
-		  switch(inc_item->type) {
-		  case shorttype  : gen_incr_indirect16(); break;
-		  case longtype   : gen_incr_indirect32(); break;
-		  case singletype : gen_incr_indirect_float(); break;
-		  }
-		} else {
-		  switch(inc_item->type)
-			{
-			case shorttype: gen_decr_indirect16(); break;
-			case longtype:  gen_decr_indirect32();  break;
-			case singletype : gen_decr_indirect_float(); break;
-			}
-		}
+		if (opsym == increment) gen_incr_indir(inc_item->type);
+		else gen_decr_indir(inc_item->type);
 	  }
 	}
 	insymbol();

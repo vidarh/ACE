@@ -546,18 +546,7 @@ void scroll()
   insymbol();
   if (!parse_rect()) return;
   if (!expect_token_sequence(tokens)) return;
-  
-  /* pop parameters */
-  gen_pop16d(1);		/* delta-y */
-  gen_neg16d(1);
-  gen_pop16d(0);		/* delta-x */
-  gen_neg16d(0);
-  gen_pop16d(5);  		/* ymax */
-  gen_pop16d(4);  		/* xmax */
-  gen_pop16d(3);  		/* ymin */
-  gen_pop16d(2);  		/* xmin */
-  
-  /* call ScrollRaster function */
+
   gen_scrollraster();
 } 
 

@@ -85,3 +85,25 @@ struct codegen_target x86_64_linux_target = {
   0 /* write_xrefs? */
 };
 
+struct codegen_target i386_linux_target = {
+  x86_cmp,
+  nop, // decr_indir
+  x86_eor,
+  nop, // incr_indir
+  x86_call,
+  nop, // link
+  x86_muls,
+  x86_neg,
+  x86_or,
+  x86_pea,
+  x86_push32d,
+  generic_ret,
+  nop, // unlk
+
+  x86_code_section,
+  nop,
+  x86_startup,
+
+  0 /* write_xrefs? */
+};
+

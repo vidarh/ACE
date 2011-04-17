@@ -435,20 +435,16 @@ void assign() {
 			/* restore storage item info */
 			gen_load32d("_tmpelement",7);
 
-		        if (storage_item->type == stringtype) 
-			   assign_to_string_array(addrbuf);
-        		else
-				if (storage_item->type == shorttype)
-				  {
-					gen_load32a(addrbuf,0);
-					gen_pop_indirect_indexed16(0,7);
-				  }
-				else
-				  {
-					/* long or single */
-					gen_load32a(addrbuf,0);
-					gen_pop_indirect_indexed32(0,7);
-				  }
+			if (storage_item->type == stringtype) 
+			  assign_to_string_array(addrbuf);
+			else {
+			  gen_load32a(addrbuf,0);
+			  if (storage_item->type == shorttype)
+				gen_pop_indirect_indexed16(0,7);
+			  else
+				/* long or single */
+				gen_pop_indirect_indexed32(0,7);
+			}
 			break;
      }
  } else _error(5); /* '=' expected */
