@@ -707,7 +707,7 @@ int address_of_object() {
 		  else {
 			/* push address of struct member */
 			gen_load_indirect_addr(0,0);
-			gen_add32a_val((long)member->offset,0);
+			gen_add_addr_offset((long)member->offset);
 			gen_push_addr(0);
 			/* store type for SWAP command */
 			struct_member_type = member->type;	  	
@@ -732,8 +732,8 @@ int address_of_object() {
 		have_lparen=TRUE;
 		push_indices(varptr_item);
 		get_abs_ndx(varptr_item); /* offset -> d7 */
-		gen_pop32d(0); /* array start */
-		gen_add32dd(7,0); /* start+offset=addr */
+		gen_pop32d(SCRATCH_REG); /* array start */
+		gen_add32dd(OFFSET_REG,SCRATCH_REG); /* start+offset=addr */
 		push_result(longtype);
 		insymbol(); /* symbol after rparen */
 	  }

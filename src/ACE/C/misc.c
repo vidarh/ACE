@@ -308,14 +308,12 @@ int push_struct(SYM * item)
 
 		/* push value */
 		if (mbr_type == bytetype) {
-		  gen_load8d(absbuf,0);
-		  gen_ext8to16(0);
-		  push_result(shorttype);
+		  gen_push8_var(absbuf);
 		  mbr_type=shorttype;              /* byte */
 		} else if (mbr_type == shorttype)
 		  gen_push16_var(absbuf);  /* short */
 		else if (mbr_type == stringtype) {
-		  gen_add32a_val(member->offset,0);
+		  gen_add_addr_offset(member->offset);
 		  gen_push_addr(0);  /* push string address */
 		} else
 		  gen_push32_var(absbuf);  /* long, single */ 

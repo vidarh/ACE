@@ -443,19 +443,7 @@ void area()
 
   relative = parse_step();
   if (!expect_token_sequence(point_tokens)) return;
-  
-  gen_pop16d(1); /* pop y-coordinate */
-  gen_pop16d(0); /* pop x-coordinate */
-  
-  /* include point in area info' */
-  if (relative) {
-	gen_add16d_var("_last_areaX",0);   /* d0 = x + lastareaY */
-	gen_add16d_var("_last_areaY",1);   /* d1 = y + lastareaY */
-	enter_XREF("_last_areaX");
-	enter_XREF("_last_areaY");
-  }
-  
-  gen_jsr("_area");
+  gen_area(relative);
 }
 
 void areafill()

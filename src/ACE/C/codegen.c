@@ -239,6 +239,32 @@ void gen_load_indirect32(unsigned char ar, unsigned char dr) {
   gen("move.l", buf, dreg[dr]);
 }
 
+void gen_pokeb(int t)
+{
+  gen_pop_as_short(t,0); /* data to be poked */
+  gen_pop_addr(0);   /* address */
+  gen_save_indirect8();  /* poke (a0),d0 */
+}
+
+void gen_pokew(int t)
+{
+  gen_pop_as_short(expr(), 0); /* data to be poked */
+  gen_pop_addr(0);   /* address */
+  gen_save_indirect16();   /* pokew (a0),d0 */
+}
+
+void gen_pokel(int t)
+{
+  /* coerce data to long */
+  if (t == shorttype) {
+	gen_pop16d(0);
+	gen_ext16to32(0);
+  } else gen_pop32d(0);   /* data to be poked */
+  gen_pop_addr(0);       /* address */
+  gen_save_indirect32(); /* pokel (a0),d0 */
+}
+
+
 void gen_save_indirect16() {  gen("move.w", "d0","(a0)"); }
 void gen_save_indirect8()  {  gen("move.w", "d0","(a0)"); }
 void gen_save_indirect32() {  gen("move.l", "d0","(a0)"); }
@@ -321,19 +347,10 @@ void gen_load32d_val(signed long val, unsigned char reg) {
   else gen("move.l",buf,dreg[reg]);
 }
 
-void gen_load32_val(long val, const char * label) {
-  char buf[16];
-  sprintf(buf,"#%ld",val);
-  gen("move.l",buf,label);
-}
 
-void gen_load32a_val(long val, BYTE reg) { gen_load32_val(val,areg[reg]); }
-
-void gen_load16_val(long val, const char * label) {
-  char buf[16];
-  sprintf(buf,"#%ld",val);
-  gen("move.w",buf,label);
-}
+void gen_clear_addr()                { gen("move.l","#0","a0"); }
+void gen_clear32(const char *label)  { gen("move.l","#0",label); }
+void gen_clear16(const char * label) {  gen("move.w","#0",label); }
 
 static void gen_swapstr(const char * tempstrname) {
   /* make copies of two addresses */
@@ -384,7 +401,6 @@ void gen_save_registers() { gen("movem.l","d1-d7/a0-a6","-(sp)"); }
 void gen_restore_registers() { gen("movem.l","(sp)+","d1-d7/a0-a6"); }
 
 void gen_add32dd(BYTE reg1, BYTE reg2) { gen("add.l",dreg[reg1],dreg[reg2]); }
-void gen_add16d_var(const char * var, BYTE r) { gen("add.w",var,dreg[r]); }
 
 void gen_rport_rel_x(unsigned char r) {
   gen("add.w","36(a1)",dreg[r]);   /* x + RPort->cp_x */
@@ -425,10 +441,10 @@ void gen_add(int t)
   else gen_libcall("SPAdd","Math");
 }
 
-void gen_add32a_val(long val, unsigned char reg) {
+void gen_add_addr_offset(long val) {
   char buf[16];
   sprintf(buf,"#%ld",val);
-  gen("adda.l",buf,areg[reg]);
+  gen("adda.l",buf,"a0");
 }
 
 void gen_add32_val(long val, const char * label) {
@@ -533,13 +549,15 @@ void gen_load16d(const char * label, unsigned char reg) {
   gen("move.w",label,dreg[reg]);
 }
 
-void gen_load8d(const char * label, unsigned char reg) {
-  gen("move.b",label,dreg[reg]);
+void gen_push8_var(const char * label) {
+  gen("move.b",label,"d0");
+  gen_ext8to16(0);
+  push_result(shorttype);
 }
 
-
-void gen_save8d(unsigned char reg, const char * label) {
-  gen("move.w",dreg[reg],label);
+void gen_pop8_var(const char * label) {
+  gen_pop16d(0);
+  gen("move.w","d0", label);
 }
 
 void gen_save16d(unsigned char reg, const char * label) {
@@ -554,8 +572,23 @@ void gen_save32a(unsigned char reg, const char * label) {
   gen("move.l",areg[reg],label);
 }
 
-void gen_save32ad(unsigned char reg, unsigned char dr) {
-  gen("move.l",areg[reg],dreg[dr]);
+void gen_frame_offset_simple(int offset, const char * buf1)
+{
+  gen("move.l","a4","d0");   /* frame pointer */
+  gen_sub32d_val(offset,0);  /* offset from frame top */
+  gen_save32d(0,buf1);       /* store address in level ONE frame */
+}
+
+void gen_frame_offset_addr(int offset, int local_off)
+{
+  char buf0[40], buf1[40];
+  /* frame location of level ONE object */ 
+  itoa(local_off,buf1,10);
+  strcat(buf1,"(a5)");
+
+  itoa(offset,buf0,10);
+  strcat(buf0,"(a4)");
+  gen_move32(buf0,buf1);
 }
 
 void gen_move16dd(unsigned char srcreg, unsigned char destreg) {
@@ -574,8 +607,8 @@ void gen_move32da(unsigned char srcreg, unsigned char destreg) {
   gen("movea.l",dreg[srcreg],areg[destreg]);
 }
 
-void gen_add32da(unsigned char srcreg, unsigned char destreg) {
-  gen("adda.l",dreg[srcreg],areg[destreg]);
+void gen_add32da() {
+  gen("adda.l","d7","a0");
 }
 
 /***** "Mid level" code generation functions *****/
@@ -687,6 +720,21 @@ void gen_gfxcall(const char * lvo) {
   gen_load32a("_RPort",1);
   enter_XREF("_RPort");
   gen_libcall(lvo,"Gfx");
+}
+
+void gen_area(BOOL relative) {
+  gen_pop16d(1); /* pop y-coordinate */
+  gen_pop16d(0); /* pop x-coordinate */
+  
+  /* include point in area info' */
+  if (relative) {
+	gen("add.w","_last_areaX","d0");   /* d0 = x + lastareaY */
+	gen("add.w","_last_areaY","d1");   /* d1 = y + lastareaY */
+	enter_XREF("_last_areaX");
+	enter_XREF("_last_areaY");
+  }
+  
+  gen_jsr("_area");
 }
 
 /* Pop an argument off the statck.

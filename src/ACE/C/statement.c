@@ -124,7 +124,7 @@ static void wave() {
    else {
 	 insymbol();
 	 if (sym == sinsym) {
-	   gen_load32a_val(0,0);   /* SIN wave = 0 -> flag for _wave */
+	   gen_clear_addr(); /* SIN wave = 0 -> flag for _wave */
 	   insymbol();
 	 } else {
 	   /* now expect an address -> pointer to a block of bytes */

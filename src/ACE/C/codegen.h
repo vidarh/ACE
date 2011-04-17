@@ -3,6 +3,12 @@
 
 #include "acedef.h"
 
+enum {
+  SCRATCH_REG = 0,
+  OFFSET_REG  = 7
+};
+
+
 /* A "vtable" for the code generators, to present a CPU independent interface.
    Once complete, retargeting to a new CPU should be a matter of copying an
    existing codegen_target structure that most closely resembles the new CPU,
@@ -117,16 +123,16 @@ void gen_save_indirect16();
 void gen_save_indirect8();
 void gen_save_indirect32();
 void gen_load16d_val(int val, unsigned char reg);
-void gen_load32a_val(long val, BYTE reg);
+void gen_clear_addr();
 void gen_add16d_val(long val, unsigned char reg);
 void gen_add32dd(BYTE reg1, BYTE reg2);
-void gen_add32da(unsigned char srcreg, unsigned char destreg);
+void gen_add32da();
 void gen_add32_val(long val, const char * label);
-void gen_add32a_val(long val, unsigned char reg);
+void gen_add_addr_offset(long val);
 void gen_save32ad(unsigned char reg, unsigned char dr);
 void gen_sub32d_val(long val, unsigned char reg);
-void gen_save8d(unsigned char reg, const char * label);
-void gen_load8d(const char * label, unsigned char reg);
+void gen_pop8_var(const char * label);
+void gen_push8_var(const char * label);
 void gen_push_indirect_indexed16();
 void gen_push_indirect_indexed32();
 void gen_push_indirect32(unsigned char r);
@@ -151,8 +157,8 @@ void gen_move32da(unsigned char srcreg, unsigned char destreg);
 void gen_sub(int t);
 void gen_add(int t);
 void gen_comment(const char * c);
-void gen_load16_val(long val, const char * label);
-void gen_load32_val(long val, const char * label);
+void gen_clear16(const char * label);
+void gen_clear32(const char * label);
 void gen_load_indirect(unsigned char ar, unsigned char dr);
 void gen_asm(const char * line);
 void gen_save16d(unsigned char reg, const char * label);
@@ -160,8 +166,6 @@ void gen_save32d_val(long val, BYTE r);
 void gen_save_registers();
 void gen_restore_registers();
 void gen_load16d(const char * label, unsigned char reg);
-void gen_add16dd(BYTE reg1, BYTE reg2);
-void gen_add16d_var(const char * var, BYTE r);
 
 /* Mid level */
 

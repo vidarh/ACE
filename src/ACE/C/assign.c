@@ -209,8 +209,7 @@ void assign_to_string_array(char * addrbuf)
   
   gen_pop_addr(1); /* source */
   gen_load32a(addrbuf,0);
-  gen_add32da(7,0);   /* destination */
-  
+  gen_add32da();   /* destination */
   gen_jsr("_strcpy");  /* copy source to destination */
 }
 
@@ -277,11 +276,10 @@ void assign_to_struct(SYM * item)
 			}
 
 			if (member->type == bytetype) {
-			  gen_pop16d(0);
-			  gen_save8d(0,absbuf);  /* byte */
+			  gen_pop8_var(absbuf);
 			} else if (member->type == stringtype) {  /* string */
 			  gen_pop_addr(1);  /* source */
-			  gen_add32a_val(member->offset,0);  /* destination = struct address + offset */
+			  gen_add_addr_offset(member->offset);  /* destination = struct address + offset */
 			  gen_jsr("_strcpy");   /* copy source to destination */
 			} else if (member->type == shorttype) gen_pop16_var(absbuf);  /* short */
 			else gen_pop32_var(absbuf);  /* long, single */

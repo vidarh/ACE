@@ -404,9 +404,9 @@ void declare_variable(int vartype)
 		insymbol();
 		
 		switch(vartype) {
-		case shorttype  :  gen_load16_val(0,addrbuf); break;
+		case shorttype  :  gen_clear16(addrbuf); break;
 		case singletype: /* intentional fallthrough */
-		case longtype   :  gen_load32_val(0,addrbuf); break;
+		case longtype   :  gen_clear32(addrbuf); break;
 		case stringtype :  str_item = curr_item;
 		  if (sym == addresssym) {
 			normal_string_variable=FALSE;
@@ -586,12 +586,12 @@ void define_common_or_global_variable(int varsym)
 	  sprintf(extvarlabel,"%s:",extvarid);
 	  switch(vartype) {
 	  case shorttype:	 enter_BSS(extvarlabel,"ds.w 1"); 
-		gen_load16_val(0,extvarid);
+		gen_clear16(extvarid);
 		insymbol(); break;
 		
 	  case singletype: /* intentional fallthrough */
 	  case longtype: 	 enter_BSS(extvarlabel,"ds.l 1");
-		gen_load16_val(0,extvarid);
+		gen_clear32(extvarid);
 		insymbol(); break;
 		  
 	  case stringtype: insymbol();

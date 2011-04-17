@@ -315,7 +315,7 @@ void sub_params(SYM * sub_ptr) {
 void parse_shared_vars() {
   SYM  *zero_ptr,*one_ptr;
   int  i;
-  char buf0[40],buf1[40];
+  char buf1[40];
   BOOL share_it;
 
   /* get the SHARED list for current SUB and store details */
@@ -373,14 +373,10 @@ void parse_shared_vars() {
 		/* if simple numeric variable (short,long,single) or structure 
 		   -> get address */
 		if ((zero_ptr->type != stringtype) && (zero_ptr->object != array)) {
-		  gen_save32ad(4,0);  /* frame pointer */
-		  gen_sub32d_val(zero_ptr->address,0);     /* offset from frame top */
-		  gen_save32d(0,buf1);  /* store address in level ONE frame */
+		  gen_frame_offset_simple(zero_ptr->address,buf1);
 		} else {
 		  /* array or string -> level ZERO already contains address */
-		  itoa(-1*zero_ptr->address,buf0,10);
-		  strcat(buf0,"(a4)");
-		  gen_move32(buf0,buf1);
+		  gen_frame_offset_addr(-1*zero_ptr->address,buf1);
 		}
 	  }
 	}

@@ -130,7 +130,7 @@ void line_input() {
    if (storage->object == array) {
 	 point_to_array(storage,addrbuf);
 	 gen_load32a(addrbuf,0);
-	 gen_add32da(7,0);
+	 gen_add32da();
    } else gen_load32a(addrbuf,0);	/* string address */
 	 
    gen_call_args("_line_input","d0",0);

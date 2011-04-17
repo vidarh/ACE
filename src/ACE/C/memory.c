@@ -47,9 +47,7 @@ void poke() {
 	if (sym == comma) { 
 	  /* get value */
 	  insymbol();
-	  gen_pop_as_short(expr(),0); /* data to be poked */
-	  gen_pop_addr(0);   /* address */
-	  gen_save_indirect8();  /* poke (a0),d0 */
+	  gen_pokeb(expr());
 	}
   }
 }
@@ -60,9 +58,7 @@ void pokew() {
 	if (sym == comma) { 
 	  /* get value */
 	  insymbol();
-	  gen_pop_as_short(expr(), 0); /* data to be poked */
-	  gen_pop_addr(0);   /* address */
-	  gen_save_indirect16();   /* pokew (a0),d0 */
+	  gen_pokew(expr());
 	}
   }
 }
@@ -75,15 +71,8 @@ void pokel() {
 	  /* get value */
 	  insymbol();
 	  datatype=make_integer(expr());
-	  if ((datatype == shorttype) || (datatype == longtype)) {
-		/* coerce data to long */
-		if (datatype == shorttype) {
-		  gen_pop16d(0);
-		  gen_ext16to32(0);
-		} else gen_pop32d(0);   /* data to be poked */
-		gen_pop_addr(0);       /* address */
-		gen_save_indirect32(); /* pokel (a0),d0 */
-	  } else _error(4);
+	  if ((datatype == shorttype) || (datatype == longtype)) gen_pokel(expr());
+	  else _error(4);
 	}
   }
 }

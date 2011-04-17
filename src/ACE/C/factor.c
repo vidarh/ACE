@@ -235,7 +235,7 @@ static int handleident() {
 	
 	if (arraytype == stringtype) {
 	  /* push start address of string within BSS object */
-	  gen_add32da(7,0);
+	  gen_add32da();
 	  gen_push_addr(0);
 	} else if (arraytype == shorttype) gen_push_indirect_indexed16();
 	else gen_push_indirect_indexed32();
