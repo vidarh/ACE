@@ -30,38 +30,33 @@
 /* external */
 extern	int	sym;
 
-/* functions */
+/* SCREEN [CLOSE|FORWARD|BACK] */
 void	screen() {
-/*
-** SCREEN [CLOSE|FORWARD|BACK]
-*/
   int	rword,stype;
 
   insymbol();
 
   /* SCREEN CLOSE screen-id */
-  if (sym == closesym) {
-	insymbol();
+  if (eat(closesym)) {
 	gen_pop_as_short(expr(),0); /* screen-id */
 	gen_jsr("_closescreen");
   } else if (sym == forwardsym || sym == backsym) {
-	/* SCREEN FORWARD|BACK screen-id */
-	rword = sym;
+      /* SCREEN FORWARD|BACK screen-id */
+      rword = sym;
 
-	insymbol();
-	stype = expr();
-	if (stype == stringtype) _error(4);
-	else {
-	  gen_pop_as_short(stype,0); /* screen-id */
+      insymbol();
+      stype = expr();
+      if (nostring(stype)) {
+          gen_pop_as_short(stype,0); /* screen-id */
 
-		/* forward or back? */
-	  switch(rword) {
-	  case forwardsym : gen_load16d_val(1,1); break;
-	  case backsym 	:   gen_load16d_val(2,1); break;
-	  }
+          /* forward or back? */
+          switch(rword) {
+          case forwardsym : gen_load16d_val(1,1); break;
+          case backsym 	:   gen_load16d_val(2,1); break;
+          }
 
-	  gen_jsr("_change_screen_depth");
-	}
+          gen_jsr("_change_screen_depth");
+      }
   } else {
 	/* SCREEN screen-id,width,height,colors,mode */
 	/* open a screen */
@@ -70,8 +65,6 @@ void	screen() {
 							 shorttype /* height */  ,0, comma, 16, shorttype /* depth */   ,0, comma, 16,
 							 shorttype /* mode */    ,0, -1   , -1};
 
-	if (expect_token_sequence(&tokens)) {
-	  gen_call_args("_openscreen","d4.w,d3.w,d2.w,d1.w,d0.w",0);
-	}
+	if (expect_token_sequence(&tokens)) gen_openscreen();
   }
 }

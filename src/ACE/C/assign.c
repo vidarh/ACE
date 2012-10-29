@@ -197,7 +197,7 @@ void assign_to_string_variable(SYM * string_item,int string_size)
   /* copy string on stack to variable */
   gen_pop_addr(1);  /* source */
   gen_load32a(addrbuf,0);  /* destination */
-  gen_jsr("_strcpy");   /* copy source to destination */
+  gen_strcpy();  /* copy source to destination */
 }
 
 void assign_to_string_array(char * addrbuf)
@@ -208,9 +208,8 @@ void assign_to_string_array(char * addrbuf)
   */
   
   gen_pop_addr(1); /* source */
-  gen_load32a(addrbuf,0);
-  gen_add32da();   /* destination */
-  gen_jsr("_strcpy");  /* copy source to destination */
+  gen_load32a_plus_index(addrbuf); /* destination */
+  gen_strcpy();  /* copy source to destination */
 }
 
 void assign_to_struct(SYM * item)
@@ -267,7 +266,7 @@ void assign_to_struct(SYM * item)
 
 			gen_load32a(addrbuf,0);
 			if (item->shared && lev == ONE)
-			  gen_load_indirect32(0,0);   /* start address of structure */
+			  gen_load_indirect32();   /* start address of structure */
 
 			/* offset from struct start */ 
 			if (member->type != stringtype) {
@@ -280,7 +279,7 @@ void assign_to_struct(SYM * item)
 			} else if (member->type == stringtype) {  /* string */
 			  gen_pop_addr(1);  /* source */
 			  gen_add_addr_offset(member->offset);  /* destination = struct address + offset */
-			  gen_jsr("_strcpy");   /* copy source to destination */
+			  gen_strcpy();  /* copy source to destination */
 			} else if (member->type == shorttype) gen_pop16_var(absbuf);  /* short */
 			else gen_pop32_var(absbuf);  /* long, single */
 		  }
@@ -300,7 +299,7 @@ void assign_to_struct(SYM * item)
     
 		if (item->shared && lev == ONE) {
 		  gen_load32a(addrbuf,0);  /* address of structure variable */
-		  gen_pop_indirect32(0);   /* store new address in variable */
+		  gen_pop_indirect(longtype);   /* store new address in variable */
 		} else
 		  gen_pop32_var(addrbuf);  /* store new address in variable */
 	  }
@@ -367,8 +366,7 @@ void assign() {
 	  if ((storage_item->shared) && (lev == ONE) 
 		  && (storage_item->type != stringtype)) {
 		gen_load32a(addrbuf,0);  /* absolute address of store */
-		if (storage_item->type == shorttype) gen_pop_indirect16(0);
-		else gen_pop_indirect32(0);
+        gen_pop_indirect(storage_item->type);
 	  } else if (storage_item->type == stringtype) 
 		/* ordinary variable or shared string variable */
 		assign_to_string_variable(storage_item,MAXSTRLEN);
@@ -401,7 +399,7 @@ void assign() {
 	  else if (storage_item->type == stringtype) {
 		gen_pop_addr(1);
 		gen_load_addr(ext_name,0);
-		gen_jsr("_strcpy");
+		gen_strcpy();
 	  } else
 		  /* long integer, single-precision */
 		  gen_pop32_var(ext_name);
@@ -765,8 +763,7 @@ void read_data() {
 		  if ((storage->shared) && (lev == ONE)) {
 			gen_load32a(addrbuf,0);   /* abs addr of store */
 			if (storage->type == singletype)     gen_save_indirect32();
-			else if (storage->type == longtype)  gen_pop_indirect32(0);
-			else if (storage->type == shorttype) gen_pop_indirect16(0);
+            else gen_pop_indirect(storage->type);
 		  } else {
 			if (storage->type == singletype)     gen_save32d(0,addrbuf);
 			else if (storage->type == longtype)  gen_pop32_var(addrbuf);
@@ -780,14 +777,7 @@ void read_data() {
 	  }
 	} else _error(19);  /* variable expected */ 			
 
-	/* advance to next DATA item */
-	gen_load32a("_dataptr",2);
-	gen_jsr("_strlen");
-	gen_add32d_val(1,0); /* include EOS in length */
-	/* FIXME: Why does it do this rather than add,l d0, _dataptr ? */
-	gen_load32d("_dataptr",1);
-	gen_add32dd(0,1);
-	gen_save32d(1,"_dataptr");
+    gen_dataptr_next();
 
 	insymbol();
 	if (sym == lparen && storage->object != array) _error(71);  /* undeclared array */  

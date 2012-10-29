@@ -250,18 +250,16 @@ void circle()
   }
 
   /* convert x & y values to floats */
-  gen_load16d("_shortx",0);
-  gen_ext16to32(0);
-  gen_flt();
-  gen_save32d(0,"_floatx");
-  
   gen_load16d("_shorty",0);
   gen_ext16to32(0);
   gen_flt();
-  gen_save32d(0,"_floaty");
+  gen_push32d(0);
+
+  gen_load16d("_shortx",0);
+  gen_ext16to32(0);
+  gen_flt(); /* x is now in D0 */
   
-  gen_load32d("_floatx",0);
-  gen_load32d("_floaty",1);
+  gen_pop32d(1); /* y */
   
   if (!start_angle) gen_load32d(0,3);   /* default is zero */
   if (!end_angle)  gen_save32d_val(0xb3800049,4);  /* default is 359 */
@@ -272,8 +270,6 @@ void circle()
   
   enter_BSS("_shortx","ds.w 1");
   enter_BSS("_shorty","ds.w 1");
-  enter_BSS("_floatx","ds.l 1");
-  enter_BSS("_floaty","ds.l 1");
   reset_pen(colorset);
 }
 
@@ -350,7 +346,8 @@ void draw_line()
 	  insymbol();
 	}
   }
-  
+
+  /* FIXME: Isn't this better handled with some small runtime library functions? */
   /* draw the line, outline box, or filled box */
   if (box) {
 	gen_pop16d(5);  /* y2 */
@@ -451,12 +448,8 @@ void areafill()
   /* AREAFILL [mode] */
   
   insymbol();
-  
   if ((sym == shortconst) && ((shortval == 0) || (shortval == 1))) {
-	switch(shortval) {
-	case 0 : gen_load16d_val(0,0); break;
-	case 1 : gen_load16d_val(1,0); break;
-	}
+	gen_load16d_val(shortval,0);
 	insymbol();
   } else gen_load16d_val(0,0);
   
@@ -525,33 +518,24 @@ void pattern()
   }
 }
 
-void scroll()
-{
-  /* SCROLL (xmin,ymin)-(xmax,ymax),delta-x,delta-y */
-  short tokens[] =
-	{comma, 16, shorttype /* delta-x */,0, comma, shorttype /*delta-y*/,0,-1,-1};
-
+/* SCROLL (xmin,ymin)-(xmax,ymax),delta-x,delta-y */
+void scroll() {
   insymbol();
   if (!parse_rect()) return;
-  if (!expect_token_sequence(tokens)) return;
-
+  if (parse_gen_params(0,",w,w") == undefined) return;
   gen_scrollraster();
 } 
-
-
 
 /* STYLE n */
 void text_style() {
   insymbol();
-  make_sure_long();
-  gen_call_void("_change_text_style",4);
+  gen_call_sargs("_change_text_style","l",4);
 }
 
 /* FONT name,size */
 void text_font() {
-  short tokens[] = {stringtype,4,comma,16,longtype,0,-1,-1};
   insymbol();
-  if (expect_token_sequence(tokens)) gen_call_void("_change_text_font",8);
+  gen_call_sargs("_change_text_font","s,l",8);
 }
 
 /* GET */

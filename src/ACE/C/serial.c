@@ -56,8 +56,6 @@ static void open_serial() {
  */
   short tokens[] = {comma,16,longtype/*unit*/,0,comma,16,longtype/*bps*/,0,comma,16,stringtype,4,-1-1};
 
-  parse_channel();
-
   if (!expect_token_sequence(tokens)) return;
 
   /* optional serial READ buffer size */
@@ -65,7 +63,7 @@ static void open_serial() {
   if (sym == comma) {
 	insymbol();
 	if (sym != comma) {
-	  make_sure_long(expr()); /* Read buffer size */ 
+        long_expr(); /* Read buffer size */ 
 	} else gen_push32_val(512);		/* defaults to 512 bytes */	
   } else gen_push32_val(512);		/* defaults to 512 bytes */
 
@@ -79,17 +77,7 @@ static void open_serial() {
   gen_call_void("_OpenSerial",24);
 }
 
-/* SERIAL CLOSE [#] channel */
-static void close_serial()
-{
-  parse_channel();
-  gen_call_void("_CloseSerial",4);
-}
-
-
-
-
-/* read a specified number of bytes into a buffer.
+/* 
    SERIAL READ [#] channel,buffer,length
 */
 static void read_serial()
@@ -97,9 +85,7 @@ static void read_serial()
   SYM  *storage;
   char addrbuf[40];
 
-  parse_channel();
-  if (sym != comma) {_error(16);return;}
-  insymbol();						
+  if (!eat_comma()) return;
   if (sym == ident && obj == variable) /* buffer */ {
 	/* if string variable/array doesn't exist, create a simple variable */
 	if (!exist(id,variable) && !exist(id,array)) {
@@ -125,38 +111,30 @@ static void read_serial()
 	} else gen_push32_var(addrbuf);
 	
 	insymbol();
-	if (sym != comma) _error(16);
-	else {
-	  insymbol();
-	  make_sure_long(expr()); /* length */
-	  gen_call_void("_ReadSerial",12);
-	}
+    gen_call_sargs("_ReadSerial",",l",12);
   } else _error(19); /* variable (or array) expected */      
   insymbol();
 }
 
-static void write_serial()
-{
-/* write a specified number of bytes from a buffer.
-   SERIAL WRITE [#] channel,buffer,length
+/* SERIAL
+     READ  [#] channel,buffer,length
+          read a specified number of bytes into a buffer.
+     WRITE [#] channel,buffer,length
+          write a specified number of bytes from a buffer.
+     CLOSE [#] channel
 */
-  short tokens[] = {comma,16,stringtype/*buffer*/,4,comma,16,longtype/*length*/,0};
-  parse_channel();
-  if (!expect_token_sequence(tokens)) return;
-  gen_call_void("_WriteSerial",12);
-}
-
 void serial_command()
 {
   /* parse a serial command */
 
   insymbol();
- 
+  parse_channel();
+
   switch(sym) {
-  case opensym:	open_serial(); break;
-  case closesym:	close_serial();	break;
-  case readsym:	read_serial(); break;
-  case writesym:	write_serial();	break;
+  case opensym:	 open_serial(); break;
+  case readsym:	 read_serial(); break;
+  case closesym: gen_call_void("_CloseSerial",4); break;
+  case writesym: gen_call_sargs("_WriteSerial",",s,l",12); break;
   default:	_error(75);	/* open,close etc expected */
 	break;
   }

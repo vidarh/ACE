@@ -30,9 +30,15 @@ struct codegen_target {
   void (* not)(int type);
   void (* or)(int);
   void (* pea)(const char *);
+  void (* pop32d)(unsigned char r);
+  void (* push16_val)(long val);
   void (* push32d)(unsigned char);
+  void (* push32_val)(long val);
   void (* rts)();
   void (* unlk)();
+
+  void (* call_args)(const char * label, const char * args, unsigned int stack);
+  int (* Flt)(int typ);
 
   void (* code_section)(FILE *);
   void (* end_program)(FILE *);
@@ -68,6 +74,8 @@ static inline void gen_unlk()               { target->unlk(); }
 static inline void gen_incr_indir(int type) { target->incr_indir(type); }
 static inline void gen_decr_indir(int type) { target->decr_indir(type); }
 static inline void gen_and(int localtype)   { target->and(localtype); }
+static inline void gen_pop32d(unsigned char r) { target->pop32d(r); }
+
 
 void generic_rts();
 void generic_ret();
@@ -77,10 +85,9 @@ void gen_move32(const char * src, const char * dest);
 void gen_jsr(const char * label);
 void gen_push32d(unsigned char reg);
 void gen_push32_val(long val);
-void gen_pop32d(BYTE reg);
 void gen_pop16d(unsigned char reg);
 void gen_load_indirect_addr(unsigned char ar, unsigned char dest);
-void gen_load_indirect32(unsigned char ar, unsigned char dr);
+void gen_load_indirect32();
 void gen_save32_val(long val, const char * target);
 void gen_comment(const char * c);
 void gen_rport_rel_x(unsigned char r);
@@ -100,7 +107,6 @@ void gen_bne(const char * label);
 void gen_beq(const char * label);
 void gen_blt(const char * label);
 void gen_bgt(const char * label);
-void gen_bge(const char * label);
 void gen_jmp(const char * label);
 void gen_load32a(const char * label, unsigned char reg);
 void gen_load32d(const char * label, unsigned char reg);
@@ -124,34 +130,27 @@ void gen_save_indirect8();
 void gen_save_indirect32();
 void gen_load16d_val(int val, unsigned char reg);
 void gen_clear_addr();
-void gen_add16d_val(long val, unsigned char reg);
 void gen_add32dd(BYTE reg1, BYTE reg2);
-void gen_add32da();
 void gen_add32_val(long val, const char * label);
 void gen_add_addr_offset(long val);
 void gen_save32ad(unsigned char reg, unsigned char dr);
 void gen_sub32d_val(long val, unsigned char reg);
 void gen_pop8_var(const char * label);
-void gen_push8_var(const char * label);
-void gen_push_indirect_indexed16();
-void gen_push_indirect_indexed32();
-void gen_push_indirect32(unsigned char r);
+void gen_push_indirect_indexed(int type);
+void gen_push_indirect(int type);
 void gen_cmp32sp_val(long val);
 void gen_cmp32dd();
 void gen_add16_val(long val, const char * label);
-void gen_push_indirect16(unsigned char r);
 void gen_pop_indirect_indexed32(unsigned char ar, unsigned char dr);
 void gen_pop_indirect_indexed16(unsigned char ar, unsigned char dr);
-void gen_save_indirect_indexed16(const char * label);
 void gen_save_indirect_indexed32(const char * label);
-void gen_cmp16_val(long val, const char * target);
+void gen_test16(const char * target);
 void gen_cmp16dd();
 void gen_add32d_val(long val, unsigned char reg);
 void gen_cmp32_val(long val, const char * target);
 void gen_add32dd(BYTE reg1, BYTE reg2);
 void gen_jmp_fwd(const char * label,const char * flag);
-void gen_pop_indirect32(unsigned char r);
-void gen_pop_indirect16(unsigned char r);
+void gen_pop_indirect(int typ);
 void gen_move16(const char * src, const char * dest);
 void gen_move32da(unsigned char srcreg, unsigned char destreg);
 void gen_sub(int t);
@@ -175,6 +174,8 @@ void gen_gfxcall(const char * lvo);
 void gen_call_args(const char * label, const char * args, unsigned int stack);
 static inline void gen_call_void(const char * label, unsigned int stack) { gen_call_args(label,"",stack); }
 static inline void gen_call(const char * label, unsigned int stack) { gen_call_args(label,":d0",stack); }
+
+void gen_fwrite(int exprtype);
 
 void gen_atan();
 void gen_cos();

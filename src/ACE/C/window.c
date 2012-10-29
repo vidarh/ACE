@@ -64,53 +64,50 @@ BOOL parse_rect()
   return expect_token_sequence(rect_tokens);
 }
 
-void window()
-{
+/* WINDOW wdw-id[,title],rectangle[,type][,screen-id] 
+   WINDOW CLOSE wdw-id
+   WINDOW OUTPUT wdw-id 
+   WINDOW ON | OFF | STOP
+*/
+void window() {
   int wtype;
 
-  /* WINDOW wdw-id[,title],rectangle[,type][,screen-id] 
-	 WINDOW CLOSE wdw-id
-	 WINDOW OUTPUT wdw-id 
-	 WINDOW ON | OFF | STOP
-  */
+  insymbol();
 
-
- insymbol();
-
- if (sym == onsym || sym == offsym || sym == stopsym)
-   change_event_trapping_status(lastsym);
- else if (sym == closesym) wdwclose();
- else if (sym == outputsym) wdwoutput();
- else {
-   /* open a window */
-   make_sure_long(expr()); /* Wdw-id */
-   if (sym != comma) _error(16);
-   else {
-	 insymbol();
-	 if (sym != comma) {
-	   wtype=expr();
-	   if (wtype != stringtype) _error(4); /* type mismatch */
-	 } else gen_push32_val(0);	/* NULL */
-	 
-	 if (!parse_rect()) return;
-				 
-	 /* optional window type */
-	 if (sym == comma) {
-	   insymbol();
-	   if (sym != comma) make_sure_long(expr());
-	   else gen_push32_val(-1);
-	 } else gen_push32_val(-1);
-				 
-	 /* optional screen-id */
-	 if (sym == comma) {
-	   insymbol();
-	   if (sym != comma) make_sure_long(expr());
-	   else gen_push32_val(0);
-	 } else gen_push32_val(0);		
-				 
-	 /* call open-window routine */
-	 gen_call_void("_OpenWdw",32);
-   }
- }
+  if (sym == onsym || sym == offsym || sym == stopsym)
+      change_event_trapping_status(lastsym);
+  else if (sym == closesym) wdwclose();
+  else if (sym == outputsym) wdwoutput();
+  else {
+      /* open a window */
+      make_sure_long(expr()); /* Wdw-id */
+      if (sym != comma) _error(16);
+      else {
+          insymbol();
+          if (sym != comma) {
+              wtype=expr();
+              if (wtype != stringtype) _error(4); /* type mismatch */
+          } else gen_push32_val(0);	/* NULL */
+          
+          if (!parse_rect()) return;
+          
+          /* optional window type */
+          if (sym == comma) {
+              insymbol();
+              if (sym != comma) make_sure_long(expr());
+              else gen_push32_val(-1);
+          } else gen_push32_val(-1);
+          
+          /* optional screen-id */
+          if (sym == comma) {
+              insymbol();
+              if (sym != comma) make_sure_long(expr());
+              else gen_push32_val(0);
+          } else gen_push32_val(0);		
+          
+          /* call open-window routine */
+          gen_call_void("_OpenWdw",32);
+      }
+  }
 }
 

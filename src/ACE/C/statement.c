@@ -80,8 +80,6 @@ extern	ACELIBS acelib[NUMACELIBS];
 extern	char 	librarybase[MAXIDSIZE+6];
 extern	BOOL 	have_lparen;
 extern	BOOL 	have_equal;
-extern	BOOL 	restore_a4;
-extern	BOOL 	restore_a5;
 extern	BOOL	narratorused;
 extern	BOOL	end_of_source;
 extern	char 	exit_sub_name[80];
@@ -120,9 +118,7 @@ static void wave() {
    make_sure_short(expr());  /* voice (short) 0..3 */
    
    /* wave definition */
-   if (sym != comma) _error(16);
-   else {
-	 insymbol();
+   if (eat_comma()) {
 	 if (sym == sinsym) {
 	   gen_clear_addr(); /* SIN wave = 0 -> flag for _wave */
 	   insymbol();
@@ -131,11 +127,9 @@ static void wave() {
 	   if (expr() != longtype) _error(4);
 	   
 	   /* number of bytes? */
-	   if (sym != comma) _error(16);
-	   else {
-		 insymbol();
-		 make_sure_long(expr());
-		 if (statetype == notype) _error(4); /* string -> type mismatch */
+	   if (eat_comma()) {
+           long_expr();
+           if (statetype == notype) _error(4); /* string -> type mismatch */
 	   }   
 
 	   gen_pop32d(1);  /* pop # of bytes of waveform data */
@@ -175,11 +169,29 @@ static void increment_decrement(int opsym) {
   } 
 }
 
+void call_shared_lib_func(SYM * func_item)
+{
+    char func_address[MAXIDSIZE + 9];
+    BYTE libnum;
+
+    /* call shared library function */
+    if (func_item->no_of_params != 0)
+        { load_func_params(func_item); insymbol(); }
+
+    /* call the function */
+    if ((libnum=check_for_ace_lib(func_item->libname)) == NEGATIVE) 
+        make_library_base(func_item->libname);
+    else strcpy(librarybase,acelib[libnum].base);
+    gen_load32a(librarybase,6);
+    itoa(func_item->address,func_address,10);
+    strcat(func_address,"(a6)");
+    gen_jsr(func_address);
+    gen_restore_regs();
+}
 
 static void call_statement() {
-  char  func_name[MAXIDSIZE],func_address[MAXIDSIZE+9];
-  SYM * func_item, * mc_item;
-  BYTE  libnum;
+  char  func_name[MAXIDSIZE];
+  SYM * mc_item;
   char sub_name[80],buf[50];
   char addrbuf[80];
   char  ext_name[MAXIDSIZE+1];
@@ -196,20 +208,7 @@ static void call_statement() {
 	   remove_qualifier(func_name);
 	   
 	   if (exist(func_name,function)) { 
-		 func_item=curr_item;
-		 if (func_item->no_of_params != 0)
-		   { insymbol(); load_func_params(func_item); }
-		 /* call it */
-		 if ((libnum=check_for_ace_lib(func_item->libname)) == NEGATIVE) 
-		   make_library_base(func_item->libname);
-		 else
-		   strcpy(librarybase,acelib[libnum].base);
-		 gen_load32a(librarybase,6);
-		 itoa(func_item->address,func_address,10);
-		 strcat(func_address,"(a6)");
-		 gen_jsr(func_address);
-		 if (restore_a4) { gen_load32a("_a4_temp",4); restore_a4=FALSE; }
-		 if (restore_a5) { gen_load32a("_a5_temp",5); restore_a5=FALSE; }
+           call_shared_lib_func(curr_item);
 	   } else {
 		 /* subprogram, machine code subroutine or external function? */
 		 strcpy(sub_name,"_SUB_");
@@ -272,42 +271,37 @@ static void call_statement() {
 /* sound */
 /* ------*/
 
-static void sound()
-{
+static void sound() {
 /* make a tone of given period, duration and volume through 
    the specified channel */
 
-BOOL voice=FALSE;
-BOOL volume=FALSE;
+    BOOL voice=FALSE;
+    BOOL volume=FALSE;
 
- insymbol();
- make_sure_short(expr());  /* period (short) 0..32767 */ 
+    insymbol();
+    make_sure_short(expr());  /* period (short) 0..32767 */ 
 
- if (sym != comma) _error(16);
- else {
-  insymbol();
-  gen_Flt(expr());  /* duration (single) 0..77 */
- }
+    if (eat_comma()) {
+        gen_Flt(expr());  /* duration (single) 0..77 */
+    }
 
- if (sym == comma) {
-   insymbol();
-   if (sym != comma) {  /* if comma -> skip volume */
-	 make_sure_short(expr());  /* volume (short) 0..64 */
-	 volume=TRUE;
-   } else gen_load32d_val(64,2);   /* default volume = 64 */
- } else gen_load32d_val(64,2);   /* default volume = 64 */
+    if (try_comma()) {
+        if (sym != comma) {  /* if comma -> skip volume */
+            make_sure_short(expr());  /* volume (short) 0..64 */
+            volume=TRUE;
+        } else gen_load32d_val(64,2);   /* default volume = 64 */
+    } else gen_load32d_val(64,2);   /* default volume = 64 */
 
- if (sym == comma) {
-  insymbol();
-  make_sure_short(expr());  /* voice (short) 0..3 */
-  voice=TRUE;
- } else gen_load32d_val(0,3);   /* default voice = 0 */
+    if (try_comma()) {
+        make_sure_short(expr());  /* voice (short) 0..3 */
+        voice=TRUE;
+    } else gen_load32d_val(0,3);   /* default voice = 0 */
+    
+    if (voice)  gen_pop16d(3);  /* pop voice */
+    if (volume) gen_pop16d(2);  /* pop volume */
 
- if (voice)  gen_pop16d(3);  /* pop voice */
- if (volume) gen_pop16d(2);  /* pop volume */
-
- gen_call_args("_sound","d1,d0.w",0);
- enter_XREF("_MathBase");
+    gen_call_args("_sound","d1,d0.w",0);
+    enter_XREF("_MathBase");
 }   
 
 static void handle_label(char * label_name)
@@ -340,13 +334,12 @@ static void handle_label(char * label_name)
 void statement()
 {
 char  buf[50],idholder[50],sub_name[80];
-char  func_name[MAXIDSIZE],func_address[MAXIDSIZE+9];
+char  func_name[MAXIDSIZE];
 char  ext_name[MAXIDSIZE+1];
 int   commandsym;
 int   oldobj,oldtyp,stype;
 int   oldlevel;
-SYM   *func_item,*sub_item;
-BYTE  libnum;
+SYM   *sub_item;
 BOOL  need_symbol=TRUE;
 
  /* data object assignment (variable, subprogram or array element), 
@@ -413,21 +406,7 @@ BOOL  need_symbol=TRUE;
      call_external_function(ext_name,&need_symbol);
      if (need_symbol) insymbol();
     } else if (exist(func_name,function)) {
-     /* call shared library function */
-     func_item=curr_item;
-     if (func_item->no_of_params != 0)
-        { load_func_params(func_item); insymbol(); }
-
-     /* call the function */
-     if ((libnum=check_for_ace_lib(func_item->libname)) == NEGATIVE) 
-        make_library_base(func_item->libname);
-     else strcpy(librarybase,acelib[libnum].base);
-     gen_load32a(librarybase,6);
-     itoa(func_item->address,func_address,10);
-     strcat(func_address,"(a6)");
-     gen_jsr(func_address);
-     if (restore_a4) { gen_load32a("_a4_temp",4); restore_a4=FALSE; }
-     if (restore_a5) { gen_load32a("_a5_temp",5); restore_a5=FALSE; }
+        call_shared_lib_func(curr_item);
     } else {
       /* call SUB */
       if (sub_item->no_of_params != 0)  { load_params(sub_item); insymbol(); }
@@ -507,29 +486,83 @@ BOOL  need_symbol=TRUE;
 	 change_event_trapping_status(sym);
 	 break;
 
-   case blocksym: block_statement(); break;
-   case callsym:  call_statement(); break; 
+   case defintsym:   change_id_type(shorttype); break;
+   case deflngsym:   change_id_type(longtype); break;
+   case defsngsym:   change_id_type(singletype); break;
+   case defdblsym:   change_id_type(singletype); break;
+   case defstrsym:   change_id_type(stringtype); break;
+
    case casesym: check_for_event(); case_statement(); break;
-   case chdirsym: chdir(); break;
-   case circlesym: circle(); break;
+   case ifsym:   check_for_event(); if_statement(); break;
+   case serialsym: check_for_event(); serial_command(); break;
+   case printssym: check_for_event(); prints_statement(); break;
+   case readsym: check_for_event(); read_data(); break;
+   case writesym:  check_for_event(); write_to_file(); break;
+
+   case screensym: screen(); check_for_event(); break;
+   case windowsym:  window(); check_for_event(); break;
+
+   case blocksym:    block_statement(); break;
+   case callsym:     call_statement(); break; 
+   case chdirsym:    chdir(); break;
+   case circlesym:   circle(); break;
+   case closesym:    close_a_file(); break;
+   case colorsym:    color(); break;
+   case commonsym:   define_common_or_global_variable(sym); break;
+   case constsym:    define_constant(); break;
+   case datasym:     get_data(); break;
+   case declaresym:  declare(); break;
+   case dimsym:      dim(); break;
+   case iffsym:      iff(); break;
+   case killsym:     kill(); break;
+   case externalsym: define_external_object(); break;
+   case filessym:    files(); break;
+   case fontsym:     text_font(); break;
+   case forsym:      for_statement(); break;
+   case gadgetsym:   gadget(); break;
+   case globalsym:   define_common_or_global_variable(sym); break;
+   case librarysym: library(); break;
+   case menusym: menu(); break;
+   case messagesym: message(); break;
+   case msgboxsym: MsgBox(); break;
+   case namesym: ace_rename(); break;
+   case pokesym:    poke(); break;
+   case pokewsym: pokew(); break;
+   case pokelsym: pokel(); break;
+   case scrollsym: scroll(); break;
+   case opensym: open_a_file(); break;
+   case optionsym: parse_option_list(); break;
+   case paintsym: paint(); break;
+   case patternsym: pattern(); break;
+   case psetsym: pset(); break;
+   case repeatsym: repeat_statement(); break;
+   case stringsym: declare_variable(stringtype); break;
+   case soundsym: sound(); break;
+   case structsym: define_structure(); break;
+   case stylesym: text_style(); break;
+   case swapsym: swap(); break;
+   case wavesym: wave(); break;
+   case whilesym: while_statement(); break;
+   case saysym: say(); break;
+
+   case clssym:      gen_jsr("_cls"); insymbol(); break;
+   case homesym: gen_jsr("_home"); insymbol(); break;
+   case pendownsym: gen_jsr("_pendown"); insymbol(); break;
+   case penupsym:   gen_jsr("_penup"); insymbol(); break;
+
+   case palettesym:   insymbol(); gen_fcall("_palette",expr(),"w,f,f,f",notype,"d3,d2,d1,d0.w",0); break;
+   case setxysym:     insymbol(); gen_fcall("_setxy",expr(),"s,s",shorttype,"d1.w,d0.w",0); break; 
+   case turnsym:      insymbol(); gen_fcall("_turn",expr(),"s",shorttype,"d0.w",0); break;
+   case turnleftsym:  insymbol(); gen_fcall("_turnleft",expr(),"s",shorttype,"d0.w",0); break;
+   case turnrightsym: insymbol(); gen_fcall("_turnright",expr(),"s",shorttype,"d0.w",0); break;
+   case fixsym:       insymbol(); gen_fcall("_fix",expr(),"l",longtype,"d0",0); break;
+
+
    case clearsym:
 	 insymbol(); 
 	 if (sym == allocsym) { gen_jsr("_clear_alloc"); }
 	 insymbol();
 	 break;
-   case closesym:   close_a_file(); break;
-   case clssym:     gen_jsr("_cls"); insymbol(); break;
-   case colorsym:   color(); break;
-   case commonsym:  define_common_or_global_variable(sym); break;
-   case constsym:   define_constant(); break;
-   case datasym:    get_data(); break;
-   case declaresym: declare(); break;
-   case defintsym:  change_id_type(shorttype); break;
-   case deflngsym:  change_id_type(longtype); break;
-   case defsngsym:  change_id_type(singletype); break;
-   case defdblsym:  change_id_type(singletype); break;
-   case defstrsym:  change_id_type(stringtype); break;
-   case dimsym:     dim(); break;
 	 
    case endsym:
    case stopsym: 
@@ -554,21 +587,14 @@ BOOL  need_symbol=TRUE;
 	   insymbol();
 	 }
 	 break;
-   case externalsym: define_external_object(); break;
-   case filessym:   files(); break;
-   case fixsym:     
-	 insymbol();
-	 gen_fcall("_fix",expr(),"l",longtype,"d0",0);
-	 break;
-   case fontsym: text_font(); break;
-   case forsym: for_statement(); break;
+
    case forwardsym:
 	 insymbol();
 	 gen_Flt(expr());
 	 gen_call_args("_forward","d0",0);
 	 enter_XREF("_MathTransBase");
 	 break;
-   case gadgetsym: gadget(); break;
+
    case getsym: 
 	 insymbol();
 	 if (sym == lparen) {
@@ -578,7 +604,6 @@ BOOL  need_symbol=TRUE;
 	   random_file_get();
 	 }
 	 break;
-   case globalsym: define_common_or_global_variable(sym); break;
 
    case gotosym:
    case gosubsym:
@@ -599,20 +624,17 @@ BOOL  need_symbol=TRUE;
 	 insymbol(); 
 	 break;
 
-   case homesym: gen_jsr("_home"); insymbol(); break;
-   case ifsym:   check_for_event(); if_statement(); break;
-   case iffsym: iff(); break;
-   case killsym: kill(); break;
    case inputsym: 
 	 check_for_event(); 
 	 insymbol();
 	 if (sym == hash) input_from_file(); else input(); 
 	 break;
-   case librarysym: library(); break;
+
    case linesym:
 	 insymbol();
 	 if (sym == inputsym) line_input(); else draw_line();
 	 break;
+
    case locatesym: 
 	 insymbol();
 	 make_sure_short(expr());  /* ROW */
@@ -628,10 +650,6 @@ BOOL  need_symbol=TRUE;
 	 declare_variable(longtype);
 	 break;
 
-   case menusym: menu(); break;
-   case messagesym: message(); break;
-   case msgboxsym: MsgBox(); break;
-   case namesym: ace_rename(); break;
    case onsym:
 	 /* on <event> | <integer-expression> */
 	 insymbol();
@@ -642,18 +660,6 @@ BOOL  need_symbol=TRUE;
 	 else
 	   on_branch();    
 	 break;
-   case opensym: open_a_file(); break;
-   case optionsym: parse_option_list(); break;
-   case paintsym: paint(); break;
-   case palettesym:
-	 insymbol(); gen_fcall("_palette",expr(),"w,f,f,f",notype,"d3,d2,d1,d0.w",0);
-	 break;
-   case patternsym: pattern(); break;
-   case pendownsym: gen_jsr("_pendown"); insymbol(); break;
-   case penupsym:   gen_jsr("_penup"); insymbol(); break;
-   case pokesym:    poke(); break;
-   case pokewsym: pokew(); break;
-   case pokelsym: pokel(); break;
 
    case printsym:
    case question:
@@ -663,8 +669,6 @@ BOOL  need_symbol=TRUE;
 	   print_to_file();
    break;
 
- case printssym: check_for_event(); prints_statement(); break;
- case psetsym: pset(); break;
  case putsym: 
    insymbol();
    if (sym == stepsym || sym == lparen)  {
@@ -674,7 +678,6 @@ BOOL  need_symbol=TRUE;
 	 random_file_put();
    }
    break;
- case readsym: check_for_event(); read_data(); break;
  case remsym: 
    while ((sym != endofline) && (!end_of_source)) nextch();
    insymbol();
@@ -688,28 +691,21 @@ BOOL  need_symbol=TRUE;
    gen_jsr("_randomise");
    enter_XREF("_MathBase");
    break;
- case repeatsym: repeat_statement(); break;
  case restoresym: gen_move32("#_BASICdata","_dataptr"); insymbol(); break;
  case returnsym: 
    check_for_event();
    gen_rts();
    insymbol();
    break;
- case saysym: say(); break;
- case screensym: screen(); check_for_event(); break;
- case scrollsym: scroll(); break;
- case serialsym: check_for_event(); serial_command(); break;
  case setheadingsym: 
    insymbol();
    gen_pop_as_short(expr(),0);
    gen_jsr("_setheading");
    break;
- case setxysym: 
-   insymbol();
-   gen_fcall("_setxy",expr(),"s,s",shorttype,"d1.w,d0.w",0);
-   break;
+
  case shortintsym: declare_variable(shorttype); break;
  case singlesym:   declare_variable(singletype); break;
+
  case sleepsym: 
    insymbol();
    if (sym != forsym) gen_jsr("_sleep"); 
@@ -719,11 +715,7 @@ BOOL  need_symbol=TRUE;
 	 gen_fcall("_sleep_for_secs",expr(),"s",notype,"",4);
    }
    break;
- case stringsym: declare_variable(stringtype); break;
- case soundsym: sound(); break;
- case structsym: define_structure(); break;
- case stylesym: text_style(); break;
- case swapsym: swap(); break;
+
  case systemsym:
    insymbol();
    stype = make_integer(expr());
@@ -737,13 +729,6 @@ BOOL  need_symbol=TRUE;
      gen_call_void("_system_call",4);
    }
    break;
- case turnsym:      insymbol(); gen_fcall("_turn",expr(),"s",shorttype,"d0.w",0); break;
- case turnleftsym:  insymbol(); gen_fcall("_turnleft",expr(),"s",shorttype,"d0.w",0); break;
- case turnrightsym: insymbol(); gen_fcall("_turnright",expr(),"s",shorttype,"d0.w",0); break;
- case wavesym: wave(); break;
- case whilesym: while_statement(); break;
- case windowsym:  window(); check_for_event(); break;
- case writesym:  check_for_event(); write_to_file(); break;
 
  case  increment:  /* ++ */
  case decrement:   /* -- */

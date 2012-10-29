@@ -36,41 +36,16 @@ extern	int	lev;
 extern	char	id[MAXIDSIZE];
 extern	SYM	*curr_item;
 
-/* MESSAGE OPEN [#]channel,port-name,mode */
-static void message_open() {
-  parse_channel();
-  if (sym != comma) _error(16);
-  else {
-	/* port-name */
-	insymbol();
-	if (expr() != stringtype) _error(4);
-	else {
-	  if (sym != comma) _error(16);
-	  else {
-		/* mode (r,R,w,W) */
-		insymbol();
-		if (expr() != stringtype) _error(4);
-		else gen_call_void("_MessageOpen",12);
-	  }
-	}
-  } 
-}
-
 /* MESSAGE READ [#]channel,message-string */
 static void	message_read() {
   SYM	*storage;
   char	addrbuf[40];
 
-  parse_channel();
-  if (sym != comma) {
-	_error(16);
-	return;
-  }
+  if (!eat_comma()) return;
 
   /*
   ** Message string. 
   */
-  insymbol();						
   if (sym == ident && obj == variable) {
 	/* 
 	** If string variable/array doesn't exist, 
@@ -89,9 +64,7 @@ static void	message_read() {
 	
 	storage = curr_item;
 	
-	/* 
-	** Is it a string variable or array? 
-	*/
+	/* Is it a string variable or array? */
 	if (storage->type != stringtype) _error(4);
 	else {
 	  /* 
@@ -116,42 +89,20 @@ static void	message_read() {
   } else _error(19);  /* variable or array expected */
 }
 
+/* MESSAGE CLOSE|WAIT|CLEAR [#]channel */
+/* MESSAGE OPEN [#]channel,port-name,mode */
+/* MESSAGE READ|WAIT [#]channel ... */
 /* MESSAGE WRITE [#]channel,message-string */
-static void message_write() {
-  parse_channel();
-  if (sym != comma) _error(16);
-  else gen_fcall("_MessageWrite",expr(),"s",stringtype,"",8);
-}
-
-/* MESSAGE WAIT [#]channel */
-static void message_wait() {
-  parse_channel();
-  gen_call_void("_MessageWait",4);
-}
-
-/* MESSAGE CLEAR [#]channel */
-static void message_clear() {
-  parse_channel();
-  gen_call_void("_MessageClear",4);
-}
-
-/* MESSAGE CLOSE [#]channel */
-static void message_close() {
-  parse_channel();
-  gen_call_void("_MessageClose",4);
-}
-
-/*  MESSAGE OPEN|CLOSE|READ|WRITE|WAIT|CLEAR */
 void message() {
 	insymbol();
+    parse_channel();
 	switch(sym) {
-		case opensym	: message_open(); break;
-		case closesym	: message_close(); break;
-		case readsym	: message_read(); break;
-		case writesym	: message_write(); break;
-		case waitsym	: message_wait(); break;
-		case clearsym	: message_clear(); break;
-
-		default		: _error(77); break;	
+    case readsym	: message_read(); break;
+    case writesym	: gen_fcall("_MessageWrite",expr(),",s",stringtype,"",8);
+    case opensym	: gen_call_sargs("_MessageOpen",",s,s",12); break;
+    case closesym	: gen_call_void("_MessageClose",4); break;
+    case waitsym	: gen_call_void("_MessageWait",4);  break;
+    case clearsym	: gen_call_void("_MessageClear",4); break;
+    default		    : _error(77); break;	
 	}	
 }

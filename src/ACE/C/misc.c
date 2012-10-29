@@ -226,11 +226,10 @@ void get_abs_ndx(SYM * curr)
   for (i=curr->dims;i>=0;i--) {
 	sprintf(mulbuf,"#%d",ndx_mult);
 	
-	gen_pop16d(1);  	 
-	gen_ext16to32(1);
-	gen_push32d(1);   /* push next index after coercing to long */
+    /* push next index after coercing to long */
+    make_long(); /* FIXME: This originally used D1, but can't see any reasons why it can't use D0? */
 	gen_push32_var(mulbuf); /* push cumulative index */
-	gen_call_void("lmulu",8);
+	gen_lmulu();
 	gen_add32dd(0,7);
 	ndx_mult *= curr->index[i];
   }
@@ -242,7 +241,7 @@ void get_abs_ndx(SYM * curr)
 	/* calculate absolute offset */  
 	gen_push32d(7);
 	gen_push32_val(curr->numconst.longnum);
-	gen_call_void("lmulu",8);	/* d7*MAXSTRLEN */
+	gen_lmulu();	/* d7*MAXSTRLEN */
 	gen_move32dd(0,7);
   } else if (curr->type == shorttype)
     gen_lsl(1);   /* d7*2 */
@@ -307,16 +306,7 @@ int push_struct(SYM * item)
 		}
 
 		/* push value */
-		if (mbr_type == bytetype) {
-		  gen_push8_var(absbuf);
-		  mbr_type=shorttype;              /* byte */
-		} else if (mbr_type == shorttype)
-		  gen_push16_var(absbuf);  /* short */
-		else if (mbr_type == stringtype) {
-		  gen_add_addr_offset(member->offset);
-		  gen_push_addr(0);  /* push string address */
-		} else
-		  gen_push32_var(absbuf);  /* long, single */ 
+        mbr_type = gen_push_var(absbuf, mbr_type, member->offset);
 	  }
 	}
 	insymbol();
@@ -326,11 +316,7 @@ int push_struct(SYM * item)
 	itoa(-1*item->address,addrbuf,10);
 	strcat(addrbuf,frame_ptr[lev]);
 	
-	if (item->shared && lev == ONE) {
-	  gen_load32a(addrbuf,0);        /* address of structure variable */
-	  gen_push_indirect32(0);       /* start address of structure */
-	} else
-      gen_push32_var(addrbuf);
+	gen_push_address(item->shared && lev == ONE, addrbuf, longtype);
 
 	return(longtype);
   }
@@ -448,16 +434,14 @@ void MsgBox()
   insymbol();
   
   if (expr() != stringtype) _error(4);  /* message */
+  else if (sym != comma) _error(16);
   else {
-	if (sym != comma) _error(16);
-	else {
 	  insymbol();
 	  if (expr() != stringtype) _error(4); /* response text */
 	  else {
-		/* no second button! (pass NULL) */
-		gen_push32_val(0);
-		gen_call_args("_sysrequest",":d0.w",12);
+          /* no second button! (pass NULL) */
+          gen_push32_val(0);
+          gen_call_args("_sysrequest",":d0.w",12);
 	  }
-	}
   }
 }

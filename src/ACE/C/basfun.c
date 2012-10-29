@@ -117,13 +117,12 @@ void load_temp_string(unsigned char reg)
 }
 
 void opt_arg(int type, int val) {
-  if (sym == comma) {
-	insymbol();
-	if (sym != comma) {
-	  if (type == longtype) make_sure_long(expr());
-	  else if (expr() != type) _error(4);
-	} else gen_push32_val(val);
-  } else gen_push32_val(val);
+    if (try_comma()) {
+        if (sym != comma) {
+            if (type == longtype) long_expr();
+            else if (expr() != type) _error(4);
+        } else gen_push32_val(val);
+    } else gen_push32_val(val);
 }
 
 static int chrstr(int sftype) {
@@ -206,8 +205,6 @@ int stringfunction()
    switch(func) {
    case chrstrsym: sftype = chrstr(sftype); break;
    case argstrsym: sftype = argstr(sftype); break;
-   case ascsym:    sftype = gen_fcall("_asc",sftype,"s",shorttype,"a2 : d0.w",0); break;
-   case binstrsym: sftype = gen_fcall("_binstr",sftype,"l",stringtype,"t0,d0:a0",0); break;
    case cstrsym : /* p == pointer type */
 	 if ((sftype == stringtype) || (sftype == longtype)) sftype=stringtype;
 	 else { _error(4); sftype=undefined; }
@@ -252,50 +249,53 @@ int stringfunction()
 	 } else { _error(4); sftype=undefined; }
 	 break;
 			 
-   case inputstrsym : sftype = gen_fcall("_inputstrfromfile",sftype,"E l,#l", stringtype, "d0,d1",0); break;     
-		
     /* INSTR$([I,]X$,Y$) */
    case instrsym  : /* l?, s, s */
 	 if (sftype != stringtype) {
 	   make_sure_long(sftype);
- 
-	   if (sym == comma) {
+	   if (eat_comma()) {
 		 offset_on_stack=TRUE;		/* optional offset I */
-		 insymbol(); sftype=expr(); 
-	   } else { _error(16); sftype=undefined; }	   
+		 sftype=expr(); 
+	   }
 	 } else offset_on_stack=FALSE;
 
 	 /* get X$ and Y$ */
 	 if (sftype == stringtype) {
-	   if (sym == comma) {
-		 insymbol();			 
-		 if (expr() == stringtype) {
-		   gen_pop_addr(1);		/* Y$ */
-		   gen_pop_addr(0);		/* X$ */
-		   if (offset_on_stack) gen_pop32d(0);	/* I */
-		   else gen_load32d_val(1,0); /* I = 1 */
-				  
-		   gen_call("_instr",0); /* returns posn of Y$ in X$ */
-		   sftype=longtype;
-		 } else { _error(4); sftype=undefined; }
-	   } else { _error(16); sftype=undefined; }
+         if (eat_comma()) {
+             if (expr() == stringtype) {
+                 gen_pop_addr(1);		/* Y$ */
+                 gen_pop_addr(0);		/* X$ */
+                 if (offset_on_stack) gen_pop32d(0);	/* I */
+                 else gen_load32d_val(1,0); /* I = 1 */
+                 
+                 gen_call("_instr",0); /* returns posn of Y$ in X$ */
+                 sftype=longtype;
+             } else { _error(4); sftype=undefined; }
+         }
 	 } else { _error(4); sftype=undefined; }
 	 break;
+
+   case saddsym :  
+	 if ((sftype=parse_gen_params(sftype,"s")) != undefined) sftype = longtype; 
+	 break;
 				
+   case ascsym:      sftype = gen_fcall("_asc",sftype,"s",shorttype,"a2 : d0.w",0); break;
+   case binstrsym:   sftype = gen_fcall("_binstr",sftype,"l",stringtype,"t0,d0:a0",0); break;
+   case inputstrsym: sftype = gen_fcall("_inputstrfromfile",sftype,"E l,#l", stringtype, "d0,d1",0); break;     
    case leftstrsym:  sftype = gen_fcall("_leftstr",sftype,"s,w",stringtype,"d0.w,a0,t1:a0",0); break;
    case lensym  :    sftype = gen_fcall("_strlen",sftype,"s",longtype,"a2",0); break;
    case octstrsym:   sftype = gen_fcall("_octstr",sftype,"l",stringtype,"t0,d0:a0",0); break;
    case rightstrsym: sftype = gen_fcall("_rightstr",sftype,"s,w",stringtype,"d0.w,a0,t1:a0",0); break;
-   case saddsym :  
-	 if ((sftype=parse_gen_params(sftype,"s")) != undefined) sftype = longtype; 
-	 break;
    case spcsym:      sftype = gen_fcall("_spc",sftype,"w",stringtype,"d0.w,t0",0); break;
    case spacestrsym: sftype = gen_fcall("_spacestring",sftype,"w",stringtype,"d0.w,t0",0); break;
+   case ptabsym:     sftype = gen_fcall("_ptab", sftype,"w",stringtype,":a0",0); break;
+   case tabsym:      sftype = gen_fcall("_horiz_tab",sftype,"w",stringtype,":a0",0); break;
+   case ucasestrsym: sftype = gen_fcall("_ucase",sftype,"s",stringtype,"a1,t0:a0",0); break;
 
    case strstrsym : /* n == numeric */
 	 if (sftype != stringtype) {
 	   load_temp_string(0);
-	   if (sftype == longtype) gen_call_args("_strlong","d0 : a0",0);
+	   if (sftype == longtype)       gen_call_args("_strlong","d0 : a0",0);
 	   else if (sftype == shorttype) gen_call_args("_strshort"," d0.w : a0",0);
 	   else if (sftype == singletype) {
 		 gen_call("_strsingle",4);
@@ -310,10 +310,8 @@ int stringfunction()
    case stringstrsym : /* w, a */
 	 make_sure_short(sftype);
 	 
-	 if (sym == comma) {
-	   insymbol();
+	 if (eat_comma()) {
 	   ntype=expr();
-	   
 	   if (ntype == stringtype) {
 		 gen_pop_addr(0);
 		 gen_load_indirect(0,1);
@@ -323,43 +321,35 @@ int stringfunction()
 		 make_sure_long(ntype);
 		 gen_pop32d(1);	/* J */			
 	   }
-		 
 	   gen_call_args("_stringstr","d0.w,t0",0);
 	   sftype=stringtype;
-	 } else { _error(16); sftype=undefined; }
+	 }
 	 break;    
 
     /* MID$ -> MID$(X$,n[,m]) */
    case midstrsym :  /* s,w,w=-1 */
-	  if (sftype == stringtype) {
-		if (sym == comma) {
-		  insymbol();	       /* start position */
-		  make_sure_short(expr());
-		  
-		  if (sym == comma) {
-			insymbol();        /* character count */
-			gen_pop_as_short(expr(),1); /* char count */
-		  } else {
-			/* take the full length of the string */
-			gen_load16d_val(-1,1);
-		  }
+       if (sftype == stringtype) {
+           if (eat_comma()) { /* start position */
+               make_sure_short(expr());
+               if (try_comma()) { /* character count */
+                   gen_pop_as_short(expr(),1); /* char count */
+               } else {
+                   /* take the full length of the string */
+                   gen_load16d_val(-1,1);
+              }
+               gen_call_args("_midstr","d0.w,a0,t1 : a0",0);
+               sftype=stringtype;
+           }
+       } else { _error(4); sftype=undefined; }
+       break;
 
-		  gen_call_args("_midstr","d0.w,a0,t1 : a0",0);
-		  sftype=stringtype;
-		} else { _error(16); sftype=undefined; }
-	  } else { _error(4); sftype=undefined; }
-	  break;
-
-   case ptabsym: sftype = gen_fcall("_ptab", sftype,"w",stringtype,":a0",0); break;
-   case tabsym:  sftype = gen_fcall("_horiz_tab",sftype,"w",stringtype,":a0",0); break;
    case translatestrsym : /* s */
-	 if (sftype == stringtype) {
-	   gen_translate();
-	   sftype=stringtype;
-	 } else { _error(4); sftype=undefined; }
-	 break;
-	
-   case ucasestrsym  :	 sftype = gen_fcall("_ucase",sftype,"s",stringtype,"a1,t0:a0",0); break;
+       if (sftype == stringtype) {
+           gen_translate();
+           sftype=stringtype;
+       } else { _error(4); sftype=undefined; }
+       break;
+       
 	 
    case valsym : /* s */
 	  if (sftype == stringtype) {
@@ -463,15 +453,6 @@ int numericfunction() {
     
   switch(func) {
 	
-  case abssym : /* n */
-	if (nftype == shorttype) gen_call_args("_absw","d0.w : d0.w",0);
-	else if (nftype == longtype) gen_call_args("_absl","d0 : d0",0);
-	else if (nftype == singletype) {
-	  gen_call_args("_absf", "d0 : d0",0);
-	  enter_XREF("_MathBase");
-	} else { _error(4); nftype=undefined; }
-	break;
-	
   case allocsym : /* l,l=9 */
 	make_sure_long(nftype); /* minimum number of bytes to reserve */
 	opt_arg(longtype, 9); /* memory type specification */
@@ -479,13 +460,10 @@ int numericfunction() {
 	gen_call("_ACEalloc",8);
 	break;
 	
-  case atnsym  : nftype = gen_single_func(&gen_atan,nftype); break;
   case cintsym : nftype = make_sure_short(nftype); break;
   case clngsym : nftype = make_sure_long(nftype); break;
-  case cossym  : nftype = gen_single_func(&gen_cos,nftype);
   case csngsym : nftype = gen_Flt(singletype); break;
-  case eofsym  : nftype = gen_fcall("_eoftest",nftype, "E l", longtype,":d0",0); break;
-  case expsym  : nftype = gen_single_func(&gen_exp,nftype); break;
+
   case fixsym  : /* n */
 	if (nftype == singletype) {
 	  gen_fix();
@@ -495,10 +473,6 @@ int numericfunction() {
 	   and let nftype remain the same! */
 	break;
 	
-  case fresym :    nftype = gen_fcall("_fre",nftype, "w",longtype,":d0",0); break;
-  case gadgetsym : nftype = gen_fcall("_GadFunc",nftype,"l",longtype,":d0",4); break;
-  case handlesym : nftype = gen_fcall("_handle",nftype,"E l",longtype,":d0",4); break;
-  case iffsym :    nftype = gen_fcall("_iff_func",nftype,"E l,l",longtype,":d0",8); break;
 	
   case intsym  : /* n */
 	if (nftype == singletype) {
@@ -509,23 +483,34 @@ int numericfunction() {
 	   and let nftype remain the same! */
 	break;
 	
+  case eofsym:     nftype = gen_fcall("_eoftest",nftype, "E l", longtype,":d0",0); break;
+  case fresym:     nftype = gen_fcall("_fre",nftype, "w",longtype,":d0",0); break;
+  case gadgetsym:  nftype = gen_fcall("_GadFunc",nftype,"l",longtype,":d0",4); break;
+  case handlesym:  nftype = gen_fcall("_handle",nftype,"E l",longtype,":d0",4); break;
+  case iffsym :    nftype = gen_fcall("_iff_func",nftype,"E l,l",longtype,":d0",8); break;
   case locsym:     nftype = gen_fcall("_FilePosition",nftype,"E l",longtype,":d0",4); break;
   case lofsym:     nftype = gen_fcall("_lof",nftype,"E l",longtype,":d0",4); break;
-  case logsym:     nftype = gen_single_func(&gen_log,nftype); break;
   case longintsym: nftype = gen_fcall("_long_from_string",nftype,"s",longtype,":d0",4); break;
   case menusym :   nftype = gen_fcall("_MenuFunc",nftype,"E l",longtype,":d0",4); break;
   case mousesym :  nftype = gen_fcall("_mouse",nftype,"w",shorttype,":d0.w",0); break;
+  case potxsym :   nftype = gen_fcall("_potx",nftype,"w",shorttype, ":d0.w",0); break;
+  case potysym :   nftype = gen_fcall("_poty",nftype,"w", shorttype,":d0.w",0); break;
+  case serialsym:  nftype = gen_fcall("_serial_func",nftype,"E l,l",'l',"",8); break;
+  case sticksym:   nftype = gen_fcall("_stick",nftype, "w",shorttype,":d0.w",0); break;
+  case strigsym:   nftype = gen_fcall("_strig",nftype, "w",shorttype,":d0.w",0); break;
+  case windowsym:  nftype = gen_fcall("_windowfunc",nftype,"w",longtype,":d0",0); break;
+  case saysym:     nftype = gen_fcall("_sayfunc",nftype,"l",longtype, "",4); break;
+  case screensym:  nftype = gen_fcall("_screenfunc",nftype,"l",longtype,"",4); break;
+
   case msgboxsym : /* s,s,s=0 */ 
 	if (nftype == stringtype) {    /* message */
-	  if (sym != comma) { _error(16); nftype=undefined; }
-	  else {
-		insymbol();
-		if (expr() == stringtype) {  /* response #1 */
-		  opt_arg(stringtype,0); /* response #2 */
-		  gen_call_args("_sysrequest",":d0.w",12);
-		  nftype=shorttype;
-		} else { _error(4); nftype=undefined; }
-	  }
+        if (eat_comma()) {
+            if (expr() == stringtype) {  /* response #1 */
+                opt_arg(stringtype,0); /* response #2 */
+                gen_call_args("_sysrequest",":d0.w",12);
+                nftype=shorttype;
+            } else { _error(4); nftype=undefined; }
+        }
 	} else { _error(4); nftype=undefined; }
 	break;
 	
@@ -536,6 +521,7 @@ int numericfunction() {
 	  nftype=shorttype;
 	} else { _error(4); nftype=undefined; }
 	break;
+
 	
   case peekwsym : /* i */
 	nftype=make_integer(nftype); 
@@ -544,7 +530,7 @@ int numericfunction() {
 	  if (nftype == shorttype) gen_pop_short_addr(0,0);
 	  else gen_pop_addr(0); 
 	  /* get value */
-	  gen_push_indirect16(0);
+	  gen_push_indirect(shorttype);
 	  nftype=shorttype;
 	}
 	break;
@@ -556,22 +542,14 @@ int numericfunction() {
 	  if (nftype == shorttype) gen_pop_short_addr(0,0);
 	  else gen_pop_addr(0); 
 	  /* get value */
-	  gen_push_indirect32(0);
+	  gen_push_indirect(longtype);
 	  nftype=longtype;
 	}			
 	break;
 	
-  case pointsym :	/* w,w */
-	if ((nftype = parse_gen_params(nftype,"w,w"))  != undefined) gen_point();
-	break;
-	
-  case potxsym :   nftype = gen_fcall("_potx",nftype,"w",shorttype, ":d0.w",0); break;
-  case potysym :   nftype = gen_fcall("_poty",nftype,"w", shorttype,":d0.w",0); break;
-  case serialsym : nftype = gen_fcall("_serial_func",nftype,"E l,l",'l',"",8); break;
-	
   case sgnsym  : /* n */
-	if (nftype == shorttype) nftype = gen_fcall("_sgnw", nftype, "w",longtype,":d0",0);
-	else if (nftype == longtype) nftype = gen_fcall("_sgnl", nftype, "l",longtype,":d0",0);
+	if      (nftype == shorttype) nftype = gen_fcall("_sgnw", nftype, "w",longtype,":d0",0);
+	else if (nftype == longtype)  nftype = gen_fcall("_sgnl", nftype, "l",longtype,":d0",0);
 	else if (nftype == singletype) {
 	  gen_call_args("_sgnf","d1 : d0", 0);
 	  enter_XREF("_MathBase");
@@ -580,6 +558,20 @@ int numericfunction() {
 	  _error(4); nftype=undefined;
 	}
 	break; 
+
+  case abssym : /* n */
+	if (nftype == shorttype) gen_call_args("_absw","d0.w : d0.w",0);
+	else if (nftype == longtype) gen_call_args("_absl","d0 : d0",0);
+	else if (nftype == singletype) {
+	  gen_call_args("_absf", "d0 : d0",0);
+	  enter_XREF("_MathBase");
+	} else { _error(4); nftype=undefined; }
+	break;
+	
+	
+  case pointsym :	/* w,w */
+	if ((nftype = parse_gen_params(nftype,"w,w"))  != undefined) gen_point();
+	break;
 	
   case shlsym  : /* l,l */
 	if ((nftype = parse_gen_params(nftype,"l,l")) != undefined) gen_shl();
@@ -589,12 +581,15 @@ int numericfunction() {
 	if ((nftype = parse_gen_params(nftype,"l,l")) != undefined) gen_shl(); 
 	break;
 
-  case sqrsym:    nftype = gen_single_func(&gen_sqrt,nftype); break;
-  case sinsym:    nftype = gen_single_func(&gen_sin,nftype); break;
+  case atnsym: nftype = gen_single_func(&gen_atan,nftype); break;
+  case cossym: nftype = gen_single_func(&gen_cos,nftype);
+  case expsym: nftype = gen_single_func(&gen_exp,nftype); break;
+  case sqrsym: nftype = gen_single_func(&gen_sqrt,nftype); break;
+  case sinsym: nftype = gen_single_func(&gen_sin,nftype); break;
+  case tansym: nftype = gen_single_func(&gen_tan,nftype); break;
+  case logsym: nftype = gen_single_func(&gen_log,nftype); break;
+
   case sizeofsym: nftype = find_object_size(); break;
-  case sticksym:  nftype = gen_fcall("_stick",nftype, "w",shorttype,":d0.w",0); break;
-  case strigsym:  nftype = gen_fcall("_strig",nftype, "w",shorttype,":d0.w",0); break;
-  case tansym:    nftype = gen_single_func(&gen_tan,nftype); break;
 	
   case varptrsym : /* ? */
 	if (sym == ident) {
@@ -607,9 +602,6 @@ int numericfunction() {
 	} else { _error(7); nftype=undefined; insymbol(); }
 	break;
 	
-  case windowsym: nftype = gen_fcall("_windowfunc",nftype,"w",longtype,":d0",0); break;
-  case saysym:    nftype = gen_fcall("_sayfunc",nftype,"l",longtype, "",4); break;
-  case screensym: nftype = gen_fcall("_screenfunc",nftype,"l",longtype,"",4); break;
   }
 
   if (sym != rparen) { _error(9); nftype=undefined; }
@@ -667,7 +659,7 @@ int address_of_object() {
 	  {
 		/* location in frame contains address */  
 		gen_move32da(0,0);
-		gen_push_indirect32(0);
+		gen_push_indirect(longtype);
 	  } else
 		/* absolute address in frame of variable */
 		push_result(longtype);
@@ -723,7 +715,7 @@ int address_of_object() {
 	} else {
 	  /* array or array element address? */
 	  /* push array address */
-	  gen_push_indirect32(0);
+	  gen_push_indirect(longtype);
 	  
 	  insymbol();
 	  

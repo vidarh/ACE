@@ -67,8 +67,6 @@ extern	int  	lev;
 extern	char 	numbuf[80];
 extern	char 	librarybase[MAXIDSIZE+6];
 extern	ACELIBS	acelib[NUMACELIBS];
-extern	BOOL 	restore_a4;
-extern	BOOL	restore_a5;
 extern 	BOOL 	cli_args;
 
 /* functions */
@@ -161,18 +159,9 @@ static int handleident() {
   */
   
   if (obj == variable) {		 /* variable */
-	/* shared variable in SUB? */
-	if ((fact_item->shared) && (lev == ONE) && (typ != stringtype)) {
-	  gen_load32a(srcbuf,0);
-	  if (typ == shorttype) gen_push_indirect16(0);
-	  else gen_push_indirect32(0);
-	} else {
-	  /* ordinary variable */ 
-	  if (typ == shorttype) gen_push16_var(srcbuf);
-	  else  /* string, long, single */ 
-		gen_push32_var(srcbuf);
-	}
-	ftype=typ;
+      /* shared variable in SUB? */
+      gen_push_address((fact_item->shared) && (lev == ONE),srcbuf,typ);
+      ftype=typ;
   } else if (obj == structure) {  /* structure */
 	ftype=push_struct(fact_item);
 	return(ftype);
@@ -206,22 +195,8 @@ static int handleident() {
 	}
 	ftype=fact_item->type;
   } else if (obj == function) {	/* library function */
-	if (fact_item->no_of_params != 0) { insymbol(); load_func_params(fact_item); }
-	/* call it */
-	if ((libnum=check_for_ace_lib(fact_item->libname))==NEGATIVE) 
-	  make_library_base(fact_item->libname);
-	else strcpy(librarybase,acelib[libnum].base);
-	gen_load32a(librarybase,6);
-	itoa(fact_item->address,func_address,10);
-	strcat(func_address,"(a6)");
-	gen_jsr(func_address);
-	
-	push_result(fact_item->type);
-	
-	if (restore_a4) { gen_load32a("_a4_temp",4); restore_a4=FALSE; }
-	if (restore_a5) { gen_load32a("_a5_temp",5); restore_a5=FALSE; }
-	
-	ftype=fact_item->type;
+      call_shared_lib_func(fact_item);
+      ftype=fact_item->type;
   } else if (obj == extfunc) {
 	/* external function call */
 	insymbol();
@@ -233,12 +208,7 @@ static int handleident() {
 	get_abs_ndx(fact_item);
 	gen_load32a(srcbuf,0);
 	
-	if (arraytype == stringtype) {
-	  /* push start address of string within BSS object */
-	  gen_add32da();
-	  gen_push_addr(0);
-	} else if (arraytype == shorttype) gen_push_indirect_indexed16();
-	else gen_push_indirect_indexed32();
+    gen_push_indirect_indexed(arraytype);
 	
 	ftype=arraytype;  /* typ killed by push_indices()! */
   }
@@ -297,6 +267,9 @@ int factor() {
  case headingsym: gen_call_args("_heading",":d0.w",0); ftype=shorttype; break;
  case inkeysym:   gen_call_args("_inkey",":d0",0); ftype=stringtype; break;
  case possym:     gen_call_args("_pos",":d0.w",0); ftype=shorttype; break;
+ case timestrsym: gen_call_args("_timeofday",":d0",0); ftype=stringtype; break;
+ case xcorsym:    gen_call_args("_xcor",":d0.w",0); ftype=shorttype; break;
+ case ycorsym:    gen_call_args("_ycor",":d0.w",0); ftype=shorttype; break;
 
  case rndsym : 
    insymbol();
@@ -324,9 +297,6 @@ int factor() {
    enter_XREF("_MathBase"); /* _timer needs basic ffp funcs */
    ftype=singletype;
    break;
- case timestrsym: gen_call_args("_timeofday",":d0",0); ftype=stringtype; break;
- case xcorsym: gen_call_args("_xcor",":d0.w",0); ftype=shorttype; break;
- case ycorsym: gen_call_args("_ycor",":d0.w",0); ftype=shorttype; break;
  default:
    /* none of the above! */
    ftype=undefined;

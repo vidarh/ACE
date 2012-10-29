@@ -2,6 +2,8 @@
 #include "acedef.h"
 #include "codegen.h"
 
+extern int sym;
+
 void codegen_set_target(struct codegen_target * t)
 {
   target = t;
@@ -170,6 +172,19 @@ static void m68k_jsr(const char * label) {
 void gen_move16(const char * src, const char * dest) { gen("move.w",src,dest); }
 void gen_move32(const char * src, const char * dest) { gen("move.l",src,dest); }
 
+void gen_dataptr_next()
+{
+	/* advance to next DATA item */
+	gen_load32a("_dataptr",2);
+	gen_jsr("_strlen");
+	gen_add32d_val(1,0); /* include EOS in length */
+
+	/* FIXME: Why does it do this rather than add,l d0, _dataptr ? */
+	gen_load32d("_dataptr",1);
+	gen_add32dd(0,1);
+	gen_save32d(1,"_dataptr");
+}
+
 /* FIXME: Isn't tst.l d0 faster? Keeping for now to
  * allow using diff against "old" ace as a regression test
  */
@@ -195,34 +210,39 @@ void m68k_not(int localtype) {
 	else gen("not.l","(sp)","  ");
 }
 
-void gen_push_indirect_indexed16() { gen("move.w","0(a0,d7.L)","-(sp)"); }
-void gen_push_indirect_indexed32() { gen("move.l","0(a0,d7.L)","-(sp)"); }
-
-void gen_push_indirect32(unsigned char r) {
-  char buf[5];
-  sprintf(buf,"(a%c)", r + '0');
-  gen("move.l",buf,"-(sp)");
+void gen_push_indirect_indexed(int type)
+{
+	if (type == stringtype) {
+        /* push start address of string within BSS object */
+        gen("adda.l","d7","a0");
+        gen_push_addr(0);
+	} else if (type == shorttype) gen("move.w","0(a0,d7.L)","-(sp)");
+	else gen("move.l","0(a0,d7.L)","-(sp)");
 }
 
-void gen_pop_indirect32(unsigned char r) {
-  char buf[5];
-  sprintf(buf,"(a%c)", r + '0');
-  gen("move.l","(sp)+",buf);
+void gen_push_indirect(int type) {
+    if (type == shorttype)   gen("move.w","(a0)","-(sp)");
+    else gen("move.l","(a0)","-(sp)");
 }
 
-void gen_pop_indirect16(unsigned char r) {
-  char buf[5];
-  sprintf(buf,"(a%c)", r + '0');
-  gen("move.w","(sp)+",buf);
+void gen_pop_indirect(int type) {
+    if (type == shorttype) gen("move.w","(sp)+","(a0)");
+    else gen("move.l","(sp)+","(a0)");
 }
 
-void gen_push_indirect16(unsigned char r) {
-  char buf[5];
-  sprintf(buf,"(a%c)", r + '0');
-  gen("move.w",buf,"-(sp)");
+void gen_push_address(unsigned short indir, const char * addrbuf, int typ)
+{
+    if (indir && typ != stringtype) {
+        gen_load32a(addrbuf,0);        /* address of structure variable */
+        gen_push_indirect(typ);       /* start address of structure */
+	} else {
+        if (typ == shorttype) gen_push16_var(addrbuf);
+        else gen_push32_var(addrbuf);
+    }
 }
 
 void m68k_push32d(unsigned char reg) { gen("move.l",dreg[reg],"-(sp)"); }
+void m68k_pop32d(unsigned char reg) { gen("move.l","(sp)+",dreg[reg]); }
 
 void gen_push32d(unsigned char reg) { target->push32d(reg); }
 
@@ -233,10 +253,12 @@ void gen_load_indirect(unsigned char ar, unsigned char dr)
   gen("move.b", buf, dreg[dr]);
 }
 
-void gen_load_indirect32(unsigned char ar, unsigned char dr) {
-  char buf[5];
-  sprintf(buf,"(a%c)", ar + '0');
-  gen("move.l", buf, dreg[dr]);
+void gen_strcpy() {
+    gen_jsr("_strcpy");
+}
+
+void gen_load_indirect32() {
+  gen("move.l", "(a0)", "d0");
 }
 
 void gen_pokeb(int t)
@@ -264,6 +286,13 @@ void gen_pokel(int t)
   gen_save_indirect32(); /* pokel (a0),d0 */
 }
 
+extern	BOOL 	restore_a4;
+extern	BOOL 	restore_a5;
+
+void gen_restore_regs() {
+    if (restore_a4) { gen_load32a("_a4_temp",4); restore_a4=FALSE; }
+    if (restore_a5) { gen_load32a("_a5_temp",5); restore_a5=FALSE; }
+}
 
 void gen_save_indirect16() {  gen("move.w", "d0","(a0)"); }
 void gen_save_indirect8()  {  gen("move.w", "d0","(a0)"); }
@@ -285,10 +314,6 @@ void gen_pop_indirect_indexed16(unsigned char ar, unsigned char dr) {
   gen("move.w", "(sp)+",buf);
 }
 
-void gen_save_indirect_indexed16(const char * label) {
-  gen("move.w", label,"0(a2,d7.L)");
-}
-
 void gen_load_indirect_addr(unsigned char ar, unsigned char dest) {
   char buf[5];
   sprintf(buf,"(a%c)", ar + '0');
@@ -307,10 +332,8 @@ void gen_cmp32_val(long val, const char * target) {
 
 void gen_cmp32sp_val(long val) { gen_cmp32_val(val,"(sp)"); }
 
-void gen_cmp16_val(long val, const char * target) {
-  char buf[16];
-  sprintf(buf,"#$%lx",val);
-  gen("cmpi.w",buf,target);
+void gen_test16(const char * target) {
+  gen("cmpi.w","#0",target);
 }
 
 void gen_save32_val(long val, const char * target) {
@@ -330,6 +353,10 @@ void gen_lsl(unsigned int n) {
 void gen_comment(const char * c) { gen("; *** ",c,"  "); }
 
 void gen_push32_val(long val) {
+    target->push32_val(val);
+}
+
+void m68k_push32_val(long val) {
   char buf[16];
   if (val == 0) gen("move.l","#0","-(sp)");
   else {
@@ -375,26 +402,21 @@ static void gen_swapstr(const char * tempstrname) {
   gen_jsr("_strcpy");   /* second = temp */
 }
 
-static void gen_swap16() {
-  gen("move.w","(a1)","d0");   /* temp = [first] */
-  gen("move.w","(a2)","(a1)"); /* [first] = [second] */
-  gen("move.w","d0","(a2)");   /* [second] =temp */     
-}
-
-static void gen_swap32() {
-  gen("move.l","(a1)","d0");   /* temp = [first] */
-  gen("move.l","(a2)","(a1)"); /* [first] = [second] */
-  gen("move.l","d0","(a2)");   /* [second] =temp */     
-}
-
 void gen_swap(int typ)
 {
   gen_pop_addr(2); /* second address */
   gen_pop_addr(1); /* first address */
   
   if (typ == stringtype) gen_swapstr(tempstrname);
-  else if (typ == shorttype) gen_swap16();
-  else gen_swap32();
+  else if (typ == shorttype) {
+      gen("move.w","(a1)","d0");   /* temp = [first] */
+      gen("move.w","(a2)","(a1)"); /* [first] = [second] */
+      gen("move.w","d0","(a2)");   /* [second] =temp */     
+  } else {
+      gen("move.l","(a1)","d0");   /* temp = [first] */
+      gen("move.l","(a2)","(a1)"); /* [first] = [second] */
+      gen("move.l","d0","(a2)");   /* [second] =temp */     
+  }
 }
 
 void gen_save_registers() { gen("movem.l","d1-d7/a0-a6","-(sp)"); }
@@ -413,6 +435,15 @@ void gen_rport_rel_y(unsigned char r) {
 void gen_rport_rel_xy() {
   gen_rport_rel_x(0);
   gen_rport_rel_y(1);
+}
+
+void gen_push1(int countertype) {
+    switch(countertype)   /* default step = 1 */
+        {
+        case shorttype  : gen_push16_val(1); break;
+        case longtype   : gen_push32_val(1); break;
+        case singletype : gen_push32_val(0x80000041); break;
+        }
 }
 
 static void m68k_or(int type)
@@ -447,12 +478,6 @@ void gen_add_addr_offset(long val) {
   gen("adda.l",buf,"a0");
 }
 
-void gen_add32_val(long val, const char * label) {
-  char buf[16];
-  sprintf(buf,"#%ld",val);
-  gen("add.l",buf,label);
-}
-
 void gen_add32d_val(long val, unsigned char reg) {
   char buf[16];
   sprintf(buf,"#%ld",val);
@@ -460,16 +485,21 @@ void gen_add32d_val(long val, unsigned char reg) {
   else gen("add.l",buf,dreg[reg]);
 }
 
-void gen_add16d_val(long val, unsigned char reg) {
-  char buf[16];
-  sprintf(buf,"#%ld",val);
-  gen("add.w",buf,dreg[reg]);
-}
-
-void gen_add16_val(long val, const char * label) {
-  char buf[16];
-  sprintf(buf,"#%ld",val);
-  gen("add.w",buf,label);
+void gen_counter_incr(int typ, const char * step, const char * counter) {
+    gen_loadd(typ, step, 0);
+    switch (typ) {
+    case shorttype:
+        gen("add.w","d0",counter);
+        break;
+    case longtype:
+        gen("add.l","d0",counter);
+        break;
+    case singletype:
+		gen_load32d(counter,1);
+        gen_libcall("SPAdd","Math");
+        gen_save32d(0,counter);
+        break;
+    }
 }
 
 void gen_sub32d_val(long val, unsigned char reg) {  
@@ -486,6 +516,12 @@ void gen_load16d_val(int val, unsigned char reg)
 }
 
 void gen_push16_val(int val) {
+    target->push16_val(val);
+}
+
+void m68_pop32d(BYTE r) { gen("move.l","(sp)+",dreg[r]); }
+
+void m68k_push16_val(int val) {
   char buf[16];
   sprintf(buf,"#%d",val);
   gen("move.w",buf,"-(sp)");
@@ -497,8 +533,6 @@ void gen_pop_ignore(unsigned int bytes) {
   if (bytes > 7) gen("add.l",buf,"sp");
   else gen("addq",buf,"sp");
 }
-
-void gen_pop32d(BYTE r) { gen("move.l","(sp)+",dreg[r]); }
 
 /* Pop 4 bytes off the stack and copy into a variable. */
 void gen_pop32_var(const char * label) {
@@ -513,13 +547,24 @@ static void gen_push16d(unsigned char reg) {
   gen("move.w",dreg[reg],"-(sp)");
 }
 
-void gen_push16_var(const char *label) {
-  gen("move.w",label,"-(sp)");
+void gen_push_var(const char * absbuf, int mbr_type, int member_offset) {
+    if (mbr_type == bytetype) {
+        gen("move.b",absbuf,"d0");
+        gen_ext8to16(0);
+        push_result(shorttype);
+        mbr_type=shorttype;              /* byte */
+    } else if (mbr_type == shorttype)
+        gen("move.w",absbuf,"-(sp)");
+    else if (mbr_type == stringtype) {
+        gen_add_addr_offset(member_offset);
+        gen_push_addr(0);  /* push string address */
+    } else
+        gen("move.l",absbuf,"-(sp)"); /* long, single */ 
+    return mbr_type;
 }
 
-void gen_push32_var(const char *label) {
-  gen("move.l",label,"-(sp)");
-}
+void gen_push16_var(const char *label) { gen_push_var(label, shorttype,0); }
+void gen_push32_var(const char *label) { gen_push_var(label, longtype,0); }
 
 void gen_pop16d(unsigned char reg) {
   gen("move.w","(sp)+",dreg[reg]);
@@ -549,10 +594,15 @@ void gen_load16d(const char * label, unsigned char reg) {
   gen("move.w",label,dreg[reg]);
 }
 
-void gen_push8_var(const char * label) {
-  gen("move.b",label,"d0");
-  gen_ext8to16(0);
-  push_result(shorttype);
+void gen_loadd(int typ, const char * label, unsigned char reg) {
+    switch (typ) {
+    case shorttype:
+        gen_load16d(label,reg);
+        break;
+    case longtype:
+    case singletype:
+        gen_load32d(label, reg);
+    }
 }
 
 void gen_pop8_var(const char * label) {
@@ -607,8 +657,9 @@ void gen_move32da(unsigned char srcreg, unsigned char destreg) {
   gen("movea.l",dreg[srcreg],areg[destreg]);
 }
 
-void gen_add32da() {
-  gen("adda.l","d7","a0");
+void gen_load32a_plus_index(const char * addrbuf) {
+    gen_load32a(addrbuf,0);
+    gen("adda.l","d7","a0");
 }
 
 /***** "Mid level" code generation functions *****/
@@ -636,6 +687,10 @@ void gen_round(int type) {
 int gen_Flt(int typ) {
   if (typ == singletype) return singletype;  /* already a float! */
   if (typ == stringtype) {_error(4); return undefined; } /* can't do it */
+  return target->Flt(typ);
+}
+
+int m68k_Flt(int typ) {
   if (typ == shorttype) gen_pop16d(0);
   else gen_pop32d(0);
   if (typ == shorttype) gen_ext16to32(0); /* extend sign */
@@ -680,6 +735,56 @@ int make_integer(int oldtyp) {
   }
   return(oldtyp);  /* already an integer */
 }
+
+void long_expr() {
+    make_sure_long(expr());
+}
+
+void in_long_expr() {
+    insymbol();
+    long_expr();
+}
+
+int comma_long_expr() {
+    if (sym != comma) {
+        _error(16);
+        return 0;
+    } else {
+        in_long_expr();
+        return 1;
+    }
+}
+ 
+int eat(int token) {
+    if (sym == token) {
+        insymbol();
+        return 1;
+    }
+    return 0;
+
+}
+
+int eat_token(int token, int err) {
+    if (eat(token)) return 1;
+    if (err != 0) _error(err);
+    return 0;
+}
+
+
+int eat_comma(void) {
+    return eat_token(comma,16);
+}
+       
+int try_comma(void) {
+    return eat_token(comma, 0);
+}
+
+int nostring(int type) {
+    if (type != stringtype) return 1;
+    _error(4);
+    return 0;
+}
+
 
 int make_sure_short(int type) {
  if (type == longtype) make_short();
@@ -776,15 +881,18 @@ static const char * gen_push_ret(const char * args) {
   return args;
 }
 
-/* Note: Arguments are listed in the order to be popped off the stack,
- * which is generally the opposite of the normal order */
-void gen_call_args(const char * label, const char * args, unsigned int stack) {
+void m68k_call_args(const char * label, const char * args, unsigned int stack) {
   while (*args && args[0] != ':') {
 	args = gen_pop_arg(args);
   }
   gen_jsr(label);
   if (stack > 0) gen_pop_ignore(stack);
   gen_push_ret(args);
+}
+
+
+void gen_call_args(const char * label, const char * args, unsigned int stack) {
+    target->call_args(label,args,stack);
 }
 
 int gen_fcall(const char * funcname, int type, const char * params, int ret, const char * callargs, int stackadj)
@@ -794,10 +902,19 @@ int gen_fcall(const char * funcname, int type, const char * params, int ret, con
   return ret;
 }
 
+void gen_call_sargs(const char * funcname, const char * params, int stackadj) {
+  if (parse_gen_params(0,params) == undefined) return undefined;
+  gen_call(funcname, stackadj);
+}
+
 
 void gen_call_indirect(const char * addr) {
   gen("move.l",addr,"a0");
   gen("jsr","(a0)","  ");
+}
+
+void gen_lmulu() {
+    gen_call_void("lmulu",8);
 }
 
 static int m68k_muls(int type)
@@ -895,9 +1012,15 @@ struct codegen_target m68k_target = {
   m68k_not,
   m68k_or,
   m68k_pea,
+  m68k_pop32d,
+  m68k_push16_val,
   m68k_push32d,
+  m68k_push32_val,
   generic_rts,
   m68k_unlk,
+
+  m68k_call_args,
+  m68k_Flt,
   
   m68k_code_section,
   m68k_end_program,
@@ -1125,6 +1248,19 @@ void gen_kill()
   gen_jsr("_kill");
 }
 
+void gen_fwrite(int exprtype)
+{
+    /* pass filenumber to write routine */
+    gen_load32d("_seq_filenumber", exprtype == stringtype ? 0 : 1);
+    
+    switch(exprtype) {
+    case shorttype : gen_fcall("_fprintshort",shorttype,"w",longtype,"d0",0); break;
+    case longtype:   gen_fcall("_fprintlong",longtype,"l",longtype,"d0",0); break;
+    case singletype: gen_fcall("_fprintsingle",singletype,"f",singletype,"d0",0); break;
+    case stringtype: gen_fcall("_writestring",stringtype,"s",stringtype,"a0",0); break;
+    }
+}
+
 void gen_push_deref_array(SYM * storage, char * addrbuf)
 {
   point_to_array(storage,addrbuf);
@@ -1133,4 +1269,56 @@ void gen_push_deref_array(SYM * storage, char * addrbuf)
   push_result(longtype);
 }
 
+
+void gen_openfile()   { gen_call_args("_openfile","a1,d0,a0",0); }
+void gen_closefile()  { gen_call_args("_closefile","d0",0); }
+void gen_line_input() { gen_call_args("_line_input","d0",0); }
+void gen_files()      { gen_call_void("_files",4); } 
+void gen_chdir(int e) { gen_fcall("_chdir",e,"s",stringtype,"d1",0); }
+void gen_getrecord()  { gen_call_void("_GetRecord",16); }
+void gen_putrecord()  { gen_call_void("_PutRecord",16); }
+void gen_openscreen() { gen_call_args("_openscreen","d4.w,d3.w,d2.w,d1.w,d0.w",0); }
+
+void gen_push_nullstring() {
+	 enter_DATA("_nullstring:","dc.b 0");
+	 gen_pea("_nullstring");
+}
+
+
+
+void input_short(SYM * storage,const char * func, char * addrbuf, int lev) {
+  gen_jsr(func);
+  if (storage->object == variable) {
+	if ((storage->shared) && (lev == ONE)) {
+	  gen_load32a(addrbuf,0); /* abs address of store */
+	  gen_save_indirect16();
+	} else gen_save16d(0,addrbuf); /* ordinary variable */
+  } else if (storage->object == array) {
+	gen_save16d(0,"_short_input_temp");
+	point_to_array(storage,addrbuf);
+    gen("move.w", "_short_input_temp","0(a2,d7.L)");
+	enter_BSS("_short_input_temp:","ds.w 1");
+  }
+}
+
+void input_long(SYM * storage, const char * func, char * addrbuf, int lev) {
+ gen_jsr(func);
+ if (storage->object == variable) {
+   if ((storage->shared) && (lev == ONE)) {
+	 gen_load32a(addrbuf,0);  /* abs address of store */
+	 gen_save_indirect32();
+   } else gen_save32d(0,addrbuf); /* ordinary variable */
+ } else  if (storage->object == array) {
+   gen_save32d(0,"_long_input_temp");
+   point_to_array(storage,addrbuf);
+   gen_save_indirect_indexed32("_long_input_temp");
+   enter_BSS("_long_input_temp:","ds.l 1");
+ }
+}
+
+void input_single(SYM * storage, const char * func, char * addrbuf, int lev) {
+    input_long(storage,func,addrbuf, lev);
+    enter_XREF("_MathBase"); /* need math libs */
+    enter_XREF("_MathTransBase");
+}
 

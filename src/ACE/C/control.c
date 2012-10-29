@@ -412,8 +412,8 @@ void for_statement()
   countertype=for_assign(counteraddr);
   
   if (countertype == undefined) return;
-  else {
-	if (sym == tosym) {
+
+  if (sym == tosym) {
 	  /* limit */
 	  insymbol();
 	  limittype=expr();
@@ -422,22 +422,17 @@ void for_statement()
 	  if (limittype == shorttype) strcpy(limitaddr,"2(sp)");
 	  else strcpy(limitaddr,"4(sp)");
 	  if (sym == stepsym) {
-		/* step */
-		insymbol();
-		steptype=expr();
-		steptype=assign_coerce(countertype,steptype);
-		if (steptype == notype) { _error(4); return; }
+          /* step */
+          insymbol();
+          steptype=expr();
+          steptype=assign_coerce(countertype,steptype);
+          if (steptype == notype) { _error(4); return; }
 	  } else {
-		switch(countertype)   /* default step = 1 */
-		  {
-		  case shorttype  : gen_push16_val(1); break;
-		  case longtype   : gen_push32_val(1); break;
-		  case singletype : gen_push32_val(0x80000041); break;
-		  }
-		steptype=countertype;
+          gen_push1(countertype);
+          steptype=countertype;
 	  }
 	  strcpy(stepaddr,"(sp)");  /* step is on stack top */
-
+      
 	  /* top of for..next loop */
 	  make_label(labname1,lablabel1);
 	  gen_label(lablabel1);
@@ -448,58 +443,47 @@ void for_statement()
 	  strcpy(stpbuf,stepaddr);
 	  
 	  if (countertype == shorttype) {
-		gen_load16d(cntbuf,0);   /* counter */
-		gen_load16d(limbuf,1); /* limit */
-		gen_cmp16_val(0,stepaddr);
-		make_label(labname2,lablabel2);
-		gen_blt(labname2);
-		gen_cmp16dd();
-		gen_bgt("  ");	  /* if STEP +ve -> counter>limit? */
-		cx1=curr_code;
-		make_label(labname3,lablabel3); /* don't want to do -ve step test too! */
-		gen_jmp(labname3);
-		gen_label(lablabel2);
-		gen_cmp16dd();
-		gen_blt("  ");      /* if STEP -ve -> counter<limit? */
-		cx2=curr_code;
-		gen_label(lablabel3);    /* label for bypassing -ve step test */
+		gen_loadd(countertype,cntbuf,0);   /* counter */
+		gen_loadd(countertype,limbuf,1); /* limit */
+        gen_test16(stepaddr);
 	  } else if (countertype == longtype) {
-		gen_load32d(cntbuf,0);   /* counter */
-		gen_load32d(limbuf,1);   /* limit */
+		gen_loadd(countertype,cntbuf,0);   /* counter */
+		gen_loadd(countertype,limbuf,1);   /* limit */
 		gen_cmp32_val(0,stepaddr);
-		make_label(labname2,lablabel2);
-		gen_blt(labname2);
-		gen_cmp32dd();
-		gen_bgt("  ");	  /* if STEP +ve -> counter>limit? */
-		cx1=curr_code;
-		make_label(labname3,lablabel3); /* don't want to do -ve step test too! */
-		gen_jmp(labname3);
-		gen_label(lablabel2);
-		gen_cmp32dd();
-		gen_blt("  ");      /* if STEP -ve -> counter<limit? */
-		cx2=curr_code;
-		gen_label(lablabel3);    /* label for bypassing -ve step test */
 	  } else if (countertype == singletype) {
 		gen_load32d_val(0,1);
-		gen_load32d(stpbuf,0);   /* d0 < d1? (where d1=0) */
+		gen_loadd(countertype,stpbuf,0);   /* d0 < d1? (where d1=0) */
 		gen_fcmp();
-		make_label(labname2,lablabel2);
-		gen_blt(labname2);  /* test result of ffp Cmp above */
-		gen_load32d(cntbuf,0);    /* counter */
-		gen_load32d(limbuf,1);   /* limit */
-		gen_fcmp();
-		gen_bgt("  ");	  /* if STEP +ve -> counter>limit? */
-		cx1=curr_code;
-		make_label(labname3,lablabel3); /* don't want to do -ve step test too! */
-		gen_jmp(labname3);
-		gen_label(lablabel2);
+      }
+      
+      make_label(labname2,lablabel2);
+      gen_blt(labname2);  /* test result of ffp Cmp above */
+      
+	  if (countertype == shorttype) gen_cmp16dd();
+	  else if (countertype == longtype) gen_cmp32dd();
+      else if (countertype == singletype) {
+          gen_load32d(cntbuf,0);   /* counter */
+          gen_load32d(limbuf,1);   /* limit */
+          gen_fcmp();
+	  }
+
+      gen_bgt("  ");	  /* if STEP +ve -> counter>limit? */
+      cx1=curr_code;
+      make_label(labname3,lablabel3); /* don't want to do -ve step test too! */
+      gen_jmp(labname3);
+      gen_label(lablabel2);
+
+	  if (countertype == shorttype) gen_cmp16dd();
+	  else if (countertype == longtype) gen_cmp32dd();
+	  else if (countertype == singletype) {
 		gen_load32d(cntbuf,0);   /* counter */
 		gen_load32d(limbuf,1);   /* limit */
 		gen_fcmp();
-		gen_blt("  ");          /* if STEP -ve -> counter<limit? */
-		cx2=curr_code;
-		gen_label(lablabel3);      /* label for bypassing -ve step test */
 	  }
+
+      gen_blt("  ");      /* if STEP -ve -> counter<limit? */
+      cx2=curr_code;
+      gen_label(lablabel3);      /* label for bypassing -ve step test */
 
 	  /* statement block */
 	  while ((sym != nextsym) && (!end_of_source)) statement();
@@ -516,20 +500,7 @@ void for_statement()
 	  if (sym != colon) insymbol();   /* return this sym to statement */
 	  
 	  /* counter=counter+step */
-	  switch(steptype) {
-	  case shorttype  : 	
-		gen_load16d(stpbuf,0);
-		gen_add16_val(0,counteraddr);
-		break;
-	  case longtype   : 	
-		gen_load32d(stpbuf,0);
-		gen_add32_val(0,counteraddr); /* FIXME: WTF. Is this being changed later, or is something wrong? */
-		break;
-	  case singletype :  gen_load32d(stpbuf,0);
-		gen_load32d(cntbuf,1);
-		gen_save32d(0,counteraddr);
-		break;
-	  }
+      gen_counter_incr(steptype, stpbuf, counteraddr);
 
 	  check_for_event();
 
@@ -550,7 +521,6 @@ void for_statement()
 		change(exit_for_cx,"jmp",labname3,"  ");
 		exit_for_cx = NULL;
 	  }
-	}
   }
 }
 

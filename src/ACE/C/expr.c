@@ -101,24 +101,17 @@ static int ptr_term()
 
 	 /* get value at address in a0 */    
 	 switch(op) {
-	   /* *%<address> */	
-	 case shortpointer : 
-	   gen_push_indirect16(0);
+	 case shortpointer : /* *%<address> */	
 	   localtype=shorttype;
 	   break;
-
-	   /* *&<address> */	
-     case longpointer  : 
-	   gen_push_indirect32(0);
+     case longpointer  :  /* *&<address> */	
 	   localtype=longtype;
 	   break;
-
-     /* *!<address> */	
-     case singlepointer :
-	   gen_push_indirect32(0);
+     case singlepointer : /* *!<address> */	
 	   localtype=singletype;
 	   break;
 	 }
+     gen_push_indirect(localtype);
    }
   }
   

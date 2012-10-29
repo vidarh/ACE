@@ -63,9 +63,9 @@ extern	ACELIBS otherlib[NUMLIBS];
 extern	char 	librarybase[MAXIDSIZE+6];
 extern	char 	libraryname[MAXIDSIZE+20];
 extern	char	bmapname[MAXIDSIZE+20];
-extern	BOOL 	restore_a4;
-extern	BOOL 	restore_a5;
 extern	BOOL	early_exit;
+extern  BOOL    restore_a4;
+extern  BOOL    restore_a5;
 
 /* ------------------------- */
 /* Library Function routines */

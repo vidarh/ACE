@@ -67,15 +67,15 @@ void forward_ref()
   /* type identifiers */
   if (sym == shortintsym || sym == longintsym || sym == addresssym ||
 	  sym == singlesym || sym == stringsym) {
-	switch(sym) {
-   case shortintsym : sub_type = shorttype;  break;
-   case longintsym  : sub_type = longtype;   break;
-   case addresssym  : sub_type = longtype;   break;
-   case singlesym   : sub_type = singletype; break;
-   case stringsym   : sub_type = stringtype; break;
-   }
-   insymbol();
- }
+      switch(sym) {
+      case shortintsym : sub_type = shorttype;  break;
+      case longintsym  : sub_type = longtype;   break;
+      case addresssym  : sub_type = longtype;   break;
+      case singlesym   : sub_type = singletype; break;
+      case stringsym   : sub_type = stringtype; break;
+      }
+      insymbol();
+  }
 
  if (sym != ident) _error(7);
  else {

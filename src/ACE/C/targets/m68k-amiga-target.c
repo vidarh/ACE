@@ -26,3 +26,13 @@ static void m68k_eor(int type)
   else gen("eor.l","d1","d0");
 }
 
+/* Note: Arguments are listed in the order to be popped off the stack,
+ * which is generally the opposite of the normal order */
+void m68k_call_args(const char * label, const char * args, unsigned int stack) {
+  while (*args && args[0] != ':') {
+	args = gen_pop_arg(args);
+  }
+  gen_jsr(label);
+  if (stack > 0) gen_pop_ignore(stack);
+  gen_push_ret(args);
+}

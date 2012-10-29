@@ -34,46 +34,27 @@ void parse_channel() {
   make_sure_long(expr()); /* channel */
 }
 
-
-/* 
-** IFF OPEN [#]channel,file-name
-*/
-static void	iff_open() {
-  parse_channel();
-  if (sym != comma) _error(16);
-  else {
-	/* picture file name */
-	insymbol();
-	if (expr() != stringtype) _error(4);
-	else gen_call_void("_IFFPicOpen",8);
-  } 
-}
-
 /*  IFF READ [#]channel[,screen-id] */
 static void iff_read() {
   parse_channel();
   if (sym != comma) gen_push32_val(-1); /* no screen-id */
   else {
-	/* screen-id */
-	insymbol();
-	make_sure_long();
-	gen_call_void("_IFFPicRead",8);
+      /* screen-id */
+      insymbol();
+      make_sure_long();
+      gen_call_void("_IFFPicRead",8);
   }
 }
 
-/* IFF CLOSE [#]channel */
-static void  iff_close() {
-  parse_channel();
-  gen_call_void("_IFFPicClose",4);
-}
-
-/* IFF OPEN | READ | CLOSE */
+/* IFF OPEN #channel, filename
+       READ | CLOSE #channel 
+ */
 void iff() {
   insymbol();
   switch(sym) {
-  case opensym  : iff_open(); break;
+  case opensym  : gen_call_sargs("_IFFPicOpen","#l,s",8); break;
   case readsym  : iff_read(); break;
-  case closesym : iff_close(); break;
+  case closesym : gen_call_sargs("_IFFPicClose","#l",4); break;
   }
   /* We need to tell ACE to create/delete ILBM.library. */
   iffused = TRUE;
