@@ -82,7 +82,6 @@ int expect_token_sequence(short * seq)
 
 BOOL parse_step()
 {
-  insymbol();
   if (sym == stepsym) {
 	insymbol();
 	return TRUE;
@@ -92,9 +91,7 @@ BOOL parse_step()
 
 static BOOL pen_color()
 {
-  insymbol();
-  if (sym != comma) return FALSE;
-  insymbol();
+  if (!try_comma()) return FALSE;
   if (sym == comma) return FALSE; /* Handle case where there are more parameters coming. */
   gen_pop_as_short(expr(),0);
   gen_setapen();
@@ -110,11 +107,10 @@ static void reset_pen(BOOL colorset)
 }
 
 /* functions */
-void pset()
-{
+void pset() {
   BOOL relative;
   BOOL colorset=FALSE;
-
+  insymbol();
   relative = parse_step();
   if (!expect_token_sequence(point_tokens)) return;
 
@@ -152,24 +148,20 @@ void pset()
   reset_pen(colorset);
 }
 
+/* PAINT (X,Y)[,paintcolor-id[,bordercolor-id]] */
 void paint() {
   BOOL paintcolor=FALSE;
   BOOL bordercolor=FALSE;
 
-  /* PAINT (X,Y)[,paintcolor-id[,bordercolor-id]] */
-
   if (!expect_token_sequence(point_tokens)) return;
-  insymbol();
-  if (sym == comma) {
-	insymbol();
-		  
+
+  if (try_comma()) {
 	if (sym != comma) {
 	  make_sure_short(expr()); /* paintcolor-id */
 	  paintcolor=TRUE;
 	}
 	
-	if (sym == comma) {
-	  insymbol();
+	if (try_comma()) {
 	  make_sure_short(expr()); /* bordercolor-id */
 	  bordercolor=TRUE;
 	}
@@ -185,8 +177,7 @@ void paint() {
   gen_paint();
 }
 
-void circle()
-{
+void circle() {
   BOOL relative;
   BOOL colorset=FALSE;
   BOOL start_angle=FALSE;
@@ -205,27 +196,24 @@ void circle()
   
   /* start & end angle in <<degrees>> */
   
-  if (sym == comma) {
-	insymbol();
+  if (try_comma()) {
 	if (sym != comma) {  /* else skip to end angle */
 	  gen_Flt(expr());
 	  gen_pop32d(3); /* start angle */
 	  start_angle=TRUE;
 	}
 	
-	if (sym == comma) {
-      insymbol();
+	if (eat_comma()) {
       if (sym != comma) {  /* else skip to aspect */
 		if (!start_angle) _error(30); /* no start angle! */
 		gen_Flt(expr());
 		gen_pop32d(4); /* end angle */
 		end_angle=TRUE;
       }
-	} else _error(16);  
+	}
 	
-	if (sym == comma) {
+	if (try_comma()) {
       /* aspect */
-      insymbol();
       gen_Flt(expr());
       gen_pop32d(5); /* aspect */
       aspect=TRUE;
@@ -301,7 +289,6 @@ void draw_line()
   }
 		
   /* second coordinate clause ? */
-  insymbol();
   if (sym != minus) {
 	if (relative) {
 	  /* no second coordinate clause */
@@ -315,7 +302,6 @@ void draw_line()
   if (!expect_token_sequence(point_tokens)) return;
 
   /* pen color ? */
-  insymbol();
   if (try_comma()) {
 	if (sym != comma) {	/* ",," -> no color-id */
 	  colorset=TRUE;
@@ -430,38 +416,30 @@ void color() {
   gen_jsr("_changetextcolor");
 }
 
-void area()
-{
+/* AREA [STEP](x,y) */
+void area() {
   BOOL relative;
-  /* AREA [STEP](x,y) */
-
   relative = parse_step();
   if (!expect_token_sequence(point_tokens)) return;
   gen_area(relative);
 }
 
-void areafill()
-{
-  /* AREAFILL [mode] */
-  
+/* AREAFILL [mode] */
+void areafill() {
   insymbol();
   if ((sym == shortconst) && ((shortval == 0) || (shortval == 1))) {
 	gen_load16d_val(shortval,0);
 	insymbol();
   } else gen_load16d_val(0,0);
-  
   gen_jsr("_areafill");
 }
 
-void pattern()
-{
+/* PATTERN [line-pattern][,area-pattern] | RESTORE */ 
+void pattern() {
   char addrbuf[40];
   BOOL linepatterncalled;
   
-  /* PATTERN [line-pattern][,area-pattern] | RESTORE */ 
-  
   insymbol();
-  
   if (eat(restoresym)) {
 	/* restore default pattern */
 	gen_load32d_val(1,1); 	/* RESTORE flag */
@@ -513,14 +491,3 @@ void pattern()
   }
 }
 
-/* SCROLL (xmin,ymin)-(xmax,ymax),delta-x,delta-y */
-void scroll() { if (parse_gen_params(0,"ir,w,w")) gen_scrollraster(); } 
-
-/* STYLE n */
-void text_style() { gen_call_sargs("_change_text_style","il",4); }
-/* FONT name,size */
-void text_font() { gen_call_sargs("_change_text_font","is,l",8); }
-/* GET */
-void gfx_get() { insymbol(); }
-/* PUT */
-void gfx_put() { insymbol(); }

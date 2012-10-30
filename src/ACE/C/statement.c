@@ -517,7 +517,6 @@ BOOL  need_symbol=TRUE;
    case killsym:     kill(); break;
    case externalsym: define_external_object(); break;
    case filessym:    files(); break;
-   case fontsym:     text_font(); break;
    case forsym:      for_statement(); break;
    case gadgetsym:   gadget(); break;
    case globalsym:   define_common_or_global_variable(sym); break;
@@ -529,7 +528,6 @@ BOOL  need_symbol=TRUE;
    case pokesym:    poke(); break;
    case pokewsym: pokew(); break;
    case pokelsym: pokel(); break;
-   case scrollsym: scroll(); break;
    case opensym: open_a_file(); break;
    case optionsym: parse_option_list(); break;
    case paintsym: paint(); break;
@@ -539,16 +537,20 @@ BOOL  need_symbol=TRUE;
    case stringsym: declare_variable(stringtype); break;
    case soundsym: sound(); break;
    case structsym: define_structure(); break;
-   case stylesym: text_style(); break;
    case swapsym: swap(); break;
    case wavesym: wave(); break;
    case whilesym: while_statement(); break;
    case saysym: say(); break;
 
-   case clssym:      gen_jsr("_cls"); insymbol(); break;
-   case homesym: gen_jsr("_home"); insymbol(); break;
-   case pendownsym: gen_jsr("_pendown"); insymbol(); break;
-   case penupsym:   gen_jsr("_penup"); insymbol(); break;
+   case clssym:       gen_jsr("_cls"); insymbol(); break;
+   case homesym:      gen_jsr("_home"); insymbol(); break;
+   case pendownsym:   gen_jsr("_pendown"); insymbol(); break;
+   case penupsym:     gen_jsr("_penup"); insymbol(); break;
+
+   case fontsym:      gen_call_sargs("_change_text_font","is,l",8); break;
+   case stylesym:     gen_call_sargs("_change_text_style","il",4); break;
+
+   case scrollsym:    if (parse_gen_params(0,"ir,w,w")) gen_scrollraster(); break; 
 
    case palettesym:   insymbol(); gen_fcall("_palette",expr(),"w,f,f,f",notype,"d3,d2,d1,d0.w",0); break;
    case setxysym:     insymbol(); gen_fcall("_setxy",expr(),"s,s",shorttype,"d1.w,d0.w",0); break; 
