@@ -89,6 +89,7 @@ void window() {
               if (wtype != stringtype) _error(4); /* type mismatch */
           } else gen_push32_val(0);	/* NULL */
           
+          if (!eat_comma()) return;
           if (!parse_rect()) return;
           
           /* optional window type */

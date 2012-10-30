@@ -152,6 +152,8 @@ int argstr(int sftype) {
 int parse_gen_params(int type, const char * params) {
   while (*params && *params != ':') {
 	switch(params[0]) {
+	case 'i':
+        insymbol();
 	case 'E':
 	  check_for_event();
 	  break;

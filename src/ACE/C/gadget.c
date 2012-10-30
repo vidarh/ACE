@@ -39,7 +39,8 @@ extern	int	lastsym;
  * For the modification of (proportional) gadgets.
  */
 static void modify_gadget() {
-    in_long_expr(); /* gadget-id */
+    insymbol();
+    long_expr(); /* gadget-id */
 	if (eat_comma()) {
 	  long_expr();	/* knob-position */
 	  /* specify new maximum notches for slider? */
@@ -64,9 +65,9 @@ void gadget() {
 	
 	if (sym == onsym || sym == offsym || sym == stopsym)
 		change_event_trapping_status(lastsym);
-	else if (sym == closesym)  gen_call_sargs("_CloseGadget","l",4);
-    else if (sym == outputsym) gen_call_sargs("_SetCurrentGadget","l",4);
-    else if (sym == waitsym)   gen_call_sargs("_WaitGadget","l",4);
+	else if (sym == closesym)  gen_call_sargs("_CloseGadget","il",4);
+    else if (sym == outputsym) gen_call_sargs("_SetCurrentGadget","il",4);
+    else if (sym == waitsym)   gen_call_sargs("_WaitGadget","il",4);
     else if (sym == modsym)    modify_gadget();
     else {
         long_expr(); /* gadget-id */

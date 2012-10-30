@@ -357,11 +357,11 @@ void gen_push32_val(long val) {
 }
 
 void m68k_push32_val(long val) {
-  char buf[16];
+  char buf[20];
   if (val == 0) gen("move.l","#0","-(sp)");
   else {
-	sprintf(buf,"#$%lx",val);
-	gen("move.l",buf,"-(sp)");
+      sprintf(buf,"#$%lx",val);
+      gen("move.l",buf,"-(sp)");
   }
 }
 
