@@ -18,3 +18,8 @@ bevelbox (10,50)-(150,60), 10
 
 window 1,"Gadgets",(0,0)-(640,200),31
 
+MENU mProject,0,sEnable
+MENU mProject,0,sEnable, "Project"
+MENU mProject,0,sEnable, "Project","P"
+
+window close 1
