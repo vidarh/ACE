@@ -755,6 +755,18 @@ int comma_long_expr() {
     }
 }
  
+int try_arg_with_default(long def) {
+    if (try_comma()) {
+        if (sym != comma) long_expr();
+        else gen_push32_val(def);
+    } else gen_push32_val(def);
+}
+
+
+int peek(int token) {
+    return sym == token;
+}
+
 int eat(int token) {
     if (sym == token) {
         insymbol();
