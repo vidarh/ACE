@@ -39,26 +39,18 @@ extern	int	lastsym;
    MENU ON | OFF | STOP
 */
 void menu() {
-  insymbol();
-  
-  if (sym == onsym || sym == offsym || sym == stopsym)
-	change_event_trapping_status(lastsym);
-  else if (sym == clearsym) { /* MENU CLEAR */
-      insymbol();
-      gen_jsr("_ClearMenu");
-  } else if (sym == waitsym) { /* MENU WAIT */
-      insymbol();
-      gen_jsr("_WaitMenu");
-  } else {
-      int t = parse_gen_params(expr(),"l,l,l"); /* menu-id,item-id,state */
-      if (sym != comma) {
-          gen_call_void("_ChangeMenuState",12);
-          return;	
-      }
-      if (!parse_gen_params(0,",s")) /* title-string */
-          gen_push32_val(0);
-      if (!parse_gen_params(0,",s")) /* command-key */
-          gen_push32_val(0);	
-      gen_call_void("_ModifyMenu",20);
-  }
+    insymbol();
+    if (try_change_event_trapping_status(lastsym)) return;
+    if (eat(clearsym)) gen_jsr("_ClearMenu");
+    else if (eat(waitsym)) gen_jsr("_WaitMenu");
+    else {
+        int t = parse_gen_params(expr(),"l,l,li"); /* menu-id,item-id,state */
+        if (!peek(comma)) {
+            gen_call_void("_ChangeMenuState",12);
+            return;	
+        }
+        if (!parse_gen_params(0,",s")) gen_push32_val(0); /* title-string */
+        if (!parse_gen_params(0,",s")) gen_push32_val(0);	/* command-key */
+        gen_call_void("_ModifyMenu",20);
+    }
 }

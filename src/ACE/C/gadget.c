@@ -58,12 +58,8 @@ static void modify_gadget() {
 void gadget() {
     int  gtype;
     int val;
-    int ssym;
- 
 	insymbol();
-	
-	if (sym == onsym || sym == offsym || sym == stopsym)
-		change_event_trapping_status(lastsym);
+	if (try_change_event_trapping_status(lastsym)) return;
 	else if (eat(closesym))  gen_call_sargs("_CloseGadget","l",4);
     else if (eat(outputsym)) gen_call_sargs("_SetCurrentGadget","l",4);
     else if (eat(waitsym))   gen_call_sargs("_WaitGadget","l",4);
@@ -102,15 +98,9 @@ void gadget() {
             }
             
             /* Optional gadget style parameter. */
-            if (!try_comma()) gen_push32_val(0);	/* style = 0 */
-            else {
-                if (sym != comma) long_expr();	/* style */
-                else gen_push32_val(0);         /* style = 0 */	
-            }		
+            try_arg_with_default(0); /* style = 0 */
             
-            /*
-            ** Optional font and font-size parameters (for button).
-            */
+            /* Optional font and font-size parameters (for button). */
             if (sym != comma) {
                     gen_push32_val(0);  /* font name  = NULL */
                     gen_push32_val(0);  /* font size  = 0 */
@@ -130,7 +120,5 @@ void gadget() {
 
 /* BEVELBOX (x1,y1)-(x2,y2),type */
 void bevel_box() {
-	insymbol();
-    parse_rect();
-    if (comma_long_expr()) gen_call_void("_BevelBox",20);
+    gen_call_sargs("_BevelBox","ir,l",20);
 }

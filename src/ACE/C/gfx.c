@@ -316,8 +316,7 @@ void draw_line()
 
   /* pen color ? */
   insymbol();
-  if (sym == comma) {
-	insymbol();
+  if (try_comma()) {
 	if (sym != comma) {	/* ",," -> no color-id */
 	  colorset=TRUE;
 	  gen_push16_var("_xmin");	/* save d0 & d1 */
@@ -334,8 +333,7 @@ void draw_line()
   }
 	
   /* box or boxfill? */
-  if (sym == comma) {
-	insymbol();
+  if (try_comma()) {
 	if (sym == ident) {
 	  if ((id[0]=='B') && ((id[1]=='\0') || (id[1]==':'))) box=TRUE;
 	  else
@@ -413,9 +411,8 @@ void color() {
   enter_XREF("_fgdpen");
   enter_BSS("_fg","ds.w 1");
   
-  if (sym == comma) {
+  if (try_comma()) {
 	/* background color */
-	insymbol();
 	gen_pop_as_short(expr(),0);
 	gen_save16d(0,"_bg");  /* background pen for text color change */
 	gen_save16d(0,"_bgpen"); /* change global background pen color */
@@ -465,13 +462,12 @@ void pattern()
   
   insymbol();
   
-  if (sym == restoresym) {
+  if (eat(restoresym)) {
 	/* restore default pattern */
 	gen_load32d_val(1,1); 	/* RESTORE flag */
 	gen_jsr("_linepattern");
 	gen_load32d_val(1,1); 	/* RESTORE flag */
 	gen_jsr("_areapattern");
-	insymbol();
   } else {
 	if (sym != comma) {
 	  /* get line-pattern */
@@ -481,21 +477,20 @@ void pattern()
 	  linepatterncalled=TRUE;
 	} else linepatterncalled=FALSE;
 	
-  if (sym == comma) {
-	/* area-pattern */
-	insymbol();
-	if ((sym == ident) && (obj == variable) && (exist(id,array))) {
-      if (curr_item->type != shorttype) _error(28);
-      else {
-        if (!linepatterncalled) {
-		  /* line-pattern must be set
-			 to $FFFF if none specified,
-			 otherwise area-pattern doesn't
-			 seem to work! 
-		  */
-		  gen_load32d_val(1,1); 	/* set line-pattern to $FFFF */
-		  gen_jsr("_linepattern");
-		}
+    if (try_comma()) {
+        /* area-pattern */
+        if ((sym == ident) && (obj == variable) && (exist(id,array))) {
+            if (curr_item->type != shorttype) _error(28);
+            else {
+                if (!linepatterncalled) {
+                    /* line-pattern must be set
+                       to $FFFF if none specified,
+                       otherwise area-pattern doesn't
+                       seem to work! 
+                    */
+                    gen_load32d_val(1,1); 	/* set line-pattern to $FFFF */
+                    gen_jsr("_linepattern");
+                }
 		
        	/* get address of array */
        	itoa(-1*curr_item->address,addrbuf,10);
@@ -519,27 +514,13 @@ void pattern()
 }
 
 /* SCROLL (xmin,ymin)-(xmax,ymax),delta-x,delta-y */
-void scroll() {
-  insymbol();
-  if (!parse_rect()) return;
-  if (parse_gen_params(0,",w,w") == undefined) return;
-  gen_scrollraster();
-} 
+void scroll() { if (parse_gen_params(0,"ir,w,w")) gen_scrollraster(); } 
 
 /* STYLE n */
-void text_style() {
-  insymbol();
-  gen_call_sargs("_change_text_style","l",4);
-}
-
+void text_style() { gen_call_sargs("_change_text_style","il",4); }
 /* FONT name,size */
-void text_font() {
-  insymbol();
-  gen_call_sargs("_change_text_font","s,l",8);
-}
-
+void text_font() { gen_call_sargs("_change_text_font","is,l",8); }
 /* GET */
 void gfx_get() { insymbol(); }
-
 /* PUT */
 void gfx_put() { insymbol(); }
