@@ -203,6 +203,14 @@ void get_event_trap_label()
  }
 }
 
+int try_change_event_trapping_status(int lastsym) {
+    if (sym == onsym || sym == offsym || sym == stopsym) {
+        change_event_trapping_status(lastsym);
+        return 1;
+    }
+    return 0;
+}
+
 void change_event_trapping_status(int event)
 {
   /* <event> ON|OFF|STOP */
