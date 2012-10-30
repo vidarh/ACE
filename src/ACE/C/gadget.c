@@ -39,7 +39,6 @@ extern	int	lastsym;
  * For the modification of (proportional) gadgets.
  */
 static void modify_gadget() {
-    insymbol();
     long_expr(); /* gadget-id */
 	if (eat_comma()) {
 	  long_expr();	/* knob-position */
@@ -65,34 +64,25 @@ void gadget() {
 	
 	if (sym == onsym || sym == offsym || sym == stopsym)
 		change_event_trapping_status(lastsym);
-	else if (sym == closesym)  gen_call_sargs("_CloseGadget","il",4);
-    else if (sym == outputsym) gen_call_sargs("_SetCurrentGadget","il",4);
-    else if (sym == waitsym)   gen_call_sargs("_WaitGadget","il",4);
-    else if (sym == modsym)    modify_gadget();
+	else if (eat(closesym))  gen_call_sargs("_CloseGadget","l",4);
+    else if (eat(outputsym)) gen_call_sargs("_SetCurrentGadget","l",4);
+    else if (eat(waitsym))   gen_call_sargs("_WaitGadget","l",4);
+    else if (eat(modsym))    modify_gadget();
     else {
         long_expr(); /* gadget-id */
-        if (eat_comma()) {       
-            if (sym == onsym) {
-                gen_push32_val(1);
-                insymbol();
-            } else if (sym == offsym) {
-                gen_push32_val(0);
-                insymbol();
-            } else {
-                long_expr(); /* status */
-            }
-            
-            if (sym != comma) {
-                gen_call_void("_ChangeGadgetStatus",8);
-                    return;	
-            }
-        }
+        if (!eat_comma()) return;
+        if (eat(onsym))       gen_push32_val(1);
+        else if (eat(offsym)) gen_push32_val(0);
+        else long_expr(); /* status */
         
-        if (eat_comma()) {
-            gtype = expr();	
-            /* string or integer expression for 3rd parameter */
-            if (gtype != stringtype) make_sure_long(gtype);
+        if (!try_comma()) {
+            gen_call_void("_ChangeGadgetStatus",8);
+            return;	
         }
+
+        gtype = expr();	
+        /* string or integer expression for 3rd parameter */
+        if (gtype != stringtype) make_sure_long(gtype);
         
         if (eat_comma()) {
             parse_rect();	/* (x1,y1)-(x2,y2) */
@@ -111,12 +101,9 @@ void gadget() {
                 if (val != -1) insymbol();
             }
             
-            /*
-            ** Optional gadget style parameter.
-            */
-            if (sym != comma) gen_push32_val(0);	/* style = 0 */
+            /* Optional gadget style parameter. */
+            if (!try_comma()) gen_push32_val(0);	/* style = 0 */
             else {
-                //insymbol(); /* FIXME: Is this right? */
                 if (sym != comma) long_expr();	/* style */
                 else gen_push32_val(0);         /* style = 0 */	
             }		
