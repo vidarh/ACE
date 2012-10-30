@@ -59,7 +59,7 @@ static void wdwoutput() {
 
 BOOL parse_rect()
 {
-  short rect_tokens[] = {comma,16,lparen,14,longtype /*x1*/,0, comma, 16, longtype/*y1*/,0,rparen,9,
+  short rect_tokens[] = {lparen,14,longtype /*x1*/,0, comma, 16, longtype/*y1*/,0,rparen,9,
 						 minus,21,lparen,14,longtype /*x2*/,0, comma, 16, longtype/*y2*/,0,rparen,9,-1,-1};
   return expect_token_sequence(rect_tokens);
 }

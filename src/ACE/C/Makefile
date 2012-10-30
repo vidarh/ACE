@@ -23,3 +23,8 @@ lex.c: lexvar.c
 
 clean:
 	rm -f *.o *~ \#*
+
+.PHONY: tests clean
+
+tests: ace
+	(cd tests && make)
