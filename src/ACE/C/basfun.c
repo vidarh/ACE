@@ -157,6 +157,9 @@ int parse_gen_params(int type, const char * params) {
 	case 'E':
 	  check_for_event();
 	  break;
+    case 'r':
+      parse_rect();
+      break;
 	case 's':
 	  if (type != stringtype) _error(4); return undefined;
 	  break;
