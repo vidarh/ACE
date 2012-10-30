@@ -177,6 +177,11 @@ void paint() {
   gen_paint();
 }
 
+void gen_Flt_expr_pop(int reg) {
+    gen_Flt(expr());
+    gen_pop32d(reg);
+}
+
 void circle() {
   BOOL relative;
   BOOL colorset=FALSE;
@@ -198,25 +203,21 @@ void circle() {
   
   if (try_comma()) {
 	if (sym != comma) {  /* else skip to end angle */
-	  gen_Flt(expr());
-	  gen_pop32d(3); /* start angle */
-	  start_angle=TRUE;
+        gen_Flt_expr_pop(3);
+        start_angle=TRUE;
 	}
 	
 	if (eat_comma()) {
       if (sym != comma) {  /* else skip to aspect */
 		if (!start_angle) _error(30); /* no start angle! */
-		gen_Flt(expr());
-		gen_pop32d(4); /* end angle */
+		gen_Flt_expr_pop(4);
 		end_angle=TRUE;
       }
 	}
 	
 	if (try_comma()) {
-      /* aspect */
-      gen_Flt(expr());
-      gen_pop32d(5); /* aspect */
-      aspect=TRUE;
+        gen_Flt_expr_pop(5);
+        aspect=TRUE;
 	}    
   }
   
@@ -261,6 +262,21 @@ void circle() {
   reset_pen(colorset);
 }
 
+void enter_min_BSS() {
+	enter_BSS("_xmin","ds.w 1");
+	enter_BSS("_ymin","ds.w 1");
+}
+
+void gen_move_pnt(short rx, short ry) {
+    gen_move16dd(rx,0);
+    gen_move16dd(ry,0);
+}
+
+void gen_line_to(short rx, short ry) {
+    gen_move_pnt(rx,ry);
+    gen_draw();
+}
+
 void draw_line()
 {
   BOOL relative=FALSE;
@@ -278,8 +294,7 @@ void draw_line()
   /* save x1 & y1 since they may be changed by expr() calls below. */
   gen_save16d(0,"_xmin");    cx1=curr_code;
   gen_save16d(1,"_ymin");    cx2=curr_code;
-  enter_BSS("_xmin","ds.w 1");
-  enter_BSS("_ymin","ds.w 1");
+  enter_min_BSS();
 		
   if (!relative) {
 	/* move to x,y */
@@ -341,20 +356,11 @@ void draw_line()
 	/* x1=d2; y1=d3 x2=d4; y2=d5 */
 	/* already moved to x1,y1 */
 
-	gen_move16dd(4,0);
-	gen_move16dd(3,1);
-	gen_draw();     /* x1,y1 - x2,y1 */
-	gen_move16dd(4,0);
-	gen_move16dd(5,1);
-	gen_draw(); /* x2,y1 - x2,y2 */
-	gen_move16dd(2,0);
-	gen_move16dd(5,1);
-	gen_draw(); /* x2,y2 - x1,y2 */
-	gen_move16dd(2,0);
-	gen_move16dd(3,1);
-	gen_draw(); /* x1,y2 - x1,y1 */
-	enter_BSS("_xmin","ds.w 1");
-	enter_BSS("_ymin","ds.w 1");
+	gen_line_to(4,3); /* x1,y1 - x2,y1 */
+	gen_line_to(4,5); /* x2,y1 - x2,y2 */
+    gen_line_to(2,5); /* x2,y2 - x1,y2 */
+	gen_line_to(2,3); /* x1,y2 - x1,y1 */
+    enter_min_BSS();
   }	else if (boxfill) {
 	change(cx,"nop","  ","  ");   /* don't need Move */
 	gen_load32a("_RPort",1);
@@ -363,8 +369,7 @@ void draw_line()
 	gen_load16d("_ymin",1); /* ymin */
 	gen_load16d("_xmin",0); /* xmin */
 	gen_rectfill();
-	enter_BSS("_xmin","ds.w 1");
-	enter_BSS("_ymin","ds.w 1");
+    enter_min_BSS();
   } else {
 	/* draw line */
 	gen_load32a("_RPort",1);
