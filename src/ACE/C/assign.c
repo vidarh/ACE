@@ -627,7 +627,7 @@ void input() {
 	  
 	  /* ALL data types need a temporary string */
 	  make_temp_string();
-	  if (storage->type != stringtype) gen_load_addr(tempstrname,0);
+	  if (storage->type != stringtype) gen_load_addr(tempstrname,1);
 	  else gen_pea(tempstrname);
 	  
 	  /* When storing an input value into an array element, must save
