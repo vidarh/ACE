@@ -512,7 +512,7 @@ int numericfunction() {
         if (eat_comma()) {
             if (expr() == stringtype) {  /* response #1 */
                 opt_arg(stringtype,0); /* response #2 */
-                gen_call_args("_sysrequest",":d0.w",12);
+                gen_call_args("_sysrequest","",12);
                 nftype=shorttype;
             } else { _error(4); nftype=undefined; }
         }
