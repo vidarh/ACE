@@ -161,8 +161,8 @@ int parse_gen_params(int type, const char * params) {
       parse_rect();
       break;
 	case 's':
-	  if (type != stringtype) _error(4); return undefined;
-	  break;
+        if (type != stringtype) { _error(4); return undefined;}
+        break;
 	case 'w':
 	  if (make_sure_short(type) == undefined) return undefined;
 	  break;
