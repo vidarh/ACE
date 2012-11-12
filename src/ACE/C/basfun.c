@@ -288,7 +288,7 @@ int stringfunction()
    case binstrsym:   sftype = gen_fcall("_binstr",sftype,"l",stringtype,"t0,d0:a0",0); break;
    case inputstrsym: sftype = gen_fcall("_inputstrfromfile",sftype,"E l,#l", stringtype, "d0,d1",0); break;     
    case leftstrsym:  sftype = gen_fcall("_leftstr",sftype,"s,w",stringtype,"d0.w,a0,t1:a0",0); break;
-   case lensym  :    sftype = gen_fcall("_strlen",sftype,"s",longtype,"a2",0); break;
+   case lensym  :    sftype = gen_fcall("_strlen",sftype,"s",longtype,"a2:d0",0); break;
    case octstrsym:   sftype = gen_fcall("_octstr",sftype,"l",stringtype,"t0,d0:a0",0); break;
    case rightstrsym: sftype = gen_fcall("_rightstr",sftype,"s,w",stringtype,"d0.w,a0,t1:a0",0); break;
    case spcsym:      sftype = gen_fcall("_spc",sftype,"w",stringtype,"d0.w,t0",0); break;
