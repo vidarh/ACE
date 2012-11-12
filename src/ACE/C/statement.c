@@ -553,10 +553,10 @@ BOOL  need_symbol=TRUE;
    case scrollsym:    if (parse_gen_params(0,"ir,w,w")) gen_scrollraster(); break; 
 
    case palettesym:   insymbol(); gen_fcall("_palette",expr(),"w,f,f,f",notype,"d3,d2,d1,d0.w",0); break;
-   case setxysym:     insymbol(); gen_fcall("_setxy",expr(),"s,s",shorttype,"d1.w,d0.w",0); break; 
-   case turnsym:      insymbol(); gen_fcall("_turn",expr(),"s",shorttype,"d0.w",0); break;
-   case turnleftsym:  insymbol(); gen_fcall("_turnleft",expr(),"s",shorttype,"d0.w",0); break;
-   case turnrightsym: insymbol(); gen_fcall("_turnright",expr(),"s",shorttype,"d0.w",0); break;
+   case setxysym:     insymbol(); gen_fcall("_setxy",expr(),"w,w",shorttype,"d1.w,d0.w",0); break; 
+   case turnsym:      insymbol(); gen_fcall("_turn",expr(),"w",shorttype,"d0.w",0); break;
+   case turnleftsym:  insymbol(); gen_fcall("_turnleft",expr(),"w",shorttype,"d0.w",0); break;
+   case turnrightsym: insymbol(); gen_fcall("_turnright",expr(),"w",shorttype,"d0.w",0); break;
    case fixsym:       insymbol(); gen_fcall("_fix",expr(),"l",longtype,"d0",0); break;
 
 
