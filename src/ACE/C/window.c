@@ -40,6 +40,7 @@
 
 /* externals */
 extern	int	lastsym;
+extern  int sym;
 
 /* WINDOW wdw-id[,title],rectangle[,type][,screen-id] 
    WINDOW CLOSE wdw-id
@@ -56,12 +57,29 @@ void window() {
        Instead of a list of symbols, this ought to be a list of parameter types,
        with an "optional" flag.
     */
-    struct Function f_openwdw = {"l?sr?l?l",2, {-1,0}, "_OpenWdw", 32};
+    struct Function f_openwdw = {"?l?l",2, {-1,0}, "_OpenWdw", 32};
     
     insymbol();
     if (try_change_event_trapping_status(lastsym)) return;
     else if (eat(closesym))  gen_call_sargs("_CloseWdw","il",4);
     else if (eat(outputsym)) gen_call_sargs("_ChangeOutputWdw","il",4);
-    else gen_arglist(&f_openwdw); 
+    else {
+        //gen_arglist(&f_openwdw); 
+        
+        /* open a window */
+        make_sure_long(expr()); /* Wdw-id */
+        if (!peek(comma)) {
+            _error(16);
+            return;
+        }
+
+        opt_arg(stringtype,0);
+        if (!eat_comma()) return;
+        if (!parse_rect()) return;
+        opt_arg(longtype,-1); /* optional window type */
+        opt_arg(longtype,0);  /* optional screen-id */
+        gen_call_void("_OpenWdw",32);
+    }
 }
+
 
