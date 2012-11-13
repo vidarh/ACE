@@ -60,17 +60,15 @@ static void open_serial() {
 
   /* optional serial READ buffer size */
   insymbol();
-  if (sym == comma) {
-	insymbol();
-	if (sym != comma) {
-        long_expr(); /* Read buffer size */ 
-	} else gen_push32_val(512);		/* defaults to 512 bytes */	
+  if (try_comma()) {
+      if (!peek(comma)) {
+          long_expr(); /* Read buffer size */ 
+      } else gen_push32_val(512);		/* defaults to 512 bytes */	
   } else gen_push32_val(512);		/* defaults to 512 bytes */
 
   /* optional serial device name */
-  if (sym == comma) {
-	insymbol();
-	if (expr() != stringtype) _error(4);	/* serial device name */
+  if (try_comma()) {
+      if (expr() != stringtype) _error(4);	/* serial device name */
   } else gen_push32_val(0);		/* defaults to NULL */
   
   /* call open_serial function */
@@ -110,8 +108,7 @@ static void read_serial()
 	  gen_push_deref_array(storage,addrbuf);
 	} else gen_push32_var(addrbuf);
 	
-	insymbol();
-    gen_call_sargs("_ReadSerial",",l",12);
+    gen_call_sargs("_ReadSerial","i,l",12);
   } else _error(19); /* variable (or array) expected */      
   insymbol();
 }

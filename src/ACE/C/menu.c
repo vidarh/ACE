@@ -44,13 +44,13 @@ void menu() {
     if (eat(clearsym)) gen_jsr("_ClearMenu");
     else if (eat(waitsym)) gen_jsr("_WaitMenu");
     else {
-        int t = parse_gen_params(expr(),"l,l,li"); /* menu-id,item-id,state */
+        parse_gen_params(expr(),"l,l,li"); /* menu-id,item-id,state */
         if (!peek(comma)) {
             gen_call_void("_ChangeMenuState",12);
             return;	
         }
-        if (!parse_gen_params(0,",s")) gen_push32_val(0); /* title-string */
-        if (!parse_gen_params(0,",s")) gen_push32_val(0);	/* command-key */
+        parse_gen_params_with_default(0,",s",0); /* title-string */
+        parse_gen_params_with_default(0,",s",0); /* command-key */
         gen_call_void("_ModifyMenu",20);
     }
 }

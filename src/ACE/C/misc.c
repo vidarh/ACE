@@ -431,7 +431,7 @@ void MsgBox()
   **
   ** See also basfun.c for MsgBox *function*. 
   */
-  insymbol();
+    insymbol();
   
   if (expr() != stringtype) _error(4);  /* message */
   else if (sym != comma) _error(16);

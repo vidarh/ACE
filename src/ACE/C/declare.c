@@ -407,7 +407,8 @@ void declare_variable(int vartype)
 		case shorttype  :  gen_clear16(addrbuf); break;
 		case singletype: /* intentional fallthrough */
 		case longtype   :  gen_clear32(addrbuf); break;
-		case stringtype :  str_item = curr_item;
+		case stringtype :  
+          str_item = curr_item;
 		  if (sym == addresssym) {
 			normal_string_variable=FALSE;
 			/* don't want to create a BSS object! */

@@ -268,7 +268,7 @@ void gen_pokeb(int t)
   gen_save_indirect8();  /* poke (a0),d0 */
 }
 
-void gen_pokew(int t)
+void gen_pokew()
 {
   gen_pop_as_short(expr(), 0); /* data to be poked */
   gen_pop_addr(0);   /* address */
@@ -547,7 +547,7 @@ static void gen_push16d(unsigned char reg) {
   gen("move.w",dreg[reg],"-(sp)");
 }
 
-void gen_push_var(const char * absbuf, int mbr_type, int member_offset) {
+int gen_push_var(const char * absbuf, int mbr_type, int member_offset) {
     if (mbr_type == bytetype) {
         gen("move.b",absbuf,"d0");
         gen_ext8to16(0);
@@ -736,13 +736,13 @@ int make_integer(int oldtyp) {
   return(oldtyp);  /* already an integer */
 }
 
-void long_expr() {
-    make_sure_long(expr());
+int long_expr() {
+    return make_sure_long(expr());
 }
 
-void in_long_expr() {
+int in_long_expr() {
     insymbol();
-    long_expr();
+    return long_expr();
 }
 
 int comma_long_expr() {
@@ -755,11 +755,8 @@ int comma_long_expr() {
     }
 }
  
-int try_arg_with_default(long def) {
-    if (try_comma()) {
-        if (sym != comma) long_expr();
-        else gen_push32_val(def);
-    } else gen_push32_val(def);
+void parse_gen_params_with_default(long tok, const char * params, long def) {
+    if (!parse_gen_params(tok,params)) gen_push32_val(def);
 }
 
 
@@ -780,6 +777,11 @@ int eat_token(int token, int err) {
     if (eat(token)) return 1;
     if (err != 0) _error(err);
     return 0;
+}
+
+/* More conventional name for the one that throws an error */
+int expect(int token, int err) {
+    return eat_token(token,err);
 }
 
 
@@ -832,6 +834,19 @@ void make_long() {
 }
 
 
+void gen_instr(BOOL offset_on_stack) {
+    gen_pop_addr(1);		/* Y$ */
+    gen_pop_addr(0);		/* X$ */
+    if (offset_on_stack) gen_pop32d(0);	/* I */
+    else gen_load32d_val(1,0); /* I = 1 */
+    gen_call("_instr",0); /* returns posn of Y$ in X$ */
+}
+
+void gen_hexstr(long sftype) {
+    sftype = make_integer(sftype);
+    if (sftype == longtype) gen_call_args("_hexstrlong","t0,d0 : a0",0);
+    else gen_call_args("_hexstrshort","t0,d0.w : a0",0);
+}
 
 void gen_gfxcall(const char * lvo) {
   gen_load32a("_RPort",1);
@@ -915,7 +930,7 @@ int gen_fcall(const char * funcname, int type, const char * params, int ret, con
 }
 
 void gen_call_sargs(const char * funcname, const char * params, int stackadj) {
-  if (parse_gen_params(0,params) == undefined) return undefined;
+  if (parse_gen_params(0,params) == undefined) return;
   gen_call(funcname, stackadj);
 }
 

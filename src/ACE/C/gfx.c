@@ -417,7 +417,7 @@ void color() {
   
   /* call text color change routine */
   gen_load16d("_fg",0);
-  gen_load16d("_bg",0);
+  gen_load16d("_bg",1);
   gen_jsr("_changetextcolor");
 }
 

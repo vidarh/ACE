@@ -34,19 +34,10 @@
 extern	int	sym;
 extern	int	lastsym;
 
-
-/* GADGET MOD gadget-id,knob-position[,max-position] 
- * For the modification of (proportional) gadgets.
- */
-static void modify_gadget() {
-    long_expr(); /* gadget-id */
-	if (eat_comma()) {
-	  long_expr();	/* knob-position */
-	  /* specify new maximum notches for slider? */
-	  if (sym != comma) gen_push32_val(-1);
-	  else in_long_expr();	/* max-position */
-	  gen_call_void("_modify_gad",12);
-	}
+BOOL on_match_gen_call(int token, const char * f, const char * params, int stack_adj) {
+    if (!eat(token)) return FALSE;
+    gen_call_sargs(f,params,stack_adj);
+    return TRUE;
 }
 
 /* 
@@ -58,67 +49,67 @@ static void modify_gadget() {
 void gadget() {
     int  gtype;
     int val;
+    struct Function modify = {"l,l[,l]", 2, {-1}, "_modify_gad",12};
 	insymbol();
-	if (try_change_event_trapping_status(lastsym)) return;
-	else if (eat(closesym))  gen_call_sargs("_CloseGadget","l",4);
-    else if (eat(outputsym)) gen_call_sargs("_SetCurrentGadget","l",4);
-    else if (eat(waitsym))   gen_call_sargs("_WaitGadget","l",4);
-    else if (eat(modsym))    modify_gadget();
-    else {
-        long_expr(); /* gadget-id */
-        if (!eat_comma()) return;
-        if (eat(onsym))       gen_push32_val(1);
-        else if (eat(offsym)) gen_push32_val(0);
-        else long_expr(); /* status */
-        
-        if (!try_comma()) {
-            gen_call_void("_ChangeGadgetStatus",8);
-            return;	
-        }
+	if (try_change_event_trapping_status(lastsym) ||
+        on_match_gen_call(closesym,  "_CloseGadget","l",4) ||
+        on_match_gen_call(outputsym, "_SetCurrentGadget","l",4) ||
+        on_match_gen_call(waitsym,   "_WaitGadget","l",4)) return;
 
-        gtype = expr();	
-        /* string or integer expression for 3rd parameter */
-        if (gtype != stringtype) make_sure_long(gtype);
-        
-        if (eat_comma()) {
-            parse_rect();	/* (x1,y1)-(x2,y2) */
-            if (try_comma()) {
-                /* Gadget Type. */
-                val = -1;
-                switch (sym) {
-                case buttonsym:  val = 1; break;
-                case stringsym:  val = 2; break;
-                case longintsym: val = 3; break;
-                case potxsym:    val = 4; break;
-                case potysym:    val = 5; break;
-                default:
-                    long_expr(); /* type */
-                }
-                if (val != -1) insymbol();
+    if (eat(modsym)) {
+        parse_arglist(&modify);
+        return;
+    }
+
+    long_expr(); /* gadget-id */
+    if (!eat_comma()) return;
+    if (eat(onsym))       gen_push32_val(1);
+    else if (eat(offsym)) gen_push32_val(0);
+    else long_expr(); /* status */
+    
+    if (!try_comma()) {
+        gen_call_void("_ChangeGadgetStatus",8);
+        return;	
+    }
+    
+    gtype = expr();	
+    /* string or integer expression for 3rd parameter */
+    if (gtype != stringtype) make_sure_long(gtype);
+    
+    if (eat_comma()) {
+        parse_rect();	/* (x1,y1)-(x2,y2) */
+        if (try_comma()) {
+            /* Gadget Type. */
+            val = -1;
+            switch (sym) {
+            case buttonsym:  val = 1; break;
+            case stringsym:  val = 2; break;
+            case longintsym: val = 3; break;
+            case potxsym:    val = 4; break;
+            case potysym:    val = 5; break;
+            default:
+                long_expr(); /* type */
             }
-            
-            /* Optional gadget style parameter. */
-            try_arg_with_default(0); /* style = 0 */
-            
-            /* Optional font and font-size parameters (for button). */
-            if (sym != comma) {
-                    gen_push32_val(0);  /* font name  = NULL */
-                    gen_push32_val(0);  /* font size  = 0 */
-                    gen_push32_val(0);  /* font style = 0 */
-                } else {
-                    static short font_tokens[] = {comma, 16, stringtype /* font name  */, 4, 
-                                                  comma, 16, longtype   /* font size  */, 0, 
-                                                  comma, 16, longtype   /* font style */, 0};
-                    insymbol();
-                    if (!expect_token_sequence(font_tokens)) return;
-                }					
-            }
-            
-            gen_call_void("_CreateGadget",48);
+            if (val != -1) insymbol();
         }
+        
+        /* Optional gadget style parameter. */
+        opt_arg(longtype,0); /* style = 0 */
+        
+        /* Optional font and font-size parameters (for button). */
+        if (sym != comma) {
+            gen_push32_val(0);  /* font name  = NULL */
+            gen_push32_val(0);  /* font size  = 0 */
+            gen_push32_val(0);  /* font style = 0 */
+        } else {
+            static short font_tokens[] = {comma, 16, stringtype /* font name  */, 4, 
+                                          comma, 16, longtype   /* font size  */, 0, 
+                                          comma, 16, longtype   /* font style */, 0};
+            insymbol();
+            if (!expect_token_sequence(font_tokens)) return;
+        }					
+    }
+    
+    gen_call_void("_CreateGadget",48);
 }
 
-/* BEVELBOX (x1,y1)-(x2,y2),type */
-void bevel_box() {
-    gen_call_sargs("_BevelBox","ir,l",20);
-}
