@@ -1,0 +1,440 @@
+
+	xref _AbsExecBase
+	xref _LVOPermit
+	xref _MathBase
+	xref _LVOSPFlt
+	xref _LVOSPCmp
+	xref _forward
+	xref _MathTransBase
+	xref _LVOSPSub
+	xref _LVOForbid
+	xref _SUB_DRAGON
+	xref _turnright
+	xref _LVOSPNeg
+	xref _LVOSPAdd
+	xref _OpenWdw
+	xref _change_text_font
+	xref _RPort
+	xref _GfxBase
+	xref _LVOSetAPen
+	xref _fgdpen
+	xref _LVOSetBPen
+	xref _bgpen
+	xref _changetextcolor
+	xref _strcpy
+	xref _streq
+	xref _cls
+	xref _locate
+	xref _Ustringprint
+	xref _inputsingle
+	xref _penup
+	xref _setxy
+	xref _pendown
+	xref _Ucodeprint
+	xref _strne
+	xref _inkey
+	xref _ucase
+	xref _CloseWdw
+	xref _startup
+	xref _cleanup
+	xref _openmathffp
+	xref _closemathffp
+	xref _openmathtrans
+	xref _closemathtrans
+	xref _IntuitionBase
+	xref _DosBase
+	xref _opengfx
+	xref _closegfx
+	xref _openintuition
+	xref _closeintuition
+	xref _starterr
+	xdef _EXIT_PROG
+	xref _free_alloc
+
+	SECTION code,CODE
+
+	jsr	_startup
+	cmpi.b	#1,_starterr
+	bne.s	_START_PROG
+	rts
+_START_PROG:
+	move.l	sp,_initialSP
+	movem.l	d1-d7/a0-a6,-(sp)
+	jsr	_openmathffp
+	cmpi.b	#1,_starterr
+	bne.s	_mathffp_ok
+	jmp	_ABORT_PROG
+_mathffp_ok:
+	jsr	_openmathtrans
+	cmpi.b	#1,_starterr
+	bne.s	_mathtrans_ok
+	jmp	_ABORT_PROG
+_mathtrans_ok:
+	jsr	_openintuition
+	cmpi.b	#1,_starterr
+	bne.s	_intuition_ok
+	jmp	_ABORT_PROG
+_intuition_ok:
+	jsr	_opengfx
+	cmpi.b	#1,_starterr
+	bne.s	_gfx_ok
+	jmp	_ABORT_PROG
+_gfx_ok:
+	link	a4,#-24
+
+	jmp	_lab0
+_SUB_DRAGON:
+	link	a5,#-40
+	move.l	_AbsExecBase,a6
+	jsr	_LVOPermit(a6)
+	move.l	-4(a5),-(sp)
+	move.w	#0,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	_MathBase,a6
+	jsr	_LVOSPFlt(a6)
+	move.l	d0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	move.l	_MathBase,a6
+	jsr	_LVOSPCmp(a6)
+	beq.s	_lab1
+	moveq	#0,d5
+_lab1:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab2
+	jmp	_lab3
+_lab2:
+	move.l	-8(a5),-(sp)
+	move.l	(sp)+,d0
+	jsr	_forward
+	jmp	_lab8
+_lab3:
+	move.l	-4(a5),-(sp)
+	move.w	#0,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	_MathBase,a6
+	jsr	_LVOSPFlt(a6)
+	move.l	d0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	move.l	_MathBase,a6
+	jsr	_LVOSPCmp(a6)
+	bgt.s	_lab4
+	moveq	#0,d5
+_lab4:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab5
+	jmp	_lab6
+_lab5:
+	move.l	-4(a5),-(sp)
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	_MathBase,a6
+	jsr	_LVOSPFlt(a6)
+	move.l	d0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	move.l	_MathBase,a6
+	jsr	_LVOSPSub(a6)
+	move.l	d0,-(sp)
+	move.l	(sp)+,-12(a5)
+	move.l	-8(a5),-(sp)
+	move.l	(sp)+,-16(a5)
+	move.l	_AbsExecBase,a6
+	jsr	_LVOForbid(a6)
+	move.l	-12(a5),-12(sp)
+	move.l	-16(a5),-16(sp)
+	jsr	_SUB_DRAGON
+	move.w	#90,-(sp)
+	move.w	(sp)+,d0
+	jsr	_turnright
+	move.l	-4(a5),-(sp)
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	_MathBase,a6
+	jsr	_LVOSPFlt(a6)
+	move.l	d0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	move.l	_MathBase,a6
+	jsr	_LVOSPSub(a6)
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	_MathBase,a6
+	jsr	_LVOSPNeg(a6)
+	move.l	d0,-(sp)
+	move.l	(sp)+,-20(a5)
+	move.l	-8(a5),-(sp)
+	move.l	(sp)+,-24(a5)
+	move.l	_AbsExecBase,a6
+	jsr	_LVOForbid(a6)
+	move.l	-20(a5),-12(sp)
+	move.l	-24(a5),-16(sp)
+	jsr	_SUB_DRAGON
+	jmp	_lab7
+_lab6:
+	move.l	-4(a5),-(sp)
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	_MathBase,a6
+	jsr	_LVOSPFlt(a6)
+	move.l	d0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	move.l	_MathBase,a6
+	jsr	_LVOSPAdd(a6)
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	_MathBase,a6
+	jsr	_LVOSPNeg(a6)
+	move.l	d0,-(sp)
+	move.l	(sp)+,-28(a5)
+	move.l	-8(a5),-(sp)
+	move.l	(sp)+,-32(a5)
+	move.l	_AbsExecBase,a6
+	jsr	_LVOForbid(a6)
+	move.l	-28(a5),-12(sp)
+	move.l	-32(a5),-16(sp)
+	jsr	_SUB_DRAGON
+	move.w	#270,-(sp)
+	move.w	(sp)+,d0
+	jsr	_turnright
+	move.l	-4(a5),-(sp)
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	_MathBase,a6
+	jsr	_LVOSPFlt(a6)
+	move.l	d0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	move.l	_MathBase,a6
+	jsr	_LVOSPAdd(a6)
+	move.l	d0,-(sp)
+	move.l	(sp)+,-36(a5)
+	move.l	-8(a5),-(sp)
+	move.l	(sp)+,-40(a5)
+	move.l	_AbsExecBase,a6
+	jsr	_LVOForbid(a6)
+	move.l	-36(a5),-12(sp)
+	move.l	-40(a5),-16(sp)
+	jsr	_SUB_DRAGON
+_lab7:
+_lab8:
+_EXIT_SUB_DRAGON:
+	unlk	a5
+	rts	  
+_lab0:
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	pea	_stringconst0
+	move.w	#0,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.w	#0,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.w	#640,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.w	#250,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.w	#6,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.l	#0,-(sp)
+	jsr	_OpenWdw
+	add.l	#32,sp
+	pea	_stringconst1
+	move.w	#8,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	jsr	_change_text_font
+	add.l	#8,sp
+	move.w	#2,-(sp)
+	move.w	(sp)+,d0
+	move.w	d0,_fg
+	move.w	d0,_fgdpen
+	move.l	_RPort,a1
+	move.l	_GfxBase,a6
+	jsr	_LVOSetAPen(a6)
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	move.w	d0,_bg
+	move.w	d0,_bgpen
+	move.l	_RPort,a1
+	move.l	_GfxBase,a6
+	jsr	_LVOSetBPen(a6)
+	move.w	_fg,d0
+	move.w	_bg,d0
+	jsr	_changetextcolor
+	pea	_stringconst2
+	pea	_stringvar0
+	move.l	(sp)+,-8(a4)
+	move.l	(sp)+,a1
+	move.l	-8(a4),a0
+	jsr	_strcpy
+_lab9:
+	move.l	-8(a4),-(sp)
+	pea	_stringconst3
+	move.l	(sp)+,a1
+	move.l	(sp)+,a0
+	jsr	_streq
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab10
+	jmp	_lab14
+_lab10:
+	jsr	_cls
+	move.w	#1,-(sp)
+	move.w	#1,-(sp)
+	move.w	(sp)+,d1
+	move.w	(sp)+,d0
+	jsr	_locate
+	pea	_stringconst4
+	jsr	_Ustringprint
+	addq	#4,sp
+	lea	_tempstring0,a0
+	jsr	_inputsingle
+	move.l	d0,-12(a4)
+	pea	_stringconst5
+	jsr	_Ustringprint
+	addq	#4,sp
+	lea	_tempstring1,a0
+	jsr	_inputsingle
+	move.l	d0,-16(a4)
+	jsr	_cls
+	jsr	_penup
+	move.w	#320,-(sp)
+	move.w	#125,-(sp)
+	move.w	(sp)+,d1
+	move.w	(sp)+,d0
+	jsr	_setxy
+	jsr	_pendown
+	move.l	-12(a4),-(sp)
+	move.l	(sp)+,-20(a4)
+	move.l	-16(a4),-(sp)
+	move.l	(sp)+,-24(a4)
+	move.l	_AbsExecBase,a6
+	jsr	_LVOForbid(a6)
+	move.l	-20(a4),-12(sp)
+	move.l	-24(a4),-16(sp)
+	jsr	_SUB_DRAGON
+	move.w	#26,-(sp)
+	move.w	#1,-(sp)
+	move.w	(sp)+,d1
+	move.w	(sp)+,d0
+	jsr	_locate
+	pea	_stringconst6
+	jsr	_Ustringprint
+	addq	#4,sp
+	move.l	#0,-(sp)
+	jsr	_Ucodeprint
+	addq	#4,sp
+	pea	_stringconst7
+	move.l	#_stringvar0,-8(a4)
+	move.l	(sp)+,a1
+	move.l	-8(a4),a0
+	jsr	_strcpy
+_lab11:
+	move.l	-8(a4),-(sp)
+	pea	_stringconst8
+	move.l	(sp)+,a1
+	move.l	(sp)+,a0
+	jsr	_strne
+	move.l	d0,-(sp)
+	move.l	-8(a4),-(sp)
+	pea	_stringconst9
+	move.l	(sp)+,a1
+	move.l	(sp)+,a0
+	jsr	_strne
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
+	and.l	d1,d0
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab12
+	jmp	_lab13
+_lab12:
+	jsr	_inkey
+	move.l	d0,-(sp)
+	move.l	(sp)+,a1
+	lea	_tempstring2,a0
+	jsr	_ucase
+	move.l	a0,-(sp)
+	move.l	#_stringvar0,-8(a4)
+	move.l	(sp)+,a1
+	move.l	-8(a4),a0
+	jsr	_strcpy
+	jmp	_lab11
+_lab13:
+	jmp	_lab9
+_lab14:
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	jsr	_CloseWdw
+	addq	#4,sp
+
+_EXIT_PROG:
+	unlk	a4
+_ABORT_PROG:
+	jsr	_free_alloc
+	jsr	_closegfx
+	jsr	_closeintuition
+	jsr	_closemathtrans
+	jsr	_closemathffp
+	movem.l	(sp)+,d1-d7/a0-a6
+	move.l	_initialSP,sp
+	jsr	_cleanup
+
+	rts
+
+	SECTION data,DATA
+
+_stringconst0:	dc.b "Dragon Curve",0
+_stringconst1:	dc.b "topaz",0
+_stringconst2:	dc.b "Y",0
+_stringconst3:	dc.b "Y",0
+_stringconst4:	dc.b "Enter depth (try 10): ",0
+_stringconst5:	dc.b "Enter sides (try 3):  ",0
+_stringconst6:	dc.b "another (y/n)?",0
+_stringconst7:	dc.b "",0
+_stringconst8:	dc.b "Y",0
+_stringconst9:	dc.b "N",0
+
+	SECTION mem,BSS
+
+_fg	ds.w 1
+_bg	ds.w 1
+_stringvar0:	ds.b 1024
+_tempstring0:	ds.b 1024
+_tempstring1:	ds.b 1024
+_tempstring2:	ds.b 1024
+_initialSP:	ds.l 1
+
+	END

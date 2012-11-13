@@ -1,0 +1,429 @@
+
+	xref _OpenWdw
+	xref _change_text_font
+	xref _ModifyMenu
+	xref _RPort
+	xref _GfxBase
+	xref _LVOSetAPen
+	xref _fgdpen
+	xref _LVOSetBPen
+	xref _bgpen
+	xref _changetextcolor
+	xref _cls
+	xref _AbsExecBase
+	xref _LVOPermit
+	xref _MathBase
+	xref _LVOSPFlt
+	xref _forward
+	xref _MathTransBase
+	xref ace_ldiv
+	xref _turnright
+	xref _menu_test
+	xref _LVOForbid
+	xref _SUB_POLY
+	xref _penup
+	xref _setxy
+	xref _pendown
+	xref _locate
+	xref _Ustringprint
+	xref _inputshort
+	xref _SUB_SPIRO
+	xref _MenuFunc
+	xref _CloseWdw
+	xref _startup
+	xref _cleanup
+	xref _openmathffp
+	xref _closemathffp
+	xref _openmathtrans
+	xref _closemathtrans
+	xref _IntuitionBase
+	xref _DosBase
+	xref _opengfx
+	xref _closegfx
+	xref _openintuition
+	xref _closeintuition
+	xref _starterr
+	xdef _EXIT_PROG
+	xref _free_alloc
+
+	SECTION code,CODE
+
+	jsr	_startup
+	cmpi.b	#1,_starterr
+	bne.s	_START_PROG
+	rts
+_START_PROG:
+	move.l	sp,_initialSP
+	movem.l	d1-d7/a0-a6,-(sp)
+	jsr	_openmathffp
+	cmpi.b	#1,_starterr
+	bne.s	_mathffp_ok
+	jmp	_ABORT_PROG
+_mathffp_ok:
+	jsr	_openmathtrans
+	cmpi.b	#1,_starterr
+	bne.s	_mathtrans_ok
+	jmp	_ABORT_PROG
+_mathtrans_ok:
+	jsr	_openintuition
+	cmpi.b	#1,_starterr
+	bne.s	_intuition_ok
+	jmp	_ABORT_PROG
+_intuition_ok:
+	jsr	_opengfx
+	cmpi.b	#1,_starterr
+	bne.s	_gfx_ok
+	jmp	_ABORT_PROG
+_gfx_ok:
+	link	a4,#-12
+
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	pea	_stringconst0
+	move.w	#0,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.w	#0,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.w	#640,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.w	#400,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.w	#6,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.l	#0,-(sp)
+	jsr	_OpenWdw
+	add.l	#32,sp
+	pea	_stringconst1
+	move.w	#8,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	jsr	_change_text_font
+	add.l	#8,sp
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.w	#0,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	pea	_stringconst2
+	move.l	#0,-(sp)
+	jsr	_ModifyMenu
+	add.l	#20,sp
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	pea	_stringconst3
+	pea	_stringconst4
+	jsr	_ModifyMenu
+	add.l	#20,sp
+	move.w	#2,-(sp)
+	move.w	(sp)+,d0
+	move.w	d0,_fg
+	move.w	d0,_fgdpen
+	move.l	_RPort,a1
+	move.l	_GfxBase,a6
+	jsr	_LVOSetAPen(a6)
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	move.w	d0,_bg
+	move.w	d0,_bgpen
+	move.l	_RPort,a1
+	move.l	_GfxBase,a6
+	jsr	_LVOSetBPen(a6)
+	move.w	_fg,d0
+	move.w	_bg,d0
+	jsr	_changetextcolor
+	jsr	_cls
+	jmp	_lab0
+_SUB_POLY:
+	link	a5,#-6
+	move.l	_AbsExecBase,a6
+	jsr	_LVOPermit(a6)
+	move.w	#1,-(sp)
+	move.w	(sp)+,-6(a5)
+	move.w	-2(a5),-(sp)
+	move.w	#1,-(sp)
+_lab1:
+	move.w	-6(a5),d0
+	move.w	2(sp),d1
+	cmpi.w	#0,(sp)
+	blt.s	_lab2
+	cmp.w	d1,d0
+	bgt	_lab5
+	jmp	_lab3
+_lab2:
+	cmp.w	d1,d0
+	blt	_lab5
+_lab3:
+	move.w	-4(a5),-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	_MathBase,a6
+	jsr	_LVOSPFlt(a6)
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	jsr	_forward
+	move.w	#360,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.w	-2(a5),-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	jsr	ace_ldiv
+	add.l	#8,sp
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	jsr	_turnright
+	move.w	(sp),d0
+	add.w	d0,-6(a5)
+	jsr	_menu_test
+	cmpi.l	#0,d0
+	beq.s	_lab4
+	jsr	QUIT
+_lab4:
+	jmp	_lab1
+_lab5:
+	addq	#4,sp
+_EXIT_SUB_POLY:
+	unlk	a5
+	rts	  
+_lab0:
+	jmp	_lab6
+_SUB_SPIRO:
+	link	a5,#-8
+	move.l	_AbsExecBase,a6
+	jsr	_LVOPermit(a6)
+_lab7:
+	jsr	_menu_test
+	cmpi.l	#0,d0
+	beq.s	_lab8
+	jsr	QUIT
+_lab8:
+	move.w	-2(a5),-(sp)
+	move.w	(sp)+,-6(a5)
+	move.w	-4(a5),-(sp)
+	move.w	(sp)+,-8(a5)
+	move.l	_AbsExecBase,a6
+	jsr	_LVOForbid(a6)
+	move.w	-6(a5),-10(sp)
+	move.w	-8(a5),-12(sp)
+	jsr	_SUB_POLY
+	move.w	#360,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.w	-2(a5),-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	jsr	ace_ldiv
+	add.l	#8,sp
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	jsr	_turnright
+	jsr	_penup
+	move.w	#320,-(sp)
+	move.w	#200,-(sp)
+	move.w	(sp)+,d1
+	move.w	(sp)+,d0
+	jsr	_setxy
+	jsr	_pendown
+	jsr	_menu_test
+	cmpi.l	#0,d0
+	beq.s	_lab9
+	jsr	QUIT
+_lab9:
+	move.l	#0,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab10
+	jmp	_lab7
+_lab10:
+_EXIT_SUB_SPIRO:
+	unlk	a5
+	rts	  
+_lab6:
+	move.w	#2,-(sp)
+	move.w	#1,-(sp)
+	move.w	(sp)+,d1
+	move.w	(sp)+,d0
+	jsr	_locate
+	jsr	_menu_test
+	cmpi.l	#0,d0
+	beq.s	_lab11
+	jsr	QUIT
+_lab11:
+	pea	_stringconst5
+	jsr	_Ustringprint
+	addq	#4,sp
+	lea	_tempstring0,a0
+	jsr	_inputshort
+	move.w	d0,-6(a4)
+	jsr	_menu_test
+	cmpi.l	#0,d0
+	beq.s	_lab12
+	jsr	QUIT
+_lab12:
+	pea	_stringconst6
+	jsr	_Ustringprint
+	addq	#4,sp
+	lea	_tempstring1,a0
+	jsr	_inputshort
+	move.w	d0,-8(a4)
+	jsr	_cls
+	jsr	_penup
+	move.w	#320,-(sp)
+	move.w	#200,-(sp)
+	move.w	(sp)+,d1
+	move.w	(sp)+,d0
+	jsr	_setxy
+	jsr	_pendown
+	jsr	_menu_test
+	cmpi.l	#0,d0
+	beq.s	_lab13
+	jsr	QUIT
+_lab13:
+	move.w	-6(a4),-(sp)
+	move.w	(sp)+,-10(a4)
+	move.w	-8(a4),-(sp)
+	move.w	(sp)+,-12(a4)
+	move.l	_AbsExecBase,a6
+	jsr	_LVOForbid(a6)
+	move.w	-10(a4),-10(sp)
+	move.w	-12(a4),-12(sp)
+	jsr	_SUB_SPIRO
+_lab14:
+	move.l	#-1,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab15
+	jmp	_lab17
+_lab15:
+	jsr	_menu_test
+	cmpi.l	#0,d0
+	beq.s	_lab16
+	jsr	QUIT
+_lab16:
+	jmp	_lab14
+_lab17:
+QUIT:
+	move.w	#0,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	jsr	_MenuFunc
+	addq	#4,sp
+	move.l	d0,-(sp)
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	cmp.l	d1,d0
+	bne.s	_lab18
+	moveq	#0,d5
+_lab18:
+	move.l	d5,-(sp)
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	jsr	_MenuFunc
+	addq	#4,sp
+	move.l	d0,-(sp)
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	cmp.l	d1,d0
+	bne.s	_lab19
+	moveq	#0,d5
+_lab19:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
+	or.l	d1,d0
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab20
+	jmp	_lab21
+_lab20:
+	rts	  
+_lab21:
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	jsr	_CloseWdw
+	addq	#4,sp
+	jmp	_EXIT_PROG
+
+_EXIT_PROG:
+	unlk	a4
+_ABORT_PROG:
+	jsr	_free_alloc
+	jsr	_closegfx
+	jsr	_closeintuition
+	jsr	_closemathtrans
+	jsr	_closemathffp
+	movem.l	(sp)+,d1-d7/a0-a6
+	move.l	_initialSP,sp
+	jsr	_cleanup
+
+	rts
+
+	SECTION data,DATA
+
+_stringconst0:	dc.b "SpiroGraph",0
+_stringconst1:	dc.b "topaz",0
+_stringconst2:	dc.b "Project",0
+_stringconst3:	dc.b "Quit",0
+_stringconst4:	dc.b "Q",0
+_stringconst5:	dc.b "How many sides per polygon? (eg. 9)  ",0
+_stringconst6:	dc.b "Length of each side?        (eg. 30) ",0
+
+	SECTION mem,BSS
+
+_fg	ds.w 1
+_bg	ds.w 1
+_tempstring0:	ds.b 1024
+_tempstring1:	ds.b 1024
+_initialSP:	ds.l 1
+
+	END

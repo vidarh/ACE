@@ -1,0 +1,167 @@
+
+	xref _OpenWdw
+	xref lmulu
+	xref _linepattern
+	xref _areapattern
+	xref _MathBase
+	xref _MathTransBase
+	xref _paint
+	xref _WaitGadget
+	xref _CloseWdw
+	xref _startup
+	xref _cleanup
+	xref _openmathffp
+	xref _closemathffp
+	xref _openmathtrans
+	xref _closemathtrans
+	xref _GfxBase
+	xref _IntuitionBase
+	xref _DosBase
+	xref _opengfx
+	xref _closegfx
+	xref _openintuition
+	xref _closeintuition
+	xref _starterr
+	xdef _EXIT_PROG
+	xref _free_alloc
+
+	SECTION code,CODE
+
+	jsr	_startup
+	cmpi.b	#1,_starterr
+	bne.s	_START_PROG
+	rts
+_START_PROG:
+	move.l	sp,_initialSP
+	movem.l	d1-d7/a0-a6,-(sp)
+	jsr	_openmathffp
+	cmpi.b	#1,_starterr
+	bne.s	_mathffp_ok
+	jmp	_ABORT_PROG
+_mathffp_ok:
+	jsr	_openmathtrans
+	cmpi.b	#1,_starterr
+	bne.s	_mathtrans_ok
+	jmp	_ABORT_PROG
+_mathtrans_ok:
+	jsr	_openintuition
+	cmpi.b	#1,_starterr
+	bne.s	_intuition_ok
+	jmp	_ABORT_PROG
+_intuition_ok:
+	jsr	_opengfx
+	cmpi.b	#1,_starterr
+	bne.s	_gfx_ok
+	jmp	_ABORT_PROG
+_gfx_ok:
+	link	a4,#-4
+
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.l	#0,-(sp)
+	move.w	#0,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.w	#0,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.w	#150,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.w	#100,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.w	#14,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.l	#0,-(sp)
+	jsr	_OpenWdw
+	add.l	#32,sp
+	pea	_array0
+	move.l	(sp)+,-4(a4)
+	move.w	#0,-(sp)
+	moveq	#0,d7
+	move.w	(sp)+,d1
+	ext.l	d1
+	move.l	d1,-(sp)
+	move.l	#1,-(sp)
+	jsr	lmulu
+	add.l	#8,sp
+	add.l	d0,d7
+	lsl.l	#1,d7
+	move.l	d7,_tmpelement
+	move.l	#52428,-(sp)
+	move.l	(sp)+,d0
+	move.w	d0,-(sp)
+	move.l	_tmpelement,d7
+	move.l	-4(a4),a0
+	move.w	(sp)+,0(a0,d7.L)
+	move.w	#1,-(sp)
+	moveq	#0,d7
+	move.w	(sp)+,d1
+	ext.l	d1
+	move.l	d1,-(sp)
+	move.l	#1,-(sp)
+	jsr	lmulu
+	add.l	#8,sp
+	add.l	d0,d7
+	lsl.l	#1,d7
+	move.l	d7,_tmpelement
+	move.w	#13107,-(sp)
+	move.l	_tmpelement,d7
+	move.l	-4(a4),a0
+	move.w	(sp)+,0(a0,d7.L)
+	move.l	#1,d1
+	jsr	_linepattern
+	move.l	-4(a4),a0
+	move.l	#3,d0
+	move.l	#0,d1
+	jsr	_areapattern
+	move.w	#0,-(sp)
+	move.w	#0,-(sp)
+	moveq	#-1,d3
+	moveq	#-1,d2
+	move.w	(sp)+,d1
+	move.w	(sp)+,d0
+	jsr	_paint
+	move.w	#0,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	jsr	_WaitGadget
+	addq	#4,sp
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	jsr	_CloseWdw
+	addq	#4,sp
+
+_EXIT_PROG:
+	unlk	a4
+_ABORT_PROG:
+	jsr	_free_alloc
+	jsr	_closegfx
+	jsr	_closeintuition
+	jsr	_closemathtrans
+	jsr	_closemathffp
+	movem.l	(sp)+,d1-d7/a0-a6
+	move.l	_initialSP,sp
+	jsr	_cleanup
+
+	rts
+
+	SECTION mem,BSS
+
+_array0:	ds.w 3
+_tmpelement	ds.l 1
+_initialSP:	ds.l 1
+
+	END

@@ -1,0 +1,354 @@
+
+	xref _OpenWdw
+	xref _RPort
+	xref _GfxBase
+	xref _LVOSetAPen
+	xref _fgdpen
+	xref _LVOSetBPen
+	xref _bgpen
+	xref _changetextcolor
+	xref _penup
+	xref _cls
+	xref _locate
+	xref _Ustringprint
+	xref _Ucodeprint
+	xref _Ustringinput
+	xref _strcpy
+	xref _ucase
+	xref _strne
+	xref _val
+	xref _MathBase
+	xref _MathTransBase
+	xref _LVOSPFlt
+	xref _setxy
+	xref _round
+	xref _power
+	xref _LVOSPMul
+	xref _LVOSPSub
+	xref _LVOSPAdd
+	xref _LVODraw
+	xref _inkey
+	xref _streq
+	xref _CloseWdw
+	xref _startup
+	xref _cleanup
+	xref _openmathffp
+	xref _closemathffp
+	xref _openmathtrans
+	xref _closemathtrans
+	xref _IntuitionBase
+	xref _DosBase
+	xref _opengfx
+	xref _closegfx
+	xref _openintuition
+	xref _closeintuition
+	xref _starterr
+	xdef _EXIT_PROG
+	xref _free_alloc
+
+	SECTION code,CODE
+
+	jsr	_startup
+	cmpi.b	#1,_starterr
+	bne.s	_START_PROG
+	rts
+_START_PROG:
+	move.l	sp,_initialSP
+	movem.l	d1-d7/a0-a6,-(sp)
+	jsr	_openmathffp
+	cmpi.b	#1,_starterr
+	bne.s	_mathffp_ok
+	jmp	_ABORT_PROG
+_mathffp_ok:
+	jsr	_openmathtrans
+	cmpi.b	#1,_starterr
+	bne.s	_mathtrans_ok
+	jmp	_ABORT_PROG
+_mathtrans_ok:
+	jsr	_openintuition
+	cmpi.b	#1,_starterr
+	bne.s	_intuition_ok
+	jmp	_ABORT_PROG
+_intuition_ok:
+	jsr	_opengfx
+	cmpi.b	#1,_starterr
+	bne.s	_gfx_ok
+	jmp	_ABORT_PROG
+_gfx_ok:
+	link	a4,#-20
+
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	pea	_stringconst0
+	move.w	#0,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.w	#0,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.w	#640,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.w	#200,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.w	#6,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.l	#0,-(sp)
+	jsr	_OpenWdw
+	add.l	#32,sp
+	move.w	#2,-(sp)
+	move.w	(sp)+,d0
+	move.w	d0,_fg
+	move.w	d0,_fgdpen
+	move.l	_RPort,a1
+	move.l	_GfxBase,a6
+	jsr	_LVOSetAPen(a6)
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	move.w	d0,_bg
+	move.w	d0,_bgpen
+	move.l	_RPort,a1
+	move.l	_GfxBase,a6
+	jsr	_LVOSetBPen(a6)
+	move.w	_fg,d0
+	move.w	_bg,d0
+	jsr	_changetextcolor
+	jsr	_penup
+_lab0:
+	jsr	_cls
+	move.w	#2,-(sp)
+	move.w	#1,-(sp)
+	move.w	(sp)+,d1
+	move.w	(sp)+,d0
+	jsr	_locate
+	pea	_stringconst1
+	jsr	_Ustringprint
+	addq	#4,sp
+	move.l	#3,-(sp)
+	jsr	_Ucodeprint
+	addq	#4,sp
+	move.l	#2,-(sp)
+	jsr	_Ucodeprint
+	addq	#4,sp
+	pea	_tempstring0
+	jsr	_Ustringinput
+	pea	_stringvar0
+	move.l	(sp)+,-4(a4)
+	move.l	(sp)+,a1
+	move.l	-4(a4),a0
+	jsr	_strcpy
+	move.l	-4(a4),-(sp)
+	move.l	(sp)+,a1
+	lea	_tempstring1,a0
+	jsr	_ucase
+	move.l	a0,-(sp)
+	move.l	#_stringvar0,-4(a4)
+	move.l	(sp)+,a1
+	move.l	-4(a4),a0
+	jsr	_strcpy
+	move.l	-4(a4),-(sp)
+	move.l	(sp)+,a1
+	lea	_tempstring2,a0
+	jsr	_ucase
+	move.l	a0,-(sp)
+	pea	_stringconst2
+	move.l	(sp)+,a1
+	move.l	(sp)+,a0
+	jsr	_strne
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab1
+	jmp	_lab9
+_lab1:
+	move.l	-4(a4),-(sp)
+	jsr	_val
+	addq	#4,sp
+	move.l	d0,-(sp)
+	move.l	(sp)+,-8(a4)
+	move.l	#10,-(sp)
+	move.l	(sp)+,-12(a4)
+	move.w	#3,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	_MathBase,a6
+	jsr	_LVOSPFlt(a6)
+	move.l	d0,-(sp)
+	move.l	(sp)+,-16(a4)
+	move.w	#10,-(sp)
+	move.w	#100,-(sp)
+	move.w	(sp)+,d1
+	move.w	(sp)+,d0
+	jsr	_setxy
+	move.w	#10,-(sp)
+	move.w	(sp)+,-18(a4)
+	move.w	#620,-(sp)
+	move.l	-16(a4),-(sp)
+	move.l	(sp)+,d0
+	jsr	_round
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.w	d0,-(sp)
+_lab2:
+	move.w	-18(a4),d0
+	move.w	2(sp),d1
+	cmpi.w	#0,(sp)
+	blt.s	_lab3
+	cmp.w	d1,d0
+	bgt	_lab5
+	jmp	_lab4
+_lab3:
+	cmp.w	d1,d0
+	blt	_lab5
+_lab4:
+	move.l	-8(a4),-(sp)
+	move.l	-12(a4),-(sp)
+	move.l	#0,-(sp)
+	jsr	_power
+	add.l	#8,sp
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
+	move.l	_MathBase,a6
+	jsr	_LVOSPMul(a6)
+	move.l	d0,-(sp)
+	move.l	#0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	move.l	_MathBase,a6
+	jsr	_LVOSPSub(a6)
+	move.l	d0,-(sp)
+	move.l	(sp)+,-12(a4)
+	move.l	-12(a4),-(sp)
+	move.l	#0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
+	move.l	_MathBase,a6
+	jsr	_LVOSPMul(a6)
+	move.l	d0,-(sp)
+	move.w	#100,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	_MathBase,a6
+	jsr	_LVOSPFlt(a6)
+	move.l	d0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	move.l	_MathBase,a6
+	jsr	_LVOSPAdd(a6)
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	jsr	_round
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.w	d0,-(sp)
+	move.w	(sp)+,-20(a4)
+	move.w	-18(a4),-(sp)
+	move.w	-20(a4),-(sp)
+	move.w	(sp)+,d1
+	move.w	(sp)+,d0
+	move.w	d0,_xmin
+	move.w	d1,_ymin
+	move.l	_RPort,a1
+	move.l	_GfxBase,a6
+	jsr	_LVODraw(a6)
+	move.w	(sp),d0
+	add.w	d0,-18(a4)
+	jmp	_lab2
+_lab5:
+	addq	#4,sp
+	move.w	#4,-(sp)
+	move.w	#1,-(sp)
+	move.w	(sp)+,d1
+	move.w	(sp)+,d0
+	jsr	_locate
+	pea	_stringconst3
+	jsr	_Ustringprint
+	addq	#4,sp
+	move.l	#0,-(sp)
+	jsr	_Ucodeprint
+	addq	#4,sp
+_lab6:
+	jsr	_inkey
+	move.l	d0,-(sp)
+	move.l	(sp)+,a1
+	lea	_tempstring3,a0
+	jsr	_ucase
+	move.l	a0,-(sp)
+	pea	_stringconst4
+	move.l	(sp)+,a1
+	move.l	(sp)+,a0
+	jsr	_strne
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab7
+	jmp	_lab8
+_lab7:
+	jmp	_lab6
+_lab8:
+_lab9:
+	move.l	-4(a4),-(sp)
+	pea	_stringconst5
+	move.l	(sp)+,a1
+	move.l	(sp)+,a0
+	jsr	_streq
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab10
+	jmp	_lab0
+_lab10:
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	jsr	_CloseWdw
+	addq	#4,sp
+
+_EXIT_PROG:
+	unlk	a4
+_ABORT_PROG:
+	jsr	_free_alloc
+	jsr	_closegfx
+	jsr	_closeintuition
+	jsr	_closemathtrans
+	jsr	_closemathffp
+	movem.l	(sp)+,d1-d7/a0-a6
+	move.l	_initialSP,sp
+	jsr	_cleanup
+
+	rts
+
+	SECTION data,DATA
+
+_stringconst0:	dc.b "chaos from kx^2-1",0
+_stringconst1:	dc.b "Value of k (0..2, 'q' to quit)",0
+_stringconst2:	dc.b "Q",0
+_stringconst3:	dc.b "press 'c' to continue...",0
+_stringconst4:	dc.b "C",0
+_stringconst5:	dc.b "Q",0
+
+	SECTION mem,BSS
+
+_fg	ds.w 1
+_bg	ds.w 1
+_tempstring0:	ds.b 1024
+_stringvar0:	ds.b 1024
+_tempstring1:	ds.b 1024
+_tempstring2:	ds.b 1024
+_xmin	ds.w 1
+_ymin	ds.w 1
+_tempstring3:	ds.b 1024
+_initialSP:	ds.l 1
+
+	END

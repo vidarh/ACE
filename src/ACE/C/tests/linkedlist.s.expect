@@ -1,0 +1,276 @@
+
+	xref _ACEalloc
+	xref _SUB_MAKE.NODE
+	xref _Ustringprint
+	xref _Ucodeprint
+	xref _MathBase
+	xref _strcpy
+	xref _Ustringinput
+	xref _ucase
+	xref _streq
+	xref _cls
+	xref _strne
+	xref _startup
+	xref _cleanup
+	xref _openmathffp
+	xref _closemathffp
+	xref _GfxBase
+	xref _IntuitionBase
+	xref _DosBase
+	xref _opengfx
+	xref _closegfx
+	xref _openintuition
+	xref _closeintuition
+	xref _starterr
+	xdef _EXIT_PROG
+	xref _free_alloc
+
+	SECTION code,CODE
+
+	jsr	_startup
+	cmpi.b	#1,_starterr
+	bne.s	_START_PROG
+	rts
+_START_PROG:
+	move.l	sp,_initialSP
+	movem.l	d1-d7/a0-a6,-(sp)
+	jsr	_openmathffp
+	cmpi.b	#1,_starterr
+	bne.s	_mathffp_ok
+	jmp	_ABORT_PROG
+_mathffp_ok:
+	jsr	_openintuition
+	cmpi.b	#1,_starterr
+	bne.s	_intuition_ok
+	jmp	_ABORT_PROG
+_intuition_ok:
+	jsr	_opengfx
+	cmpi.b	#1,_starterr
+	bne.s	_gfx_ok
+	jmp	_ABORT_PROG
+_gfx_ok:
+	link	a4,#-28
+
+	move.l	#0,-4(a4)
+	move.l	#0,-8(a4)
+	move.l	#0,-12(a4)
+	move.l	#0,-16(a4)
+	jmp	_lab0
+_SUB_MAKE.NODE:
+	link	a5,#0
+	move.l	#1028,-(sp)
+	move.l	#9,-(sp)
+	jsr	_ACEalloc
+	add.l	#8,sp
+	move.l	d0,-(sp)
+	move.l	(sp)+,-20(a4)
+_EXIT_SUB_MAKE.NODE:
+	unlk	a5
+	rts	  
+_lab0:
+	jsr	_SUB_MAKE.NODE
+	move.l	-20(a4),-(sp)
+	move.l	(sp)+,-4(a4)
+	move.l	-4(a4),-(sp)
+	move.l	-24(a4),-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	cmp.l	d1,d0
+	beq.s	_lab1
+	moveq	#0,d5
+_lab1:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab2
+	jmp	_lab3
+_lab2:
+	pea	_stringconst0
+	jsr	_Ustringprint
+	addq	#4,sp
+	move.l	#0,-(sp)
+	jsr	_Ucodeprint
+	addq	#4,sp
+	jmp	_EXIT_PROG
+_lab3:
+	pea	_stringconst1
+	move.l	-4(a4),a0
+	move.l	(sp)+,a1
+	adda.l	#0,a0
+	jsr	_strcpy
+	move.l	-24(a4),-(sp)
+	move.l	-4(a4),a0
+	move.l	(sp)+,1024(a0)
+	move.l	-4(a4),-(sp)
+	move.l	(sp)+,-12(a4)
+_lab4:
+	pea	_stringconst2
+	jsr	_Ustringprint
+	addq	#4,sp
+	move.l	#3,-(sp)
+	jsr	_Ucodeprint
+	addq	#4,sp
+	move.l	#2,-(sp)
+	jsr	_Ucodeprint
+	addq	#4,sp
+	pea	_tempstring0
+	jsr	_Ustringinput
+	pea	_stringvar0
+	move.l	(sp)+,-28(a4)
+	move.l	(sp)+,a1
+	move.l	-28(a4),a0
+	jsr	_strcpy
+	jsr	_SUB_MAKE.NODE
+	move.l	-20(a4),-(sp)
+	move.l	(sp)+,-8(a4)
+	move.l	-8(a4),-(sp)
+	move.l	-24(a4),-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	cmp.l	d1,d0
+	bne.s	_lab5
+	moveq	#0,d5
+_lab5:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab6
+	jmp	_lab7
+_lab6:
+	move.l	-28(a4),-(sp)
+	move.l	-8(a4),a0
+	move.l	(sp)+,a1
+	adda.l	#0,a0
+	jsr	_strcpy
+	move.l	-24(a4),-(sp)
+	move.l	-8(a4),a0
+	move.l	(sp)+,1024(a0)
+	move.l	-8(a4),-(sp)
+	move.l	-12(a4),a0
+	move.l	(sp)+,1024(a0)
+	move.l	-12(a4),a0
+	move.l	1024(a0),-(sp)
+	move.l	(sp)+,-12(a4)
+	jmp	_lab8
+_lab7:
+	pea	_stringconst3
+	jsr	_Ustringprint
+	addq	#4,sp
+	move.l	#0,-(sp)
+	jsr	_Ucodeprint
+	addq	#4,sp
+_lab8:
+	move.l	-28(a4),-(sp)
+	move.l	(sp)+,a1
+	lea	_tempstring1,a0
+	jsr	_ucase
+	move.l	a0,-(sp)
+	pea	_stringconst4
+	move.l	(sp)+,a1
+	move.l	(sp)+,a0
+	jsr	_streq
+	move.l	d0,-(sp)
+	move.l	-8(a4),-(sp)
+	move.l	-24(a4),-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	cmp.l	d1,d0
+	beq.s	_lab9
+	moveq	#0,d5
+_lab9:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
+	or.l	d1,d0
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab10
+	jmp	_lab4
+_lab10:
+	jsr	_cls
+	move.l	-4(a4),a0
+	move.l	1024(a0),-(sp)
+	move.l	(sp)+,-12(a4)
+_lab11:
+	move.l	-12(a4),-(sp)
+	move.l	-24(a4),-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	cmp.l	d1,d0
+	bne.s	_lab12
+	moveq	#0,d5
+_lab12:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab13
+	jmp	_lab16
+_lab13:
+	move.l	-12(a4),a0
+	adda.l	#0,a0
+	move.l	a0,-(sp)
+	move.l	(sp)+,a1
+	lea	_tempstring2,a0
+	jsr	_ucase
+	move.l	a0,-(sp)
+	pea	_stringconst5
+	move.l	(sp)+,a1
+	move.l	(sp)+,a0
+	jsr	_strne
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab14
+	jmp	_lab15
+_lab14:
+	move.l	-12(a4),a0
+	adda.l	#0,a0
+	move.l	a0,-(sp)
+	jsr	_Ustringprint
+	addq	#4,sp
+	move.l	#0,-(sp)
+	jsr	_Ucodeprint
+	addq	#4,sp
+_lab15:
+	move.l	-12(a4),a0
+	move.l	1024(a0),-(sp)
+	move.l	(sp)+,-12(a4)
+	jmp	_lab11
+_lab16:
+
+_EXIT_PROG:
+	unlk	a4
+_ABORT_PROG:
+	jsr	_free_alloc
+	jsr	_closegfx
+	jsr	_closeintuition
+	jsr	_closemathffp
+	movem.l	(sp)+,d1-d7/a0-a6
+	move.l	_initialSP,sp
+	jsr	_cleanup
+
+	rts
+
+	SECTION data,DATA
+
+_stringconst0:	dc.b "head node can't be allocated!",0
+_stringconst1:	dc.b "",0
+_stringconst2:	dc.b "type a name (or QUIT): ",0
+_stringconst3:	dc.b "new node can't be allocated!",0
+_stringconst4:	dc.b "QUIT",0
+_stringconst5:	dc.b "QUIT",0
+
+	SECTION mem,BSS
+
+_tempstring0:	ds.b 1024
+_stringvar0:	ds.b 1024
+_tempstring1:	ds.b 1024
+_tempstring2:	ds.b 1024
+_initialSP:	ds.l 1
+
+	END

@@ -1,0 +1,89 @@
+
+	xref _strcpy
+	xref _strlen
+	xref _Ulongprint
+	xref _Ucodeprint
+	xref _MathBase
+	xref _startup
+	xref _cleanup
+	xref _openmathffp
+	xref _closemathffp
+	xref _GfxBase
+	xref _IntuitionBase
+	xref _DosBase
+	xref _opengfx
+	xref _closegfx
+	xref _openintuition
+	xref _closeintuition
+	xref _starterr
+	xdef _EXIT_PROG
+	xref _free_alloc
+
+	SECTION code,CODE
+
+	jsr	_startup
+	cmpi.b	#1,_starterr
+	bne.s	_START_PROG
+	rts
+_START_PROG:
+	move.l	sp,_initialSP
+	movem.l	d1-d7/a0-a6,-(sp)
+	jsr	_openmathffp
+	cmpi.b	#1,_starterr
+	bne.s	_mathffp_ok
+	jmp	_ABORT_PROG
+_mathffp_ok:
+	jsr	_openintuition
+	cmpi.b	#1,_starterr
+	bne.s	_intuition_ok
+	jmp	_ABORT_PROG
+_intuition_ok:
+	jsr	_opengfx
+	cmpi.b	#1,_starterr
+	bne.s	_gfx_ok
+	jmp	_ABORT_PROG
+_gfx_ok:
+	link	a4,#-4
+
+	pea	_nullstring
+	pea	_stringvar0
+	move.l	(sp)+,-4(a4)
+	move.l	(sp)+,a1
+	move.l	-4(a4),a0
+	jsr	_strcpy
+	move.l	-4(a4),-(sp)
+	move.l	(sp)+,a2
+	jsr	_strlen
+	move.l	d0,-(sp)
+	jsr	_Ulongprint
+	addq	#4,sp
+	move.l	#$2,-(sp)
+	jsr	_Ucodeprint
+	addq	#4,sp
+	move.l	#0,-(sp)
+	jsr	_Ucodeprint
+	addq	#4,sp
+
+_EXIT_PROG:
+	unlk	a4
+_ABORT_PROG:
+	jsr	_free_alloc
+	jsr	_closegfx
+	jsr	_closeintuition
+	jsr	_closemathffp
+	movem.l	(sp)+,d1-d7/a0-a6
+	move.l	_initialSP,sp
+	jsr	_cleanup
+
+	rts
+
+	SECTION data,DATA
+
+_nullstring:	dc.b 0
+
+	SECTION mem,BSS
+
+_stringvar0:	ds.b 1024
+_initialSP:	ds.l 1
+
+	END

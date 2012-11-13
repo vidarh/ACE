@@ -1,0 +1,195 @@
+
+	xref _MathBase
+	xref _LVOSPFlt
+	xref _LVOSPCmp
+	xref _round
+	xref lmulu
+	xref _htol
+	xref _strlen
+	xref _LVOSPAdd
+	xref _strcpy
+	xref _TransBase
+	xref _LVOTranslate
+	xref _say
+	xref _cleanup_async_speech
+	xref _startup
+	xref _cleanup
+	xref _opentranslator
+	xref _closetranslator
+	xref _openmathffp
+	xref _closemathffp
+	xref _GfxBase
+	xref _IntuitionBase
+	xref _DosBase
+	xref _opengfx
+	xref _closegfx
+	xref _openintuition
+	xref _closeintuition
+	xref _starterr
+	xdef _EXIT_PROG
+	xref _free_alloc
+
+	SECTION code,CODE
+
+	jsr	_startup
+	cmpi.b	#1,_starterr
+	bne.s	_START_PROG
+	rts
+_START_PROG:
+	move.l	sp,_initialSP
+	movem.l	d1-d7/a0-a6,-(sp)
+	jsr	_opentranslator
+	cmpi.b	#1,_starterr
+	bne.s	_translate_ok
+	jmp	_ABORT_PROG
+_translate_ok:
+	jsr	_openmathffp
+	cmpi.b	#1,_starterr
+	bne.s	_mathffp_ok
+	jmp	_ABORT_PROG
+_mathffp_ok:
+	jsr	_openintuition
+	cmpi.b	#1,_starterr
+	bne.s	_intuition_ok
+	jmp	_ABORT_PROG
+_intuition_ok:
+	jsr	_opengfx
+	cmpi.b	#1,_starterr
+	bne.s	_gfx_ok
+	jmp	_ABORT_PROG
+_gfx_ok:
+	link	a4,#-12
+
+	move.l	#_BASICdata,_dataptr
+	pea	_array0
+	move.l	(sp)+,-4(a4)
+	move.w	#0,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	_MathBase,a6
+	jsr	_LVOSPFlt(a6)
+	move.l	d0,-(sp)
+	move.l	(sp)+,-8(a4)
+	move.w	#8,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	_MathBase,a6
+	jsr	_LVOSPFlt(a6)
+	move.l	d0,-(sp)
+	move.l	#$80000041,-(sp)
+_lab0:
+	moveq	#0,d1
+	move.l	(sp),d0
+	move.l	_MathBase,a6
+	jsr	_LVOSPCmp(a6)
+	blt.s	_lab1
+	move.l	-8(a4),d0
+	move.l	4(sp),d1
+	move.l	_MathBase,a6
+	jsr	_LVOSPCmp(a6)
+	bgt	_lab3
+	jmp	_lab2
+_lab1:
+	move.l	-8(a4),d0
+	move.l	4(sp),d1
+	move.l	_MathBase,a6
+	jsr	_LVOSPCmp(a6)
+	blt	_lab3
+_lab2:
+	move.l	-8(a4),-(sp)
+	move.l	(sp)+,d0
+	jsr	_round
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.w	d0,-(sp)
+	moveq	#0,d7
+	move.w	(sp)+,d1
+	ext.l	d1
+	move.l	d1,-(sp)
+	move.l	#1,-(sp)
+	jsr	lmulu
+	add.l	#8,sp
+	add.l	d0,d7
+	lsl.l	#1,d7
+	move.l	-4(a4),a2
+	move.l	_dataptr,a1
+	jsr	_htol
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	jsr	_round
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.w	d0,-(sp)
+	move.w	(sp)+,0(a2,d7.L)
+	move.l	_dataptr,a2
+	jsr	_strlen
+	addq	#1,d0
+	move.l	_dataptr,d1
+	add.l	d0,d1
+	move.l	d1,_dataptr
+	move.l	(sp),d0
+	move.l	-8(a4),d1
+	move.l	_MathBase,a6
+	jsr	_LVOSPAdd(a6)
+	move.l	d0,-8(a4)
+	jmp	_lab0
+_lab3:
+	add.l	#8,sp
+	pea	_stringconst0
+	pea	_stringvar0
+	move.l	(sp)+,-12(a4)
+	move.l	(sp)+,a1
+	move.l	-12(a4),a0
+	jsr	_strcpy
+	move.l	-12(a4),-(sp)
+	move.l	(sp)+,a0
+	lea	_tempstring0,a1
+	move.l	a0,a2
+	jsr	_strlen
+	move.l	#1024,d1
+	move.l	_TransBase,a6
+	jsr	_LVOTranslate(a6)
+	pea	_tempstring0
+	move.l	-4(a4),-(sp)
+	jsr	_say
+	add.l	#8,sp
+
+_EXIT_PROG:
+	unlk	a4
+_ABORT_PROG:
+	jsr	_free_alloc
+	jsr	_closegfx
+	jsr	_closeintuition
+	jsr	_cleanup_async_speech
+	jsr	_closemathffp
+	jsr	_closetranslator
+	movem.l	(sp)+,d1-d7/a0-a6
+	move.l	_initialSP,sp
+	jsr	_cleanup
+
+	rts
+
+	SECTION data,DATA
+
+_stringconst0:	dc.b "Welcome to ACE! The best PD Amiga BASIC compiler.",0
+
+_BASICdata:
+	dc.b "0",0
+	dc.b "0",0
+	dc.b "0",0
+	dc.b "0",0
+	dc.b "0",0
+	dc.b "0",0
+	dc.b "0",0
+	dc.b "0",0
+	dc.b "0",0
+
+	SECTION mem,BSS
+
+_array0:	ds.w 9
+_stringvar0:	ds.b 1024
+_tempstring0:	ds.b 1024
+_dataptr:	ds.l 1
+_initialSP:	ds.l 1
+
+	END

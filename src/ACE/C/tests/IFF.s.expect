@@ -1,0 +1,327 @@
+
+	xref _closescreen
+	xref _IFFPicClose
+	xref _filerequest
+	xref _strcpy
+	xref _streq
+	xref _IFFPicOpen
+	xref _err
+	xref _strcat
+	xref _sysrequest
+	xref _iff_func
+	xref _openscreen
+	xref _IFFPicRead
+	xref _SUB_CLEANUP
+	xref _inkey
+	xref _mouse
+	xref _sleep
+	xref _startup
+	xref _cleanup
+	xref _GfxBase
+	xref _IntuitionBase
+	xref _DosBase
+	xref _opengfx
+	xref _closegfx
+	xref _openintuition
+	xref _closeintuition
+	xref _create_ILBMLib
+	xref _remove_ILBMLib
+	xref _starterr
+	xdef _EXIT_PROG
+	xref _free_alloc
+
+	SECTION code,CODE
+
+	jsr	_startup
+	cmpi.b	#1,_starterr
+	bne.s	_START_PROG
+	rts
+_START_PROG:
+	move.l	sp,_initialSP
+	movem.l	d1-d7/a0-a6,-(sp)
+	jsr	_openintuition
+	cmpi.b	#1,_starterr
+	bne.s	_intuition_ok
+	jmp	_ABORT_PROG
+_intuition_ok:
+	jsr	_opengfx
+	cmpi.b	#1,_starterr
+	bne.s	_gfx_ok
+	jmp	_ABORT_PROG
+_gfx_ok:
+	jsr	_create_ILBMLib
+	link	a4,#-8
+
+	jmp	_lab0
+_SUB_CLEANUP:
+	link	a5,#0
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	jsr	_closescreen
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	jsr	_IFFPicClose
+	addq	#4,sp
+_EXIT_SUB_CLEANUP:
+	unlk	a5
+	rts	  
+_lab0:
+	pea	_stringconst0
+	move.l	#0,-(sp)
+	jsr	_filerequest
+	add.l	#8,sp
+	move.l	d0,-(sp)
+	pea	_stringvar0
+	move.l	(sp)+,-8(a4)
+	move.l	(sp)+,a1
+	move.l	-8(a4),a0
+	jsr	_strcpy
+	move.l	-8(a4),-(sp)
+	pea	_stringconst1
+	move.l	(sp)+,a1
+	move.l	(sp)+,a0
+	jsr	_streq
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab1
+	jmp	_lab2
+_lab1:
+	jmp	_EXIT_PROG
+_lab2:
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.l	-8(a4),-(sp)
+	jsr	_IFFPicOpen
+	add.l	#8,sp
+	jsr	_err
+	move.l	d0,-(sp)
+	move.w	#0,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	cmp.l	d1,d0
+	bne.s	_lab3
+	moveq	#0,d5
+_lab3:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab4
+	jmp	_lab5
+_lab4:
+	move.l	-8(a4),-(sp)
+	pea	_stringconst2
+	move.l	(sp)+,a2
+	move.l	(sp)+,a1
+	lea	_tempstring0,a0
+	jsr	_strcpy
+	lea	_tempstring0,a0
+	move.l	a2,a1
+	jsr	_strcat
+	pea	_tempstring0
+	pea	_stringconst3
+	move.l	#0,-(sp)
+	jsr	_sysrequest
+	add.l	#12,sp
+	move.w	d0,-(sp)
+	jmp	_EXIT_PROG
+_lab5:
+	move.w	#1,-(sp)
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	jsr	_iff_func
+	add.l	#8,sp
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.w	d0,-(sp)
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.w	#2,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	jsr	_iff_func
+	add.l	#8,sp
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.w	d0,-(sp)
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.w	#3,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	jsr	_iff_func
+	add.l	#8,sp
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.w	d0,-(sp)
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.w	#4,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	jsr	_iff_func
+	add.l	#8,sp
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.w	d0,-(sp)
+	move.w	(sp)+,d4
+	move.w	(sp)+,d3
+	move.w	(sp)+,d2
+	move.w	(sp)+,d1
+	move.w	(sp)+,d0
+	jsr	_openscreen
+	jsr	_err
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab6
+	jmp	_lab7
+_lab6:
+	pea	_stringconst4
+	pea	_stringconst5
+	move.l	#0,-(sp)
+	jsr	_sysrequest
+	add.l	#12,sp
+	move.w	d0,-(sp)
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	jsr	_IFFPicClose
+	addq	#4,sp
+	jmp	_lab14
+_lab7:
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	jsr	_IFFPicRead
+	add.l	#8,sp
+	jsr	_err
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab8
+	jmp	_lab9
+_lab8:
+	pea	_stringconst6
+	move.l	-8(a4),-(sp)
+	move.l	(sp)+,a2
+	move.l	(sp)+,a1
+	lea	_tempstring1,a0
+	jsr	_strcpy
+	lea	_tempstring1,a0
+	move.l	a2,a1
+	jsr	_strcat
+	pea	_tempstring1
+	pea	_stringconst7
+	move.l	(sp)+,a2
+	move.l	(sp)+,a1
+	lea	_tempstring2,a0
+	jsr	_strcpy
+	lea	_tempstring2,a0
+	move.l	a2,a1
+	jsr	_strcat
+	pea	_tempstring2
+	pea	_stringconst8
+	move.l	#0,-(sp)
+	jsr	_sysrequest
+	add.l	#12,sp
+	move.w	d0,-(sp)
+	jsr	_SUB_CLEANUP
+	jmp	_lab13
+_lab9:
+_lab10:
+	jsr	_inkey
+	move.l	d0,-(sp)
+	pea	_stringconst9
+	move.l	(sp)+,a1
+	move.l	(sp)+,a0
+	jsr	_streq
+	move.l	d0,-(sp)
+	move.w	#0,-(sp)
+	move.w	(sp)+,d0
+	jsr	_mouse
+	move.w	d0,-(sp)
+	not.w	(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
+	and.l	d1,d0
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab11
+	jmp	_lab12
+_lab11:
+	jsr	_sleep
+	jmp	_lab10
+_lab12:
+	jsr	_SUB_CLEANUP
+_lab13:
+_lab14:
+
+_EXIT_PROG:
+	unlk	a4
+_ABORT_PROG:
+	jsr	_free_alloc
+	jsr	_closegfx
+	jsr	_closeintuition
+	jsr	_remove_ILBMLib
+	movem.l	(sp)+,d1-d7/a0-a6
+	move.l	_initialSP,sp
+	jsr	_cleanup
+
+	rts
+
+	SECTION data,DATA
+
+_stringconst0:	dc.b "Select an IFF file",0
+_stringconst1:	dc.b "",0
+_stringconst2:	dc.b " is not an IFF file.",0
+_stringconst3:	dc.b "Continue",0
+_stringconst4:	dc.b "Unable to open screen.",0
+_stringconst5:	dc.b "Continue",0
+_stringconst6:	dc.b "Error reading ",0
+_stringconst7:	dc.b ".",0
+_stringconst8:	dc.b "Continue",0
+_stringconst9:	dc.b "",0
+
+	SECTION mem,BSS
+
+_stringvar0:	ds.b 1024
+_tempstring0:	ds.b 1024
+_tempstring1:	ds.b 1024
+_tempstring2:	ds.b 1024
+_initialSP:	ds.l 1
+
+	END

@@ -1,0 +1,259 @@
+
+	xref _Ucodeprint
+	xref _Ustringprint
+	xref _Ustringinput
+	xref _strcpy
+	xref _inputlong
+	xref _ACEalloc
+	xref _beep
+	xref _MathBase
+	xref lmulu
+	xref _horiz_tab
+	xref _Ushortprint
+	xref _startup
+	xref _cleanup
+	xref _openmathffp
+	xref _closemathffp
+	xref _GfxBase
+	xref _IntuitionBase
+	xref _DosBase
+	xref _opengfx
+	xref _closegfx
+	xref _openintuition
+	xref _closeintuition
+	xref _starterr
+	xdef _EXIT_PROG
+	xref _free_alloc
+
+	SECTION code,CODE
+
+	jsr	_startup
+	cmpi.b	#1,_starterr
+	bne.s	_START_PROG
+	rts
+_START_PROG:
+	move.l	sp,_initialSP
+	movem.l	d1-d7/a0-a6,-(sp)
+	jsr	_openmathffp
+	cmpi.b	#1,_starterr
+	bne.s	_mathffp_ok
+	jmp	_ABORT_PROG
+_mathffp_ok:
+	jsr	_openintuition
+	cmpi.b	#1,_starterr
+	bne.s	_intuition_ok
+	jmp	_ABORT_PROG
+_intuition_ok:
+	jsr	_opengfx
+	cmpi.b	#1,_starterr
+	bne.s	_gfx_ok
+	jmp	_ABORT_PROG
+_gfx_ok:
+	link	a4,#-20
+
+	move.l	#0,-4(a4)
+	pea	_array0
+	move.l	(sp)+,-8(a4)
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.l	(sp)+,-12(a4)
+	move.w	#3,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.l	#1,-(sp)
+_lab0:
+	move.l	-12(a4),d0
+	move.l	4(sp),d1
+	cmpi.l	#0,(sp)
+	blt.s	_lab1
+	cmp.l	d1,d0
+	bgt	_lab6
+	jmp	_lab2
+_lab1:
+	cmp.l	d1,d0
+	blt	_lab6
+_lab2:
+	move.l	#0,-(sp)
+	jsr	_Ucodeprint
+	addq	#4,sp
+	pea	_stringconst0
+	jsr	_Ustringprint
+	addq	#4,sp
+	pea	_tempstring0
+	jsr	_Ustringinput
+	pea	_stringvar0
+	move.l	(sp)+,-16(a4)
+	move.l	(sp)+,a1
+	move.l	-16(a4),a0
+	jsr	_strcpy
+	pea	_stringconst1
+	jsr	_Ustringprint
+	addq	#4,sp
+	lea	_tempstring1,a0
+	jsr	_inputlong
+	move.l	d0,-20(a4)
+	move.l	#1026,-(sp)
+	move.l	#9,-(sp)
+	jsr	_ACEalloc
+	add.l	#8,sp
+	move.l	d0,-(sp)
+	move.l	(sp)+,-4(a4)
+	move.l	-4(a4),-(sp)
+	move.l	#0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	cmp.l	d1,d0
+	beq.s	_lab3
+	moveq	#0,d5
+_lab3:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab4
+	jmp	_lab5
+_lab4:
+	jsr	_beep
+	jmp	_EXIT_PROG
+_lab5:
+	move.l	-16(a4),-(sp)
+	move.l	-4(a4),a0
+	move.l	(sp)+,a1
+	adda.l	#0,a0
+	jsr	_strcpy
+	move.l	-20(a4),-(sp)
+	move.l	(sp)+,d0
+	move.w	d0,-(sp)
+	move.l	-4(a4),a0
+	move.w	(sp)+,1024(a0)
+	move.l	-12(a4),-(sp)
+	move.l	(sp)+,d0
+	move.w	d0,-(sp)
+	moveq	#0,d7
+	move.w	(sp)+,d1
+	ext.l	d1
+	move.l	d1,-(sp)
+	move.l	#1,-(sp)
+	jsr	lmulu
+	add.l	#8,sp
+	add.l	d0,d7
+	lsl.l	#2,d7
+	move.l	d7,_tmpelement
+	move.l	-4(a4),-(sp)
+	move.l	_tmpelement,d7
+	move.l	-8(a4),a0
+	move.l	(sp)+,0(a0,d7.L)
+	move.l	(sp),d0
+	add.l	d0,-12(a4)
+	jmp	_lab0
+_lab6:
+	add.l	#8,sp
+	move.l	#0,-(sp)
+	jsr	_Ucodeprint
+	addq	#4,sp
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.l	(sp)+,-12(a4)
+	move.w	#3,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.l	#1,-(sp)
+_lab7:
+	move.l	-12(a4),d0
+	move.l	4(sp),d1
+	cmpi.l	#0,(sp)
+	blt.s	_lab8
+	cmp.l	d1,d0
+	bgt	_lab10
+	jmp	_lab9
+_lab8:
+	cmp.l	d1,d0
+	blt	_lab10
+_lab9:
+	move.l	-12(a4),-(sp)
+	move.l	(sp)+,d0
+	move.w	d0,-(sp)
+	moveq	#0,d7
+	move.w	(sp)+,d1
+	ext.l	d1
+	move.l	d1,-(sp)
+	move.l	#1,-(sp)
+	jsr	lmulu
+	add.l	#8,sp
+	add.l	d0,d7
+	lsl.l	#2,d7
+	move.l	-8(a4),a0
+	move.l	0(a0,d7.L),-(sp)
+	move.l	(sp)+,-4(a4)
+	pea	_stringconst2
+	jsr	_Ustringprint
+	addq	#4,sp
+	move.l	-4(a4),a0
+	adda.l	#0,a0
+	move.l	a0,-(sp)
+	jsr	_Ustringprint
+	addq	#4,sp
+	move.w	#20,-(sp)
+	move.w	(sp)+,d0
+	jsr	_horiz_tab
+	move.l	a0,-(sp)
+	jsr	_Ustringprint
+	addq	#4,sp
+	pea	_stringconst3
+	jsr	_Ustringprint
+	addq	#4,sp
+	move.l	-4(a4),a0
+	move.w	1024(a0),-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	jsr	_Ushortprint
+	addq	#4,sp
+	move.l	#2,-(sp)
+	jsr	_Ucodeprint
+	addq	#4,sp
+	move.l	#0,-(sp)
+	jsr	_Ucodeprint
+	addq	#4,sp
+	move.l	(sp),d0
+	add.l	d0,-12(a4)
+	jmp	_lab7
+_lab10:
+	add.l	#8,sp
+
+_EXIT_PROG:
+	unlk	a4
+_ABORT_PROG:
+	jsr	_free_alloc
+	jsr	_closegfx
+	jsr	_closeintuition
+	jsr	_closemathffp
+	movem.l	(sp)+,d1-d7/a0-a6
+	move.l	_initialSP,sp
+	jsr	_cleanup
+
+	rts
+
+	SECTION data,DATA
+
+_stringconst0:	dc.b "Enter name: ",0
+_stringconst1:	dc.b "Enter age: ",0
+_stringconst2:	dc.b "Name: ",0
+_stringconst3:	dc.b "Age: ",0
+
+	SECTION mem,BSS
+
+_array0:	ds.l 4
+_tempstring0:	ds.b 1024
+_stringvar0:	ds.b 1024
+_tempstring1:	ds.b 1024
+_tmpelement	ds.l 1
+_initialSP:	ds.l 1
+
+	END

@@ -1,0 +1,364 @@
+
+	xref _AbsExecBase
+	xref _LVOPermit
+	xref lmul
+	xref _Ustringprint
+	xref _inputsingle
+	xref _MathBase
+	xref _MathTransBase
+	xref _LVOSPFlt
+	xref _LVOSPMul
+	xref _round
+	xref _ACEalloc
+	xref _lab2
+	xref _lab3
+	xref _Usingleprint
+	xref _Ucodeprint
+	xref _LVOSPSub
+	xref _LVOSPCmp
+	xref _LVOForbid
+	xref _SUB_SETELEMENT
+	xref _LVOSPAdd
+	xref _SUB_ELEMENT
+	xref _startup
+	xref _cleanup
+	xref _openmathffp
+	xref _closemathffp
+	xref _openmathtrans
+	xref _closemathtrans
+	xref _GfxBase
+	xref _IntuitionBase
+	xref _DosBase
+	xref _opengfx
+	xref _closegfx
+	xref _openintuition
+	xref _closeintuition
+	xref _starterr
+	xdef _EXIT_PROG
+	xref _free_alloc
+
+	SECTION code,CODE
+
+	jsr	_startup
+	cmpi.b	#1,_starterr
+	bne.s	_START_PROG
+	rts
+_START_PROG:
+	move.l	sp,_initialSP
+	movem.l	d1-d7/a0-a6,-(sp)
+	jsr	_openmathffp
+	cmpi.b	#1,_starterr
+	bne.s	_mathffp_ok
+	jmp	_ABORT_PROG
+_mathffp_ok:
+	jsr	_openmathtrans
+	cmpi.b	#1,_starterr
+	bne.s	_mathtrans_ok
+	jmp	_ABORT_PROG
+_mathtrans_ok:
+	jsr	_openintuition
+	cmpi.b	#1,_starterr
+	bne.s	_intuition_ok
+	jmp	_ABORT_PROG
+_intuition_ok:
+	jsr	_opengfx
+	cmpi.b	#1,_starterr
+	bne.s	_gfx_ok
+	jmp	_ABORT_PROG
+_gfx_ok:
+	link	a4,#-40
+
+	move.l	#0,-4(a4)
+	jmp	_lab0
+_SUB_SETELEMENT:
+	link	a5,#-12
+	move.l	_AbsExecBase,a6
+	jsr	_LVOPermit(a6)
+	move.l	-4(a5),-(sp)
+	move.l	-8(a5),-(sp)
+	move.l	#$4,-(sp)
+	jsr	lmul
+	add.l	#8,sp
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
+	add.l	d1,d0
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
+	move.l	-12(a5),-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,a0
+	move.l	d0,(a0)
+_EXIT_SUB_SETELEMENT:
+	unlk	a5
+	rts	  
+_lab0:
+	jmp	_lab1
+_SUB_ELEMENT:
+	link	a5,#-8
+	move.l	_AbsExecBase,a6
+	jsr	_LVOPermit(a6)
+	move.l	-4(a5),-(sp)
+	move.l	-8(a5),-(sp)
+	move.l	#$4,-(sp)
+	jsr	lmul
+	add.l	#8,sp
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
+	add.l	d1,d0
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
+	move.l	(sp)+,a0
+	move.l	(a0),-(sp)
+	move.l	(sp)+,-12(a4)
+_EXIT_SUB_ELEMENT:
+	unlk	a5
+	rts	  
+_lab1:
+	pea	_stringconst0
+	jsr	_Ustringprint
+	addq	#4,sp
+	lea	_tempstring0,a0
+	jsr	_inputsingle
+	move.l	d0,-16(a4)
+	move.l	-16(a4),-(sp)
+	move.l	#$4,-(sp)
+	move.l	(sp)+,d0
+	move.l	_MathBase,a6
+	jsr	_LVOSPFlt(a6)
+	move.l	d0,-(sp)
+	move.w	(sp)+,d0
+	move.w	(sp)+,d1
+	jsr	_LVOSPMul(a6)
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	jsr	_round
+	move.l	d0,-(sp)
+	move.l	#$9,-(sp)
+	jsr	_ACEalloc
+	add.l	#8,sp
+	move.l	d0,-(sp)
+	move.l	(sp)+,-4(a4)
+	move.l	-4(a4),-(sp)
+	move.l	#0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	cmp.l	d1,d0
+	beq.s	_lab2
+	moveq	#0,d5
+_lab2:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab3
+	jmp	_lab4
+_lab3:
+	jmp	_EXIT_PROG
+_lab4:
+	pea	_stringconst1
+	jsr	_Ustringprint
+	addq	#4,sp
+	move.l	-16(a4),-(sp)
+	jsr	_Usingleprint
+	addq	#4,sp
+	move.l	#$2,-(sp)
+	jsr	_Ucodeprint
+	addq	#4,sp
+	pea	_stringconst2
+	jsr	_Ustringprint
+	addq	#4,sp
+	move.l	-16(a4),-(sp)
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	_MathBase,a6
+	jsr	_LVOSPFlt(a6)
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
+	jsr	_LVOSPSub(a6)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
+	jsr	_Usingleprint
+	addq	#4,sp
+	move.l	#$2,-(sp)
+	jsr	_Ucodeprint
+	addq	#4,sp
+	pea	_stringconst3
+	jsr	_Ustringprint
+	addq	#4,sp
+	move.l	#0,-(sp)
+	jsr	_Ucodeprint
+	addq	#4,sp
+	move.w	#0,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	_MathBase,a6
+	jsr	_LVOSPFlt(a6)
+	move.l	d0,-(sp)
+	move.l	(sp)+,-20(a4)
+	move.l	-16(a4),-(sp)
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	jsr	_LVOSPFlt(a6)
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
+	jsr	_LVOSPSub(a6)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
+	move.l	#$80000041,-(sp)
+_lab5:
+	moveq	#0,d1
+	move.l	(sp),d0
+	move.l	_MathBase,a6
+	jsr	_LVOSPCmp(a6)
+	blt.s	_lab6
+	move.l	-20(a4),d0
+	move.l	4(sp),d1
+	jsr	_LVOSPCmp(a6)
+	bgt	_lab8
+	jmp	_lab7
+_lab6:
+	move.l	-20(a4),d0
+	move.l	4(sp),d1
+	move.l	_MathBase,a6
+	jsr	_LVOSPCmp(a6)
+	blt	_lab8
+_lab7:
+	move.l	-4(a4),-(sp)
+	move.l	(sp)+,-24(a4)
+	move.l	-20(a4),-(sp)
+	move.l	(sp)+,d0
+	jsr	_round
+	move.l	d0,-(sp)
+	move.l	(sp)+,-28(a4)
+	move.l	-20(a4),-(sp)
+	move.l	-20(a4),-(sp)
+	move.w	(sp)+,d0
+	move.w	(sp)+,d1
+	move.l	_MathBase,a6
+	jsr	_LVOSPMul(a6)
+	move.l	d0,-(sp)
+	move.l	(sp)+,-32(a4)
+	move.l	_AbsExecBase,a6
+	jsr	_LVOForbid(a6)
+	move.l	-24(a4),-12(sp)
+	move.l	-28(a4),-16(sp)
+	move.l	-32(a4),-20(sp)
+	jsr	_SUB_SETELEMENT
+	move.l	(sp),d0
+	move.l	-20(a4),d1
+	move.l	_MathBase,a6
+	jsr	_LVOSPAdd(a6)
+	move.l	d0,-20(a4)
+	jmp	_lab5
+_lab8:
+	add.l	#8,sp
+	move.w	#0,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	_MathBase,a6
+	jsr	_LVOSPFlt(a6)
+	move.l	d0,-(sp)
+	move.l	(sp)+,-20(a4)
+	move.l	-16(a4),-(sp)
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	jsr	_LVOSPFlt(a6)
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
+	jsr	_LVOSPSub(a6)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
+	move.l	#$80000041,-(sp)
+_lab9:
+	moveq	#0,d1
+	move.l	(sp),d0
+	move.l	_MathBase,a6
+	jsr	_LVOSPCmp(a6)
+	blt.s	_lab10
+	move.l	-20(a4),d0
+	move.l	4(sp),d1
+	jsr	_LVOSPCmp(a6)
+	bgt	_lab12
+	jmp	_lab11
+_lab10:
+	move.l	-20(a4),d0
+	move.l	4(sp),d1
+	move.l	_MathBase,a6
+	jsr	_LVOSPCmp(a6)
+	blt	_lab12
+_lab11:
+	move.l	-20(a4),-(sp)
+	jsr	_Usingleprint
+	addq	#4,sp
+	move.l	#$2,-(sp)
+	jsr	_Ucodeprint
+	addq	#4,sp
+	move.l	#$1,-(sp)
+	jsr	_Ucodeprint
+	addq	#4,sp
+	move.l	-4(a4),-(sp)
+	move.l	(sp)+,-36(a4)
+	move.l	-20(a4),-(sp)
+	move.l	(sp)+,d0
+	jsr	_round
+	move.l	d0,-(sp)
+	move.l	(sp)+,-40(a4)
+	move.l	_AbsExecBase,a6
+	jsr	_LVOForbid(a6)
+	move.l	-36(a4),-12(sp)
+	move.l	-40(a4),-16(sp)
+	jsr	_SUB_ELEMENT
+	move.l	-12(a4),-(sp)
+	jsr	_Usingleprint
+	addq	#4,sp
+	move.l	#$2,-(sp)
+	jsr	_Ucodeprint
+	addq	#4,sp
+	move.l	#0,-(sp)
+	jsr	_Ucodeprint
+	addq	#4,sp
+	move.l	(sp),d0
+	move.l	-20(a4),d1
+	move.l	_MathBase,a6
+	jsr	_LVOSPAdd(a6)
+	move.l	d0,-20(a4)
+	jmp	_lab9
+_lab12:
+	add.l	#8,sp
+	jmp	_EXIT_PROG
+
+_EXIT_PROG:
+	unlk	a4
+_ABORT_PROG:
+	jsr	_free_alloc
+	jsr	_closegfx
+	jsr	_closeintuition
+	jsr	_closemathtrans
+	jsr	_closemathffp
+	movem.l	(sp)+,d1-d7/a0-a6
+	move.l	_initialSP,sp
+	jsr	_cleanup
+
+	rts
+
+	SECTION data,DATA
+
+_stringconst0:	dc.b "How many numbers? ",0
+_stringconst1:	dc.b "Allocated",0
+_stringconst2:	dc.b "values ( 0 to",0
+_stringconst3:	dc.b ")",0
+
+	SECTION mem,BSS
+
+_tempstring0:	ds.b 1024
+_initialSP:	ds.l 1
+
+	END

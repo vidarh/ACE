@@ -1,0 +1,2517 @@
+
+	xref _ChangeOutputWdw
+	xref _locate
+	xref _Ustringprint
+	xref _csrlin
+	xref _AbsExecBase
+	xref _LVOPermit
+	xref _LVOForbid
+	xref _SUB_LEFTMOST
+	xref _MathBase
+	xref _LVOSPCmp
+	xref _SUB_DELITEM
+	xref _SUB_DEL
+	xref _inputsingle
+	xref _MathTransBase
+	xref _ACEalloc
+	xref _SUB_INSERT
+	xref _LVOSPFlt
+	xref _SUB_INTREE
+	xref _round
+	xref _Usingleprint
+	xref _Ucodeprint
+	xref _SUB_TRAVERSE
+	xref _SUB_PREPARE_FOR_OUTPUT
+	xref _timer
+	xref _LVOSPAdd
+	xref _setheading
+	xref _pendown
+	xref _forward
+	xref _SUB_GRAPHTREE
+	xref _penup
+	xref _back
+	xref _strsingle
+	xref _strcpy
+	xref _sgnf
+	xref _strlen
+	xref _rightstr
+	xref ace_ldiv
+	xref _xcor
+	xref _ycor
+	xref _setxy
+	xref _RPort
+	xref _GfxBase
+	xref _LVOSetAPen
+	xref _fgdpen
+	xref _bgpen
+	xref _changetextcolor
+	xref _stringprints
+	xref _printsLF
+	xref _LVOSetBPen
+	xref _cls
+	xref _inputshort
+	xref _SUB_HEIGHT
+	xref _SUB_MAX
+	xref _SUB_MAXITEM
+	xref _SUB_NODES
+	xref _SUB_INSERTITEM
+	xref _SUB_DELETEITEM
+	xref _SUB_SHOWNODES
+	xref _SUB_KILL_TREE
+	xref _SUB_TREEDISPLAYSPEED
+	xref _SUB_SHOWTREE
+	xref _OpenWdw
+	xref _change_text_font
+	xref _SUB_SELECTMENU
+	xref _SUB_DOOPTION
+	xref _CloseWdw
+	xref _startup
+	xref _cleanup
+	xref _openmathffp
+	xref _closemathffp
+	xref _openmathtrans
+	xref _closemathtrans
+	xref _IntuitionBase
+	xref _DosBase
+	xref _opengfx
+	xref _closegfx
+	xref _openintuition
+	xref _closeintuition
+	xref _starterr
+	xdef _EXIT_PROG
+	xref _free_alloc
+
+	SECTION code,CODE
+
+	jsr	_startup
+	cmpi.b	#1,_starterr
+	bne.s	_START_PROG
+	rts
+_START_PROG:
+	move.l	sp,_initialSP
+	movem.l	d1-d7/a0-a6,-(sp)
+	jsr	_openmathffp
+	cmpi.b	#1,_starterr
+	bne.s	_mathffp_ok
+	jmp	_ABORT_PROG
+_mathffp_ok:
+	jsr	_openmathtrans
+	cmpi.b	#1,_starterr
+	bne.s	_mathtrans_ok
+	jmp	_ABORT_PROG
+_mathtrans_ok:
+	jsr	_openintuition
+	cmpi.b	#1,_starterr
+	bne.s	_intuition_ok
+	jmp	_ABORT_PROG
+_intuition_ok:
+	jsr	_opengfx
+	cmpi.b	#1,_starterr
+	bne.s	_gfx_ok
+	jmp	_ABORT_PROG
+_gfx_ok:
+	link	a4,#-110
+
+	move.l	#0,-4(a4)
+	move.l	#0,-8(a4)
+	move.l	#0,-12(a4)
+	move.w	#0,-14(a4)
+	jmp	_lab0
+_SUB_PREPARE_FOR_OUTPUT:
+	link	a5,#-2
+	move.w	#2,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	jsr	_ChangeOutputWdw
+	addq	#4,sp
+	move.w	#14,-(sp)
+	move.w	#1,-(sp)
+	move.w	(sp)+,d1
+	move.w	(sp)+,d0
+	jsr	_locate
+	move.w	#1,-(sp)
+	move.w	(sp)+,-2(a5)
+	move.w	#70,-(sp)
+	move.w	#1,-(sp)
+_lab1:
+	move.w	-2(a5),d0
+	move.w	2(sp),d1
+	cmpi.w	#0,(sp)
+	blt.s	_lab2
+	cmp.w	d1,d0
+	bgt	_lab4
+	jmp	_lab3
+_lab2:
+	cmp.w	d1,d0
+	blt	_lab4
+_lab3:
+	pea	_stringconst0
+	jsr	_Ustringprint
+	addq	#4,sp
+	move.w	(sp),d0
+	add.w	d0,-2(a5)
+	jmp	_lab1
+_lab4:
+	addq	#4,sp
+	jsr	_csrlin
+	move.w	d0,-(sp)
+	move.w	#1,-(sp)
+	move.w	(sp)+,d1
+	move.w	(sp)+,d0
+	jsr	_locate
+_EXIT_SUB_PREPARE_FOR_OUTPUT:
+	unlk	a5
+	rts	  
+_lab0:
+	jmp	_lab5
+_SUB_LEFTMOST:
+	link	a5,#-24
+	move.l	_AbsExecBase,a6
+	jsr	_LVOPermit(a6)
+	move.l	#0,-12(a5)
+	move.l	#0,-16(a5)
+	move.l	-4(a5),-(sp)
+	move.l	(sp)+,a0
+	move.l	(a0),-(sp)
+	move.l	(sp)+,-12(a5)
+	move.l	-12(a5),-(sp)
+	move.l	#0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	cmp.l	d1,d0
+	bne.s	_lab6
+	moveq	#0,d5
+_lab6:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab7
+	jmp	_lab12
+_lab7:
+	move.l	-12(a5),a0
+	move.l	4(a0),-(sp)
+	move.l	#0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	cmp.l	d1,d0
+	beq.s	_lab8
+	moveq	#0,d5
+_lab8:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab9
+	jmp	_lab10
+_lab9:
+	move.l	-8(a5),-(sp)
+	move.l	-12(a5),a0
+	move.l	0(a0),-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,a0
+	move.l	d0,(a0)
+	move.l	-12(a5),-(sp)
+	move.l	(sp)+,-16(a5)
+	move.l	-12(a5),a0
+	move.l	8(a0),-(sp)
+	move.l	(sp)+,-12(a5)
+	move.l	-4(a5),-(sp)
+	move.l	-12(a5),-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,a0
+	move.l	d0,(a0)
+	jmp	_lab11
+_lab10:
+	move.l	a5,d0
+	sub.l	#12,d0
+	movea.l	d0,a0
+	movea.l	(a0),a0
+	adda.l	#4,a0
+	move.l	a0,-(sp)
+	move.l	(sp)+,-20(a5)
+	move.l	-8(a5),-(sp)
+	move.l	(sp)+,-24(a5)
+	move.l	_AbsExecBase,a6
+	jsr	_LVOForbid(a6)
+	move.l	-20(a5),-12(sp)
+	move.l	-24(a5),-16(sp)
+	jsr	_SUB_LEFTMOST
+_lab11:
+_lab12:
+_EXIT_SUB_LEFTMOST:
+	unlk	a5
+	rts	  
+_lab5:
+	jmp	_lab13
+_SUB_DELITEM:
+	link	a5,#-24
+	move.l	_AbsExecBase,a6
+	jsr	_LVOPermit(a6)
+	move.l	#0,-8(a5)
+	move.l	#0,-12(a5)
+	move.l	#0,-16(a5)
+	move.l	-4(a5),-(sp)
+	move.l	(sp)+,a0
+	move.l	(a0),-(sp)
+	move.l	(sp)+,-8(a5)
+	move.l	-8(a5),-(sp)
+	move.l	#0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	cmp.l	d1,d0
+	bne.s	_lab14
+	moveq	#0,d5
+_lab14:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab15
+	jmp	_lab29
+_lab15:
+	move.l	-8(a5),a0
+	move.l	4(a0),-(sp)
+	move.l	#0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	cmp.l	d1,d0
+	beq.s	_lab16
+	moveq	#0,d5
+_lab16:
+	move.l	d5,-(sp)
+	move.l	-8(a5),a0
+	move.l	8(a0),-(sp)
+	move.l	#0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	cmp.l	d1,d0
+	beq.s	_lab17
+	moveq	#0,d5
+_lab17:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
+	and.l	d1,d0
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab18
+	jmp	_lab19
+_lab18:
+	move.l	#0,-(sp)
+	move.l	(sp)+,-8(a5)
+	move.l	-4(a5),-(sp)
+	move.l	-8(a5),-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,a0
+	move.l	d0,(a0)
+	jmp	_lab28
+_lab19:
+	move.l	-8(a5),a0
+	move.l	4(a0),-(sp)
+	move.l	#0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	cmp.l	d1,d0
+	beq.s	_lab20
+	moveq	#0,d5
+_lab20:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab21
+	jmp	_lab22
+_lab21:
+	move.l	-8(a5),-(sp)
+	move.l	(sp)+,-12(a5)
+	move.l	-8(a5),a0
+	move.l	8(a0),-(sp)
+	move.l	(sp)+,-8(a5)
+	move.l	-4(a5),-(sp)
+	move.l	-8(a5),-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,a0
+	move.l	d0,(a0)
+	jmp	_lab27
+_lab22:
+	move.l	-8(a5),a0
+	move.l	8(a0),-(sp)
+	move.l	#0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	cmp.l	d1,d0
+	beq.s	_lab23
+	moveq	#0,d5
+_lab23:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab24
+	jmp	_lab25
+_lab24:
+	move.l	-8(a5),-(sp)
+	move.l	(sp)+,-12(a5)
+	move.l	-8(a5),a0
+	move.l	4(a0),-(sp)
+	move.l	(sp)+,-8(a5)
+	move.l	-4(a5),-(sp)
+	move.l	-8(a5),-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,a0
+	move.l	d0,(a0)
+	jmp	_lab26
+_lab25:
+	move.l	a5,d0
+	sub.l	#8,d0
+	movea.l	d0,a0
+	movea.l	(a0),a0
+	adda.l	#8,a0
+	move.l	a0,-(sp)
+	move.l	(sp)+,-20(a5)
+	move.l	a5,d0
+	sub.l	#16,d0
+	move.l	d0,-(sp)
+	move.l	(sp)+,-24(a5)
+	move.l	_AbsExecBase,a6
+	jsr	_LVOForbid(a6)
+	move.l	-20(a5),-12(sp)
+	move.l	-24(a5),-16(sp)
+	jsr	_SUB_LEFTMOST
+	move.l	-16(a5),-(sp)
+	move.l	-8(a5),a0
+	move.l	(sp)+,0(a0)
+_lab26:
+_lab27:
+_lab28:
+_lab29:
+_EXIT_SUB_DELITEM:
+	unlk	a5
+	rts	  
+_lab13:
+	jmp	_lab30
+_SUB_DEL:
+	link	a5,#-32
+	move.l	_AbsExecBase,a6
+	jsr	_LVOPermit(a6)
+	move.l	#0,-12(a5)
+	move.l	-4(a5),-(sp)
+	move.l	(sp)+,a0
+	move.l	(a0),-(sp)
+	move.l	(sp)+,-12(a5)
+	move.l	-12(a5),-(sp)
+	move.l	#0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	cmp.l	d1,d0
+	bne.s	_lab31
+	moveq	#0,d5
+_lab31:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab32
+	jmp	_lab41
+_lab32:
+	move.l	-8(a5),-(sp)
+	move.l	-12(a5),a0
+	move.l	0(a0),-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	move.l	_MathBase,a6
+	jsr	_LVOSPCmp(a6)
+	beq.s	_lab33
+	moveq	#0,d5
+_lab33:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab34
+	jmp	_lab35
+_lab34:
+	move.l	-4(a5),-(sp)
+	move.l	(sp)+,-16(a5)
+	move.l	_AbsExecBase,a6
+	jsr	_LVOForbid(a6)
+	move.l	-16(a5),-12(sp)
+	jsr	_SUB_DELITEM
+	jmp	_lab40
+_lab35:
+	move.l	-8(a5),-(sp)
+	move.l	-12(a5),a0
+	move.l	0(a0),-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	move.l	_MathBase,a6
+	jsr	_LVOSPCmp(a6)
+	blt.s	_lab36
+	moveq	#0,d5
+_lab36:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab37
+	jmp	_lab38
+_lab37:
+	move.l	a5,d0
+	sub.l	#12,d0
+	movea.l	d0,a0
+	movea.l	(a0),a0
+	adda.l	#4,a0
+	move.l	a0,-(sp)
+	move.l	(sp)+,-20(a5)
+	move.l	-8(a5),-(sp)
+	move.l	(sp)+,-24(a5)
+	move.l	_AbsExecBase,a6
+	jsr	_LVOForbid(a6)
+	move.l	-20(a5),-12(sp)
+	move.l	-24(a5),-16(sp)
+	jsr	_SUB_DEL
+	jmp	_lab39
+_lab38:
+	move.l	a5,d0
+	sub.l	#12,d0
+	movea.l	d0,a0
+	movea.l	(a0),a0
+	adda.l	#8,a0
+	move.l	a0,-(sp)
+	move.l	(sp)+,-28(a5)
+	move.l	-8(a5),-(sp)
+	move.l	(sp)+,-32(a5)
+	move.l	_AbsExecBase,a6
+	jsr	_LVOForbid(a6)
+	move.l	-28(a5),-12(sp)
+	move.l	-32(a5),-16(sp)
+	jsr	_SUB_DEL
+_lab39:
+_lab40:
+_lab41:
+_EXIT_SUB_DEL:
+	unlk	a5
+	rts	  
+_lab30:
+	jmp	_lab42
+_SUB_DELETEITEM:
+	link	a5,#-16
+	move.l	_AbsExecBase,a6
+	jsr	_LVOPermit(a6)
+	pea	_stringconst1
+	jsr	_Ustringprint
+	addq	#4,sp
+	lea	_tempstring0,a0
+	jsr	_inputsingle
+	move.l	d0,-8(a5)
+	move.l	-4(a5),-(sp)
+	move.l	(sp)+,-12(a5)
+	move.l	-8(a5),-(sp)
+	move.l	(sp)+,-16(a5)
+	move.l	_AbsExecBase,a6
+	jsr	_LVOForbid(a6)
+	move.l	-12(a5),-12(sp)
+	move.l	-16(a5),-16(sp)
+	jsr	_SUB_DEL
+_EXIT_SUB_DELETEITEM:
+	unlk	a5
+	rts	  
+_lab42:
+	jmp	_lab43
+_SUB_INSERT:
+	link	a5,#-28
+	move.l	_AbsExecBase,a6
+	jsr	_LVOPermit(a6)
+	move.l	#0,-12(a5)
+	move.l	-4(a5),-(sp)
+	move.l	(sp)+,a0
+	move.l	(a0),-(sp)
+	move.l	(sp)+,-12(a5)
+	move.l	-12(a5),-(sp)
+	move.l	#0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	cmp.l	d1,d0
+	beq.s	_lab44
+	moveq	#0,d5
+_lab44:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab45
+	jmp	_lab46
+_lab45:
+	move.l	#12,-(sp)
+	move.l	#9,-(sp)
+	jsr	_ACEalloc
+	add.l	#8,sp
+	move.l	d0,-(sp)
+	move.l	(sp)+,-12(a5)
+	move.l	-8(a5),-(sp)
+	move.l	-12(a5),a0
+	move.l	(sp)+,0(a0)
+	move.l	#0,-(sp)
+	move.l	-12(a5),a0
+	move.l	(sp)+,4(a0)
+	move.l	#0,-(sp)
+	move.l	-12(a5),a0
+	move.l	(sp)+,8(a0)
+	move.l	-4(a5),-(sp)
+	move.l	-12(a5),-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,a0
+	move.l	d0,(a0)
+	jmp	_lab51
+_lab46:
+	move.l	-8(a5),-(sp)
+	move.l	-12(a5),a0
+	move.l	0(a0),-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	move.l	_MathBase,a6
+	jsr	_LVOSPCmp(a6)
+	blt.s	_lab47
+	moveq	#0,d5
+_lab47:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab48
+	jmp	_lab49
+_lab48:
+	move.l	a5,d0
+	sub.l	#12,d0
+	movea.l	d0,a0
+	movea.l	(a0),a0
+	adda.l	#4,a0
+	move.l	a0,-(sp)
+	move.l	(sp)+,-16(a5)
+	move.l	-8(a5),-(sp)
+	move.l	(sp)+,-20(a5)
+	move.l	_AbsExecBase,a6
+	jsr	_LVOForbid(a6)
+	move.l	-16(a5),-12(sp)
+	move.l	-20(a5),-16(sp)
+	jsr	_SUB_INSERT
+	jmp	_lab50
+_lab49:
+	move.l	a5,d0
+	sub.l	#12,d0
+	movea.l	d0,a0
+	movea.l	(a0),a0
+	adda.l	#8,a0
+	move.l	a0,-(sp)
+	move.l	(sp)+,-24(a5)
+	move.l	-8(a5),-(sp)
+	move.l	(sp)+,-28(a5)
+	move.l	_AbsExecBase,a6
+	jsr	_LVOForbid(a6)
+	move.l	-24(a5),-12(sp)
+	move.l	-28(a5),-16(sp)
+	jsr	_SUB_INSERT
+_lab50:
+_lab51:
+_EXIT_SUB_INSERT:
+	unlk	a5
+	rts	  
+_lab43:
+	jmp	_lab52
+_SUB_INTREE:
+	link	a5,#-28
+	move.l	_AbsExecBase,a6
+	jsr	_LVOPermit(a6)
+	move.l	#0,-12(a5)
+	move.l	-4(a5),-(sp)
+	move.l	(sp)+,a0
+	move.l	(a0),-(sp)
+	move.l	(sp)+,-12(a5)
+	move.l	-12(a5),-(sp)
+	move.l	#0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	cmp.l	d1,d0
+	beq.s	_lab53
+	moveq	#0,d5
+_lab53:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab54
+	jmp	_lab55
+_lab54:
+	move.l	#0,-(sp)
+	move.l	(sp)+,d0
+	move.l	_MathBase,a6
+	jsr	_LVOSPFlt(a6)
+	move.l	d0,-(sp)
+	move.l	(sp)+,-42(a4)
+	jmp	_lab64
+_lab55:
+	move.l	-12(a5),a0
+	move.l	0(a0),-(sp)
+	move.l	-8(a5),-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	move.l	_MathBase,a6
+	jsr	_LVOSPCmp(a6)
+	beq.s	_lab56
+	moveq	#0,d5
+_lab56:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab57
+	jmp	_lab58
+_lab57:
+	move.l	#-1,-(sp)
+	move.l	(sp)+,d0
+	move.l	_MathBase,a6
+	jsr	_LVOSPFlt(a6)
+	move.l	d0,-(sp)
+	move.l	(sp)+,-42(a4)
+	jmp	_lab63
+_lab58:
+	move.l	-8(a5),-(sp)
+	move.l	-12(a5),a0
+	move.l	0(a0),-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	move.l	_MathBase,a6
+	jsr	_LVOSPCmp(a6)
+	blt.s	_lab59
+	moveq	#0,d5
+_lab59:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab60
+	jmp	_lab61
+_lab60:
+	move.l	a5,d0
+	sub.l	#12,d0
+	movea.l	d0,a0
+	movea.l	(a0),a0
+	adda.l	#4,a0
+	move.l	a0,-(sp)
+	move.l	(sp)+,-16(a5)
+	move.l	-8(a5),-(sp)
+	move.l	(sp)+,-20(a5)
+	move.l	_AbsExecBase,a6
+	jsr	_LVOForbid(a6)
+	move.l	-16(a5),-12(sp)
+	move.l	-20(a5),-16(sp)
+	jsr	_SUB_INTREE
+	jmp	_lab62
+_lab61:
+	move.l	a5,d0
+	sub.l	#12,d0
+	movea.l	d0,a0
+	movea.l	(a0),a0
+	adda.l	#8,a0
+	move.l	a0,-(sp)
+	move.l	(sp)+,-24(a5)
+	move.l	-8(a5),-(sp)
+	move.l	(sp)+,-28(a5)
+	move.l	_AbsExecBase,a6
+	jsr	_LVOForbid(a6)
+	move.l	-24(a5),-12(sp)
+	move.l	-28(a5),-16(sp)
+	jsr	_SUB_INTREE
+_lab62:
+_lab63:
+_lab64:
+_EXIT_SUB_INTREE:
+	unlk	a5
+	rts	  
+_lab52:
+	jmp	_lab65
+_SUB_INSERTITEM:
+	link	a5,#-24
+	move.l	_AbsExecBase,a6
+	jsr	_LVOPermit(a6)
+	pea	_stringconst2
+	jsr	_Ustringprint
+	addq	#4,sp
+	lea	_tempstring1,a0
+	jsr	_inputsingle
+	move.l	d0,-8(a5)
+	move.l	-4(a5),-(sp)
+	move.l	(sp)+,-12(a5)
+	move.l	-8(a5),-(sp)
+	move.l	(sp)+,-16(a5)
+	move.l	_AbsExecBase,a6
+	jsr	_LVOForbid(a6)
+	move.l	-12(a5),-12(sp)
+	move.l	-16(a5),-16(sp)
+	jsr	_SUB_INTREE
+	move.l	-42(a4),-(sp)
+	move.l	(sp)+,d0
+	jsr	_round
+	move.l	d0,-(sp)
+	not.l	(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab66
+	jmp	_lab67
+_lab66:
+	move.l	-4(a5),-(sp)
+	move.l	(sp)+,-20(a5)
+	move.l	-8(a5),-(sp)
+	move.l	(sp)+,-24(a5)
+	move.l	_AbsExecBase,a6
+	jsr	_LVOForbid(a6)
+	move.l	-20(a5),-12(sp)
+	move.l	-24(a5),-16(sp)
+	jsr	_SUB_INSERT
+_lab67:
+_EXIT_SUB_INSERTITEM:
+	unlk	a5
+	rts	  
+_lab65:
+	jmp	_lab68
+_SUB_TRAVERSE:
+	link	a5,#-22
+	move.l	_AbsExecBase,a6
+	jsr	_LVOPermit(a6)
+	move.l	#0,-10(a5)
+	move.l	-4(a5),-(sp)
+	move.l	(sp)+,-10(a5)
+	move.l	-10(a5),-(sp)
+	move.l	#0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	cmp.l	d1,d0
+	bne.s	_lab69
+	moveq	#0,d5
+_lab69:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab70
+	jmp	_lab80
+_lab70:
+	move.w	-6(a5),-(sp)
+	move.w	#1,-(sp)
+	move.w	(sp)+,d1
+	move.w	(sp)+,d0
+	moveq	#-1,d5
+	cmp.w	d1,d0
+	beq.s	_lab71
+	moveq	#0,d5
+_lab71:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab72
+	jmp	_lab73
+_lab72:
+	move.l	-10(a5),a0
+	move.l	0(a0),-(sp)
+	jsr	_Usingleprint
+	addq	#4,sp
+	move.l	#2,-(sp)
+	jsr	_Ucodeprint
+	addq	#4,sp
+_lab73:
+	move.l	-10(a5),a0
+	move.l	4(a0),-(sp)
+	move.l	(sp)+,-14(a5)
+	move.w	-6(a5),-(sp)
+	move.w	(sp)+,-16(a5)
+	move.l	_AbsExecBase,a6
+	jsr	_LVOForbid(a6)
+	move.l	-14(a5),-12(sp)
+	move.w	-16(a5),-14(sp)
+	jsr	_SUB_TRAVERSE
+	move.w	-6(a5),-(sp)
+	move.w	#2,-(sp)
+	move.w	(sp)+,d1
+	move.w	(sp)+,d0
+	moveq	#-1,d5
+	cmp.w	d1,d0
+	beq.s	_lab74
+	moveq	#0,d5
+_lab74:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab75
+	jmp	_lab76
+_lab75:
+	move.l	-10(a5),a0
+	move.l	0(a0),-(sp)
+	jsr	_Usingleprint
+	addq	#4,sp
+	move.l	#2,-(sp)
+	jsr	_Ucodeprint
+	addq	#4,sp
+_lab76:
+	move.l	-10(a5),a0
+	move.l	8(a0),-(sp)
+	move.l	(sp)+,-20(a5)
+	move.w	-6(a5),-(sp)
+	move.w	(sp)+,-22(a5)
+	move.l	_AbsExecBase,a6
+	jsr	_LVOForbid(a6)
+	move.l	-20(a5),-12(sp)
+	move.w	-22(a5),-14(sp)
+	jsr	_SUB_TRAVERSE
+	move.w	-6(a5),-(sp)
+	move.w	#3,-(sp)
+	move.w	(sp)+,d1
+	move.w	(sp)+,d0
+	moveq	#-1,d5
+	cmp.w	d1,d0
+	beq.s	_lab77
+	moveq	#0,d5
+_lab77:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab78
+	jmp	_lab79
+_lab78:
+	move.l	-10(a5),a0
+	move.l	0(a0),-(sp)
+	jsr	_Usingleprint
+	addq	#4,sp
+	move.l	#2,-(sp)
+	jsr	_Ucodeprint
+	addq	#4,sp
+_lab79:
+_lab80:
+_EXIT_SUB_TRAVERSE:
+	unlk	a5
+	rts	  
+_lab68:
+	jmp	_lab81
+_SUB_SHOWNODES:
+	link	a5,#-14
+	move.l	_AbsExecBase,a6
+	jsr	_LVOPermit(a6)
+_lab82:
+	pea	_stringconst3
+	jsr	_Ustringprint
+	addq	#4,sp
+	lea	_tempstring2,a0
+	jsr	_inputsingle
+	move.l	d0,-8(a5)
+	move.l	-8(a5),-(sp)
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	_MathBase,a6
+	jsr	_LVOSPFlt(a6)
+	move.l	d0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	move.l	_MathBase,a6
+	jsr	_LVOSPCmp(a6)
+	bge.s	_lab83
+	moveq	#0,d5
+_lab83:
+	move.l	d5,-(sp)
+	move.l	-8(a5),-(sp)
+	move.w	#3,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	_MathBase,a6
+	jsr	_LVOSPFlt(a6)
+	move.l	d0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	move.l	_MathBase,a6
+	jsr	_LVOSPCmp(a6)
+	ble.s	_lab84
+	moveq	#0,d5
+_lab84:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
+	and.l	d1,d0
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab85
+	jmp	_lab82
+_lab85:
+	jsr	_SUB_PREPARE_FOR_OUTPUT
+	move.l	-4(a5),-(sp)
+	move.l	(sp)+,-12(a5)
+	move.l	-8(a5),-(sp)
+	move.l	(sp)+,d0
+	jsr	_round
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.w	d0,-(sp)
+	move.w	(sp)+,-14(a5)
+	move.l	_AbsExecBase,a6
+	jsr	_LVOForbid(a6)
+	move.l	-12(a5),-12(sp)
+	move.w	-14(a5),-14(sp)
+	jsr	_SUB_TRAVERSE
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	jsr	_ChangeOutputWdw
+	addq	#4,sp
+_EXIT_SUB_SHOWNODES:
+	unlk	a5
+	rts	  
+_lab81:
+	jmp	_lab86
+_SUB_GRAPHTREE:
+	link	a5,#-30
+	move.l	_AbsExecBase,a6
+	jsr	_LVOPermit(a6)
+	move.l	#0,-8(a5)
+	move.l	a4,d0
+	sub.l	#14,d0
+	move.l	d0,-12(a5)
+	move.l	-4(a5),-(sp)
+	move.l	(sp)+,-8(a5)
+	move.l	-8(a5),-(sp)
+	move.l	#0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	cmp.l	d1,d0
+	bne.s	_lab87
+	moveq	#0,d5
+_lab87:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab88
+	jmp	_lab121
+_lab88:
+	move.l	-12(a5),a0
+	move.w	(a0),-(sp)
+	move.w	#2,-(sp)
+	move.w	(sp)+,d1
+	move.w	(sp)+,d0
+	moveq	#-1,d5
+	cmp.w	d1,d0
+	beq.s	_lab89
+	moveq	#0,d5
+_lab89:
+	move.l	d5,-(sp)
+	move.l	-8(a5),a0
+	move.l	4(a0),-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
+	and.l	d1,d0
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab90
+	jmp	_lab95
+_lab90:
+	jsr	_timer
+	move.l	d0,-(sp)
+	move.l	(sp)+,-16(a5)
+_lab91:
+	jsr	_timer
+	move.l	d0,-(sp)
+	move.l	-16(a5),-(sp)
+	move.l	#$1,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	move.l	_MathBase,a6
+	jsr	_LVOSPAdd(a6)
+	move.l	d0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	move.l	_MathBase,a6
+	jsr	_LVOSPCmp(a6)
+	blt.s	_lab92
+	moveq	#0,d5
+_lab92:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab93
+	jmp	_lab94
+_lab93:
+	jmp	_lab91
+_lab94:
+_lab95:
+	move.w	#135,-(sp)
+	move.w	(sp)+,d0
+	jsr	_setheading
+	move.l	-8(a5),a0
+	move.l	4(a0),-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab96
+	jmp	_lab97
+_lab96:
+	jsr	_pendown
+	move.w	#20,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	_MathBase,a6
+	jsr	_LVOSPFlt(a6)
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	jsr	_forward
+_lab97:
+	move.l	-8(a5),a0
+	move.l	4(a0),-(sp)
+	move.l	(sp)+,-20(a5)
+	move.l	_AbsExecBase,a6
+	jsr	_LVOForbid(a6)
+	move.l	-20(a5),-12(sp)
+	jsr	_SUB_GRAPHTREE
+	move.w	#135,-(sp)
+	move.w	(sp)+,d0
+	jsr	_setheading
+	move.l	-8(a5),a0
+	move.l	4(a0),-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab98
+	jmp	_lab99
+_lab98:
+	jsr	_penup
+	move.w	#20,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	_MathBase,a6
+	jsr	_LVOSPFlt(a6)
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	jsr	_back
+_lab99:
+	move.l	-12(a5),a0
+	move.w	(a0),-(sp)
+	move.w	#2,-(sp)
+	move.w	(sp)+,d1
+	move.w	(sp)+,d0
+	moveq	#-1,d5
+	cmp.w	d1,d0
+	beq.s	_lab100
+	moveq	#0,d5
+_lab100:
+	move.l	d5,-(sp)
+	move.l	-8(a5),a0
+	move.l	8(a0),-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
+	and.l	d1,d0
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab101
+	jmp	_lab106
+_lab101:
+	jsr	_timer
+	move.l	d0,-(sp)
+	move.l	(sp)+,-16(a5)
+_lab102:
+	jsr	_timer
+	move.l	d0,-(sp)
+	move.l	-16(a5),-(sp)
+	move.l	#$1,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	move.l	_MathBase,a6
+	jsr	_LVOSPAdd(a6)
+	move.l	d0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	move.l	_MathBase,a6
+	jsr	_LVOSPCmp(a6)
+	blt.s	_lab103
+	moveq	#0,d5
+_lab103:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab104
+	jmp	_lab105
+_lab104:
+	jmp	_lab102
+_lab105:
+_lab106:
+	move.w	#45,-(sp)
+	move.w	(sp)+,d0
+	jsr	_setheading
+	move.l	-8(a5),a0
+	move.l	8(a0),-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab107
+	jmp	_lab108
+_lab107:
+	jsr	_pendown
+	move.w	#20,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	_MathBase,a6
+	jsr	_LVOSPFlt(a6)
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	jsr	_forward
+_lab108:
+	move.l	-8(a5),a0
+	move.l	8(a0),-(sp)
+	move.l	(sp)+,-24(a5)
+	move.l	_AbsExecBase,a6
+	jsr	_LVOForbid(a6)
+	move.l	-24(a5),-12(sp)
+	jsr	_SUB_GRAPHTREE
+	move.w	#45,-(sp)
+	move.w	(sp)+,d0
+	jsr	_setheading
+	move.l	-8(a5),a0
+	move.l	8(a0),-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab109
+	jmp	_lab110
+_lab109:
+	jsr	_penup
+	move.w	#20,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	_MathBase,a6
+	jsr	_LVOSPFlt(a6)
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	jsr	_back
+_lab110:
+	move.l	-12(a5),a0
+	move.w	(a0),-(sp)
+	move.w	#2,-(sp)
+	move.w	(sp)+,d1
+	move.w	(sp)+,d0
+	moveq	#-1,d5
+	cmp.w	d1,d0
+	beq.s	_lab111
+	moveq	#0,d5
+_lab111:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab112
+	jmp	_lab117
+_lab112:
+	jsr	_timer
+	move.l	d0,-(sp)
+	move.l	(sp)+,-16(a5)
+_lab113:
+	jsr	_timer
+	move.l	d0,-(sp)
+	move.l	-16(a5),-(sp)
+	move.l	#$1,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	move.l	_MathBase,a6
+	jsr	_LVOSPAdd(a6)
+	move.l	d0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	move.l	_MathBase,a6
+	jsr	_LVOSPCmp(a6)
+	blt.s	_lab114
+	moveq	#0,d5
+_lab114:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab115
+	jmp	_lab116
+_lab115:
+	jmp	_lab113
+_lab116:
+_lab117:
+	move.l	-8(a5),a0
+	move.l	0(a0),-(sp)
+	lea	_tempstring3,a0
+	jsr	_strsingle
+	addq	#4,sp
+	move.l	d0,-(sp)
+	pea	_stringvar0
+	move.l	(sp)+,-28(a5)
+	move.l	(sp)+,a1
+	move.l	-28(a5),a0
+	jsr	_strcpy
+	move.l	-8(a5),a0
+	move.l	0(a0),-(sp)
+	move.l	(sp)+,d1
+	jsr	_sgnf
+	move.l	d0,-(sp)
+	move.w	#1,-(sp)
+	neg.w	(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	cmp.l	d1,d0
+	bne.s	_lab118
+	moveq	#0,d5
+_lab118:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab119
+	jmp	_lab120
+_lab119:
+	move.l	-28(a5),-(sp)
+	move.l	-28(a5),-(sp)
+	move.l	(sp)+,a2
+	jsr	_strlen
+	move.l	d0,-(sp)
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	sub.l	d1,d0
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.w	d0,-(sp)
+	move.w	(sp)+,d0
+	move.l	(sp)+,a0
+	lea	_tempstring4,a1
+	jsr	_rightstr
+	move.l	a0,-(sp)
+	move.l	#_stringvar0,-28(a5)
+	move.l	(sp)+,a1
+	move.l	-28(a5),a0
+	jsr	_strcpy
+_lab120:
+	move.l	-28(a5),-(sp)
+	move.l	(sp)+,a2
+	jsr	_strlen
+	move.l	d0,-(sp)
+	move.w	#2,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	jsr	ace_ldiv
+	add.l	#8,sp
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.w	d0,-(sp)
+	move.w	(sp)+,-30(a5)
+	jsr	_penup
+	jsr	_xcor
+	move.w	d0,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.w	-30(a5),-(sp)
+	move.w	#8,-(sp)
+	move.w	(sp)+,d0
+	move.w	(sp)+,d1
+	muls	d1,d0
+	move.l	d0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	sub.l	d1,d0
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.w	d0,-(sp)
+	jsr	_ycor
+	move.w	d0,-(sp)
+	move.w	(sp)+,d1
+	move.w	(sp)+,d0
+	jsr	_setxy
+	move.w	#3,-(sp)
+	move.w	(sp)+,d0
+	move.w	d0,_fg
+	move.w	d0,_fgdpen
+	move.l	_RPort,a1
+	move.l	_GfxBase,a6
+	jsr	_LVOSetAPen(a6)
+	move.w	_bgpen,_bg
+	move.w	_fg,d0
+	move.w	_bg,d0
+	jsr	_changetextcolor
+	move.l	-28(a5),-(sp)
+	move.l	(sp)+,a0
+	jsr	_stringprints
+	jsr	_printsLF
+	move.w	#2,-(sp)
+	move.w	(sp)+,d0
+	move.w	d0,_fg
+	move.w	d0,_fgdpen
+	move.l	_RPort,a1
+	move.l	_GfxBase,a6
+	jsr	_LVOSetAPen(a6)
+	move.w	_bgpen,_bg
+	move.w	_fg,d0
+	move.w	_bg,d0
+	jsr	_changetextcolor
+	jsr	_xcor
+	move.w	d0,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.w	-30(a5),-(sp)
+	move.w	#8,-(sp)
+	move.w	(sp)+,d0
+	move.w	(sp)+,d1
+	muls	d1,d0
+	move.l	d0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	add.l	d1,d0
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.w	d0,-(sp)
+	jsr	_ycor
+	move.w	d0,-(sp)
+	move.w	(sp)+,d1
+	move.w	(sp)+,d0
+	jsr	_setxy
+	jsr	_pendown
+_lab121:
+_EXIT_SUB_GRAPHTREE:
+	unlk	a5
+	rts	  
+_lab86:
+	jmp	_lab122
+_SUB_SHOWTREE:
+	link	a5,#-12
+	move.l	_AbsExecBase,a6
+	jsr	_LVOPermit(a6)
+	move.l	a4,d0
+	sub.l	#14,d0
+	move.l	d0,-8(a5)
+	move.w	#2,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	jsr	_ChangeOutputWdw
+	addq	#4,sp
+	move.w	#2,-(sp)
+	move.w	(sp)+,d0
+	move.w	d0,_fg
+	move.w	d0,_fgdpen
+	move.l	_RPort,a1
+	move.l	_GfxBase,a6
+	jsr	_LVOSetAPen(a6)
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	move.w	d0,_bg
+	move.w	d0,_bgpen
+	move.l	_RPort,a1
+	move.l	_GfxBase,a6
+	jsr	_LVOSetBPen(a6)
+	move.w	_fg,d0
+	move.w	_bg,d0
+	jsr	_changetextcolor
+	jsr	_cls
+	move.w	#90,-(sp)
+	move.w	(sp)+,d0
+	jsr	_setheading
+	jsr	_penup
+	move.w	#320,-(sp)
+	move.w	#20,-(sp)
+	move.w	(sp)+,d1
+	move.w	(sp)+,d0
+	jsr	_setxy
+	jsr	_pendown
+	move.l	-4(a5),-(sp)
+	move.l	(sp)+,-12(a5)
+	move.l	_AbsExecBase,a6
+	jsr	_LVOForbid(a6)
+	move.l	-12(a5),-12(sp)
+	jsr	_SUB_GRAPHTREE
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	jsr	_ChangeOutputWdw
+	addq	#4,sp
+_EXIT_SUB_SHOWTREE:
+	unlk	a5
+	rts	  
+_lab122:
+	jmp	_lab123
+_SUB_TREEDISPLAYSPEED:
+	link	a5,#-4
+	move.l	a4,d0
+	sub.l	#14,d0
+	move.l	d0,-4(a5)
+_lab124:
+	pea	_stringconst4
+	jsr	_Ustringprint
+	addq	#4,sp
+	lea	_tempstring5,a0
+	jsr	_inputshort
+	move.l	-4(a5),a0
+	move.w	d0,(a0)
+	move.l	-4(a5),a0
+	move.w	(a0),-(sp)
+	move.w	#1,-(sp)
+	move.w	(sp)+,d1
+	move.w	(sp)+,d0
+	moveq	#-1,d5
+	cmp.w	d1,d0
+	beq.s	_lab125
+	moveq	#0,d5
+_lab125:
+	move.l	d5,-(sp)
+	move.l	-4(a5),a0
+	move.w	(a0),-(sp)
+	move.w	#2,-(sp)
+	move.w	(sp)+,d1
+	move.w	(sp)+,d0
+	moveq	#-1,d5
+	cmp.w	d1,d0
+	beq.s	_lab126
+	moveq	#0,d5
+_lab126:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
+	or.l	d1,d0
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab127
+	jmp	_lab124
+_lab127:
+_EXIT_SUB_TREEDISPLAYSPEED:
+	unlk	a5
+	rts	  
+_lab123:
+	jmp	_lab128
+_SUB_KILL_TREE:
+	link	a5,#-4
+	move.l	_AbsExecBase,a6
+	jsr	_LVOPermit(a6)
+	move.l	-4(a5),-(sp)
+	move.l	#0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,a0
+	move.l	d0,(a0)
+_EXIT_SUB_KILL_TREE:
+	unlk	a5
+	rts	  
+_lab128:
+	jmp	_lab129
+_SUB_MAX:
+	link	a5,#-8
+	move.l	_AbsExecBase,a6
+	jsr	_LVOPermit(a6)
+	move.l	-4(a5),-(sp)
+	move.l	-8(a5),-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	move.l	_MathBase,a6
+	jsr	_LVOSPCmp(a6)
+	bgt.s	_lab130
+	moveq	#0,d5
+_lab130:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab131
+	jmp	_lab132
+_lab131:
+	move.l	-4(a5),-(sp)
+	move.l	(sp)+,-74(a4)
+	jmp	_lab133
+_lab132:
+	move.l	-8(a5),-(sp)
+	move.l	(sp)+,-74(a4)
+_lab133:
+_EXIT_SUB_MAX:
+	unlk	a5
+	rts	  
+_lab129:
+	jmp	_lab134
+_SUB_HEIGHT:
+	link	a5,#-24
+	move.l	_AbsExecBase,a6
+	jsr	_LVOPermit(a6)
+	move.l	#0,-8(a5)
+	move.l	-4(a5),-(sp)
+	move.l	(sp)+,-8(a5)
+	move.l	-8(a5),-(sp)
+	move.l	#0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	cmp.l	d1,d0
+	bne.s	_lab135
+	moveq	#0,d5
+_lab135:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab136
+	jmp	_lab137
+_lab136:
+	move.l	-8(a5),a0
+	move.l	4(a0),-(sp)
+	move.l	(sp)+,-12(a5)
+	move.l	_AbsExecBase,a6
+	jsr	_LVOForbid(a6)
+	move.l	-12(a5),-12(sp)
+	jsr	_SUB_HEIGHT
+	move.l	-78(a4),-(sp)
+	move.l	(sp)+,-16(a5)
+	move.l	-8(a5),a0
+	move.l	8(a0),-(sp)
+	move.l	(sp)+,-20(a5)
+	move.l	_AbsExecBase,a6
+	jsr	_LVOForbid(a6)
+	move.l	-20(a5),-12(sp)
+	jsr	_SUB_HEIGHT
+	move.l	-78(a4),-(sp)
+	move.l	(sp)+,-24(a5)
+	move.l	_AbsExecBase,a6
+	jsr	_LVOForbid(a6)
+	move.l	-16(a5),-12(sp)
+	move.l	-24(a5),-16(sp)
+	jsr	_SUB_MAX
+	move.l	-74(a4),-(sp)
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	_MathBase,a6
+	jsr	_LVOSPFlt(a6)
+	move.l	d0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	move.l	_MathBase,a6
+	jsr	_LVOSPAdd(a6)
+	move.l	d0,-(sp)
+	move.l	(sp)+,-78(a4)
+	jmp	_lab138
+_lab137:
+	move.w	#0,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	_MathBase,a6
+	jsr	_LVOSPFlt(a6)
+	move.l	d0,-(sp)
+	move.l	(sp)+,-78(a4)
+_lab138:
+_EXIT_SUB_HEIGHT:
+	unlk	a5
+	rts	  
+_lab134:
+	jmp	_lab139
+_SUB_MAXITEM:
+	link	a5,#-12
+	move.l	_AbsExecBase,a6
+	jsr	_LVOPermit(a6)
+	move.l	#0,-8(a5)
+	move.l	-4(a5),-(sp)
+	move.l	(sp)+,-8(a5)
+	move.l	-8(a5),-(sp)
+	move.l	#0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	cmp.l	d1,d0
+	beq.s	_lab140
+	moveq	#0,d5
+_lab140:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab141
+	jmp	_lab142
+_lab141:
+	move.w	#0,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	_MathBase,a6
+	jsr	_LVOSPFlt(a6)
+	move.l	d0,-(sp)
+	move.l	(sp)+,-82(a4)
+	jmp	_lab147
+_lab142:
+	move.l	-8(a5),a0
+	move.l	8(a0),-(sp)
+	move.l	#0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	cmp.l	d1,d0
+	beq.s	_lab143
+	moveq	#0,d5
+_lab143:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab144
+	jmp	_lab145
+_lab144:
+	move.l	-8(a5),a0
+	move.l	0(a0),-(sp)
+	move.l	(sp)+,-82(a4)
+	jmp	_lab146
+_lab145:
+	move.l	-8(a5),a0
+	move.l	8(a0),-(sp)
+	move.l	(sp)+,-12(a5)
+	move.l	_AbsExecBase,a6
+	jsr	_LVOForbid(a6)
+	move.l	-12(a5),-12(sp)
+	jsr	_SUB_MAXITEM
+	move.l	-82(a4),-(sp)
+	move.l	(sp)+,-82(a4)
+_lab146:
+_lab147:
+_EXIT_SUB_MAXITEM:
+	unlk	a5
+	rts	  
+_lab139:
+	jmp	_lab148
+_SUB_NODES:
+	link	a5,#-16
+	move.l	_AbsExecBase,a6
+	jsr	_LVOPermit(a6)
+	move.l	#0,-8(a5)
+	move.l	-4(a5),-(sp)
+	move.l	(sp)+,-8(a5)
+	move.l	-8(a5),-(sp)
+	move.l	#0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	cmp.l	d1,d0
+	bne.s	_lab149
+	moveq	#0,d5
+_lab149:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab150
+	jmp	_lab151
+_lab150:
+	move.l	-8(a5),a0
+	move.l	4(a0),-(sp)
+	move.l	(sp)+,-12(a5)
+	move.l	_AbsExecBase,a6
+	jsr	_LVOForbid(a6)
+	move.l	-12(a5),-12(sp)
+	jsr	_SUB_NODES
+	move.l	-86(a4),-(sp)
+	move.l	-8(a5),a0
+	move.l	8(a0),-(sp)
+	move.l	(sp)+,-16(a5)
+	move.l	_AbsExecBase,a6
+	jsr	_LVOForbid(a6)
+	move.l	-16(a5),-12(sp)
+	jsr	_SUB_NODES
+	move.l	-86(a4),-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	move.l	_MathBase,a6
+	jsr	_LVOSPAdd(a6)
+	move.l	d0,-(sp)
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	_MathBase,a6
+	jsr	_LVOSPFlt(a6)
+	move.l	d0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	move.l	_MathBase,a6
+	jsr	_LVOSPAdd(a6)
+	move.l	d0,-(sp)
+	move.l	(sp)+,-86(a4)
+	jmp	_lab152
+_lab151:
+	move.w	#0,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	_MathBase,a6
+	jsr	_LVOSPFlt(a6)
+	move.l	d0,-(sp)
+	move.l	(sp)+,-86(a4)
+_lab152:
+_EXIT_SUB_NODES:
+	unlk	a5
+	rts	  
+_lab148:
+	jmp	_lab153
+_SUB_SELECTMENU:
+	link	a5,#-8
+	move.l	_AbsExecBase,a6
+	jsr	_LVOPermit(a6)
+_lab154:
+	jsr	_cls
+	pea	_stringconst5
+	jsr	_Ustringprint
+	addq	#4,sp
+	move.l	#0,-(sp)
+	jsr	_Ucodeprint
+	addq	#4,sp
+	pea	_stringconst6
+	jsr	_Ustringprint
+	addq	#4,sp
+	move.l	#0,-(sp)
+	jsr	_Ucodeprint
+	addq	#4,sp
+	pea	_stringconst7
+	jsr	_Ustringprint
+	addq	#4,sp
+	move.l	#0,-(sp)
+	jsr	_Ucodeprint
+	addq	#4,sp
+	pea	_stringconst8
+	jsr	_Ustringprint
+	addq	#4,sp
+	move.l	#0,-(sp)
+	jsr	_Ucodeprint
+	addq	#4,sp
+	pea	_stringconst9
+	jsr	_Ustringprint
+	addq	#4,sp
+	move.l	#0,-(sp)
+	jsr	_Ucodeprint
+	addq	#4,sp
+	pea	_stringconst10
+	jsr	_Ustringprint
+	addq	#4,sp
+	move.l	#0,-(sp)
+	jsr	_Ucodeprint
+	addq	#4,sp
+	pea	_stringconst11
+	jsr	_Ustringprint
+	addq	#4,sp
+	move.l	#0,-(sp)
+	jsr	_Ucodeprint
+	addq	#4,sp
+	pea	_stringconst12
+	jsr	_Ustringprint
+	addq	#4,sp
+	move.l	#0,-(sp)
+	jsr	_Ucodeprint
+	addq	#4,sp
+	pea	_stringconst13
+	jsr	_Ustringprint
+	addq	#4,sp
+	move.l	#0,-(sp)
+	jsr	_Ucodeprint
+	addq	#4,sp
+	pea	_stringconst14
+	jsr	_Ustringprint
+	addq	#4,sp
+	lea	_tempstring6,a0
+	jsr	_inputsingle
+	move.l	d0,-8(a5)
+	move.l	-8(a5),-(sp)
+	move.w	#0,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	_MathBase,a6
+	jsr	_LVOSPFlt(a6)
+	move.l	d0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	move.l	_MathBase,a6
+	jsr	_LVOSPCmp(a6)
+	bge.s	_lab155
+	moveq	#0,d5
+_lab155:
+	move.l	d5,-(sp)
+	move.l	-8(a5),-(sp)
+	move.w	#8,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	_MathBase,a6
+	jsr	_LVOSPFlt(a6)
+	move.l	d0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	move.l	_MathBase,a6
+	jsr	_LVOSPCmp(a6)
+	ble.s	_lab156
+	moveq	#0,d5
+_lab156:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
+	and.l	d1,d0
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab157
+	jmp	_lab154
+_lab157:
+	move.l	-4(a5),-(sp)
+	move.l	-8(a5),-(sp)
+	move.l	(sp)+,d0
+	jsr	_round
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,a0
+	move.l	d0,(a0)
+_EXIT_SUB_SELECTMENU:
+	unlk	a5
+	rts	  
+_lab153:
+	jmp	_lab158
+_SUB_DOOPTION:
+	link	a5,#-52
+	move.l	_AbsExecBase,a6
+	jsr	_LVOPermit(a6)
+	move.l	#0,-16(a5)
+	move.l	a4,d0
+	sub.l	#14,d0
+	move.l	d0,-20(a5)
+	move.l	-8(a5),-(sp)
+	move.l	(sp)+,a0
+	move.l	(a0),-(sp)
+	move.l	(sp)+,-16(a5)
+	move.l	-4(a5),-(sp)
+	move.w	#4,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	cmp.l	d1,d0
+	bge.s	_lab159
+	moveq	#0,d5
+_lab159:
+	move.l	d5,-(sp)
+	move.l	-4(a5),-(sp)
+	move.w	#6,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	cmp.l	d1,d0
+	ble.s	_lab160
+	moveq	#0,d5
+_lab160:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
+	and.l	d1,d0
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab161
+	jmp	_lab162
+_lab161:
+	jsr	_SUB_PREPARE_FOR_OUTPUT
+_lab162:
+	move.l	-4(a5),-(sp)
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	cmp.l	d1,d0
+	beq.s	_lab163
+	moveq	#0,d5
+_lab163:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab164
+	jmp	_lab165
+_lab164:
+	move.l	a5,d0
+	sub.l	#16,d0
+	movea.l	d0,a0
+	move.l	a0,-(sp)
+	move.l	(sp)+,-24(a5)
+	move.l	_AbsExecBase,a6
+	jsr	_LVOForbid(a6)
+	move.l	-24(a5),-12(sp)
+	jsr	_SUB_INSERTITEM
+	jmp	_lab190
+_lab165:
+	move.l	-4(a5),-(sp)
+	move.w	#2,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	cmp.l	d1,d0
+	beq.s	_lab166
+	moveq	#0,d5
+_lab166:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab167
+	jmp	_lab168
+_lab167:
+	move.l	a5,d0
+	sub.l	#16,d0
+	movea.l	d0,a0
+	move.l	a0,-(sp)
+	move.l	(sp)+,-28(a5)
+	move.l	_AbsExecBase,a6
+	jsr	_LVOForbid(a6)
+	move.l	-28(a5),-12(sp)
+	jsr	_SUB_DELETEITEM
+	jmp	_lab190
+_lab168:
+	move.l	-4(a5),-(sp)
+	move.w	#3,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	cmp.l	d1,d0
+	beq.s	_lab169
+	moveq	#0,d5
+_lab169:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab170
+	jmp	_lab171
+_lab170:
+	move.l	-16(a5),-(sp)
+	move.l	(sp)+,-32(a5)
+	move.l	_AbsExecBase,a6
+	jsr	_LVOForbid(a6)
+	move.l	-32(a5),-12(sp)
+	jsr	_SUB_SHOWNODES
+	jmp	_lab190
+_lab171:
+	move.l	-4(a5),-(sp)
+	move.w	#4,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	cmp.l	d1,d0
+	beq.s	_lab172
+	moveq	#0,d5
+_lab172:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab173
+	jmp	_lab174
+_lab173:
+	pea	_stringconst15
+	jsr	_Ustringprint
+	addq	#4,sp
+	move.l	-16(a5),-(sp)
+	move.l	(sp)+,-36(a5)
+	move.l	_AbsExecBase,a6
+	jsr	_LVOForbid(a6)
+	move.l	-36(a5),-12(sp)
+	jsr	_SUB_HEIGHT
+	move.l	-78(a4),-(sp)
+	jsr	_Usingleprint
+	addq	#4,sp
+	move.l	#2,-(sp)
+	jsr	_Ucodeprint
+	addq	#4,sp
+	move.l	#0,-(sp)
+	jsr	_Ucodeprint
+	addq	#4,sp
+	jmp	_lab190
+_lab174:
+	move.l	-4(a5),-(sp)
+	move.w	#5,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	cmp.l	d1,d0
+	beq.s	_lab175
+	moveq	#0,d5
+_lab175:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab176
+	jmp	_lab177
+_lab176:
+	pea	_stringconst16
+	jsr	_Ustringprint
+	addq	#4,sp
+	move.l	-16(a5),-(sp)
+	move.l	(sp)+,-40(a5)
+	move.l	_AbsExecBase,a6
+	jsr	_LVOForbid(a6)
+	move.l	-40(a5),-12(sp)
+	jsr	_SUB_MAXITEM
+	move.l	-82(a4),-(sp)
+	jsr	_Usingleprint
+	addq	#4,sp
+	move.l	#2,-(sp)
+	jsr	_Ucodeprint
+	addq	#4,sp
+	move.l	#0,-(sp)
+	jsr	_Ucodeprint
+	addq	#4,sp
+	jmp	_lab190
+_lab177:
+	move.l	-4(a5),-(sp)
+	move.w	#6,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	cmp.l	d1,d0
+	beq.s	_lab178
+	moveq	#0,d5
+_lab178:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab179
+	jmp	_lab180
+_lab179:
+	pea	_stringconst17
+	jsr	_Ustringprint
+	addq	#4,sp
+	move.l	-16(a5),-(sp)
+	move.l	(sp)+,-44(a5)
+	move.l	_AbsExecBase,a6
+	jsr	_LVOForbid(a6)
+	move.l	-44(a5),-12(sp)
+	jsr	_SUB_NODES
+	move.l	-86(a4),-(sp)
+	jsr	_Usingleprint
+	addq	#4,sp
+	move.l	#2,-(sp)
+	jsr	_Ucodeprint
+	addq	#4,sp
+	move.l	#0,-(sp)
+	jsr	_Ucodeprint
+	addq	#4,sp
+	jmp	_lab190
+_lab180:
+	move.l	-4(a5),-(sp)
+	move.w	#7,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	cmp.l	d1,d0
+	beq.s	_lab181
+	moveq	#0,d5
+_lab181:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab182
+	jmp	_lab183
+_lab182:
+	move.l	a5,d0
+	sub.l	#16,d0
+	movea.l	d0,a0
+	move.l	a0,-(sp)
+	move.l	(sp)+,-48(a5)
+	move.l	_AbsExecBase,a6
+	jsr	_LVOForbid(a6)
+	move.l	-48(a5),-12(sp)
+	jsr	_SUB_KILL_TREE
+	jmp	_lab190
+_lab183:
+	move.l	-4(a5),-(sp)
+	move.w	#8,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	cmp.l	d1,d0
+	beq.s	_lab184
+	moveq	#0,d5
+_lab184:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab185
+	jmp	_lab186
+_lab185:
+	jsr	_SUB_TREEDISPLAYSPEED
+	jmp	_lab190
+_lab186:
+	move.l	-4(a5),-(sp)
+	move.w	#0,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	cmp.l	d1,d0
+	beq.s	_lab187
+	moveq	#0,d5
+_lab187:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab188
+	jmp	_lab189
+_lab188:
+	move.l	-12(a5),-(sp)
+	move.l	#-1,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,a0
+	move.l	d0,(a0)
+	jmp	_lab190
+_lab189:
+_lab190:
+	move.l	-4(a5),-(sp)
+	move.w	#4,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	cmp.l	d1,d0
+	bge.s	_lab191
+	moveq	#0,d5
+_lab191:
+	move.l	d5,-(sp)
+	move.l	-4(a5),-(sp)
+	move.w	#6,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	cmp.l	d1,d0
+	ble.s	_lab192
+	moveq	#0,d5
+_lab192:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
+	and.l	d1,d0
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab193
+	jmp	_lab194
+_lab193:
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	jsr	_ChangeOutputWdw
+	addq	#4,sp
+_lab194:
+	move.l	-4(a5),-(sp)
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	cmp.l	d1,d0
+	beq.s	_lab195
+	moveq	#0,d5
+_lab195:
+	move.l	d5,-(sp)
+	move.l	-4(a5),-(sp)
+	move.w	#2,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	cmp.l	d1,d0
+	beq.s	_lab196
+	moveq	#0,d5
+_lab196:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
+	or.l	d1,d0
+	move.l	d0,-(sp)
+	move.l	-4(a5),-(sp)
+	move.w	#7,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.l	(sp)+,d1
+	move.l	(sp)+,d0
+	moveq	#-1,d5
+	cmp.l	d1,d0
+	beq.s	_lab197
+	moveq	#0,d5
+_lab197:
+	move.l	d5,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
+	or.l	d1,d0
+	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab198
+	jmp	_lab199
+_lab198:
+	move.l	-16(a5),-(sp)
+	move.l	(sp)+,-52(a5)
+	move.l	_AbsExecBase,a6
+	jsr	_LVOForbid(a6)
+	move.l	-52(a5),-12(sp)
+	jsr	_SUB_SHOWTREE
+_lab199:
+	move.l	-8(a5),-(sp)
+	move.l	-16(a5),-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,a0
+	move.l	d0,(a0)
+_EXIT_SUB_DOOPTION:
+	unlk	a5
+	rts	  
+_lab158:
+	move.w	#2,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	pea	_stringconst18
+	move.w	#0,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.w	#0,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.w	#640,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.w	#150,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.w	#6,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.l	#0,-(sp)
+	jsr	_OpenWdw
+	add.l	#32,sp
+	pea	_stringconst19
+	move.w	#8,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	jsr	_change_text_font
+	add.l	#8,sp
+	move.w	#2,-(sp)
+	move.w	(sp)+,d0
+	move.w	d0,_fg
+	move.w	d0,_fgdpen
+	move.l	_RPort,a1
+	move.l	_GfxBase,a6
+	jsr	_LVOSetAPen(a6)
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	move.w	d0,_bg
+	move.w	d0,_bgpen
+	move.l	_RPort,a1
+	move.l	_GfxBase,a6
+	jsr	_LVOSetBPen(a6)
+	move.w	_fg,d0
+	move.w	_bg,d0
+	jsr	_changetextcolor
+	jsr	_cls
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	pea	_stringconst20
+	move.w	#0,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.w	#150,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.w	#640,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.w	#255,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.w	#6,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	move.l	#0,-(sp)
+	jsr	_OpenWdw
+	add.l	#32,sp
+	pea	_stringconst21
+	move.w	#8,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	jsr	_change_text_font
+	add.l	#8,sp
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	move.w	d0,_fg
+	move.w	d0,_fgdpen
+	move.l	_RPort,a1
+	move.l	_GfxBase,a6
+	jsr	_LVOSetAPen(a6)
+	move.w	_bgpen,_bg
+	move.w	_fg,d0
+	move.w	_bg,d0
+	jsr	_changetextcolor
+	move.l	#0,-(sp)
+	move.l	(sp)+,-4(a4)
+	move.w	#1,-(sp)
+	move.w	(sp)+,-14(a4)
+	move.l	#0,-(sp)
+	move.l	(sp)+,-12(a4)
+_lab200:
+	move.l	a4,d0
+	sub.l	#8,d0
+	move.l	d0,-(sp)
+	move.l	(sp)+,-98(a4)
+	move.l	_AbsExecBase,a6
+	jsr	_LVOForbid(a6)
+	move.l	-98(a4),-12(sp)
+	jsr	_SUB_SELECTMENU
+	move.l	-8(a4),-(sp)
+	move.l	(sp)+,-102(a4)
+	move.l	a4,d0
+	sub.l	#4,d0
+	movea.l	d0,a0
+	move.l	a0,-(sp)
+	move.l	(sp)+,-106(a4)
+	move.l	a4,d0
+	sub.l	#12,d0
+	move.l	d0,-(sp)
+	move.l	(sp)+,-110(a4)
+	move.l	_AbsExecBase,a6
+	jsr	_LVOForbid(a6)
+	move.l	-102(a4),-12(sp)
+	move.l	-106(a4),-16(sp)
+	move.l	-110(a4),-20(sp)
+	jsr	_SUB_DOOPTION
+	move.l	-12(a4),-(sp)
+	move.l	(sp)+,d0
+	cmpi.l	#0,d0
+	bne.s	_lab201
+	jmp	_lab200
+_lab201:
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	jsr	_CloseWdw
+	addq	#4,sp
+	move.w	#2,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
+	jsr	_CloseWdw
+	addq	#4,sp
+
+_EXIT_PROG:
+	unlk	a4
+_ABORT_PROG:
+	jsr	_free_alloc
+	jsr	_closegfx
+	jsr	_closeintuition
+	jsr	_closemathtrans
+	jsr	_closemathffp
+	movem.l	(sp)+,d1-d7/a0-a6
+	move.l	_initialSP,sp
+	jsr	_cleanup
+
+	rts
+
+	SECTION data,DATA
+
+_stringconst0:	dc.b " ",0
+_stringconst1:	dc.b "Enter item: ",0
+_stringconst2:	dc.b "Enter Item: ",0
+_stringconst3:	dc.b "1=preorder  2=inorder  3=postorder ",0
+_stringconst4:	dc.b "1=fast  2=slow ",0
+_stringconst5:	dc.b "1.  Insert node",0
+_stringconst6:	dc.b "2.  Delete node",0
+_stringconst7:	dc.b "3.  Print node values",0
+_stringconst8:	dc.b "4.  Show height of tree",0
+_stringconst9:	dc.b "5.  Find maximum value",0
+_stringconst10:	dc.b "6.  Count nodes in tree",0
+_stringconst11:	dc.b "7.  Delete all nodes",0
+_stringconst12:	dc.b "8.  Change tree display speed",0
+_stringconst13:	dc.b "0.  Quit",0
+_stringconst14:	dc.b "Make choice (0..8) ",0
+_stringconst15:	dc.b "Height of tree is",0
+_stringconst16:	dc.b "Maximum item is",0
+_stringconst17:	dc.b "Number of nodes in tree is",0
+_stringconst18:	dc.b "BST Output",0
+_stringconst19:	dc.b "topaz",0
+_stringconst20:	dc.b "BST",0
+_stringconst21:	dc.b "topaz",0
+
+	SECTION mem,BSS
+
+_tempstring0:	ds.b 1024
+_tempstring1:	ds.b 1024
+_tempstring2:	ds.b 1024
+_tempstring3:	ds.b 1024
+_stringvar0:	ds.b 1024
+_tempstring4:	ds.b 1024
+_fg	ds.w 1
+_bg	ds.w 1
+_tempstring5:	ds.b 1024
+_tempstring6:	ds.b 1024
+_initialSP:	ds.l 1
+
+	END
