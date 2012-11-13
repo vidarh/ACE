@@ -608,7 +608,6 @@ void classify_integer(LONG n) {
 /* lexical analyser */
 void insymbol() {
   int  i,cc=0;
-  BOOL found;
   char ssym[3];
   LONG n[2],n0,n1;
   int  index;
@@ -626,7 +625,6 @@ void insymbol() {
   sym = undefined;
   obj = undefined;
   typ = undefined;
-  found = FALSE;
   
   if (!end_of_source) {
 	/* skip whitespace */

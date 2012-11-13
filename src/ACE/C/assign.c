@@ -78,9 +78,6 @@ extern	BOOL 	readpresent;
 extern	BOOL 	have_lparen;
 extern	BOOL 	have_equal;
 
-void input_long(SYM * storage, const char * func, char * addrbuf);
-void input_short(SYM * storage,const char * func, char * addrbuf);
-void input_single(SYM * storage, const char * func, char * addrbuf);
 void assign_string_to_storage(SYM * storage, char * addrbuf);
 
 /* functions */
@@ -636,9 +633,9 @@ void input() {
 	  */
 	  
 	  switch(storage->type) {
-	  case shorttype  : input_short(storage,"_inputshort",addrbuf); break;
-	  case longtype   : input_long(storage,"_inputlong",addrbuf); break;
-	  case singletype : input_single(storage,"_inputsingle",addrbuf); break;
+	  case shorttype  : input_short(storage,"_inputshort",addrbuf,lev); break;
+	  case longtype   : input_long(storage,"_inputlong",addrbuf,lev); break;
+	  case singletype : input_single(storage,"_inputsingle",addrbuf,lev); break;
 	  case stringtype : 
 		gen_jsr("_Ustringinput");
 		assign_string_to_storage(storage,addrbuf);

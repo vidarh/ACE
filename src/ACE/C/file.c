@@ -57,22 +57,9 @@ extern	char	id[MAXIDSIZE];
 extern	char	tempstrname[80];
 	
 /* functions */
+/* OPEN mode,[#]filenumber,filespec */
 void open_a_file() {
- /* OPEN mode,[#]filenumber,filespec */
-
- check_for_event();
-
- insymbol();
- if (expr() != stringtype) _error(4);  /* mode = I, O or A */
- else {
-     if (eat_comma()) {
-         parse_channel();
-         if (eat_comma()) {
-             if (expr() != stringtype) _error(4);  /* filespec */
-             else gen_openfile();
-         }
-     }
- }
+ if (parse_gen_params(expr(),"Eis,#l,s")) gen_openfile();
 }
 
 /* CLOSE [#]filenumber[,[#]filenumber..] */
@@ -103,25 +90,18 @@ void line_input() {
     Note: only the latter is currently implemented.
  */
 
- check_for_event();
- insymbol();
- 
- if (sym != hash) { _error(44); return; }
- insymbol();
- make_sure_long(expr());
- if (sym != comma) { _error(16); return; }
- insymbol();
+  if (!parse_gen_params(0,"Ei#l,")) return;
 
- if (sym == ident && obj == variable) {
-   /* if string variable/array doesn't exist, create a simple variable */
-   if (!exist(id,variable) && !exist(id,array)) {
-	 /* allocate a simple string variable */
-	 enter(id,typ,obj,0);
-     gen_push_nullstring();
-	 assign_to_string_variable(curr_item,MAXSTRLEN);
-   }
-
-   storage=curr_item;
+  if (sym == ident && obj == variable) {
+      /* if string variable/array doesn't exist, create a simple variable */
+      if (!exist(id,variable) && !exist(id,array)) {
+          /* allocate a simple string variable */
+          enter(id,typ,obj,0);
+          gen_push_nullstring();
+          assign_to_string_variable(curr_item,MAXSTRLEN);
+      }
+      
+      storage=curr_item;
 
    /* is it a string variable or array? */
    if (storage->type != stringtype) { _error(4); return; }
@@ -148,17 +128,11 @@ void write_to_file() {
 
   /* WRITE #filenumber,expression-list */
   
-  check_for_event();
-  insymbol();
-  
-  if (sym != hash) { _error(44); return; }
-
-  insymbol();
-  make_sure_long(expr());
+  if (!parse_gen_params(0,"Ei#il")) return;
 
   gen_pop_filenumber();
   
-  if (sym != comma) { _error(16); return; }
+  if (!eat_comma()) return;
   /* get expressions */
   do {
 	insymbol();
@@ -189,8 +163,8 @@ void gen_writecode(int code)
  check_for_event();
 
  switch(code) {
- case LF_CODE:  gen_write_eoln(); break;
- case TAB_CODE: gen_writetab(); break;
+ case LF_CODE:    gen_write_eoln(); break;
+ case TAB_CODE:   gen_writetab(); break;
  case SPACE_CODE: gen_writespc(); break;
  }
 }
@@ -204,8 +178,7 @@ void print_to_file() {
  insymbol();
  make_sure_long(expr());
 
- gen_pop_filenumber("_seq_filenumber");
- enter_BSS("_seq_filenumber:","ds.l 1");
+ gen_pop_filenumber();
 
  if (sym != comma) _error(16);
  else {
@@ -385,10 +358,9 @@ void random_file_action() {
   push_struct_var_info(structVar);
   
   insymbol();
-  if (sym == comma) {
+  if (try_comma()) {
 	/* Optional record number. */
-	insymbol();
-	make_sure_long(expr());
+      long_expr();
   } else {
 	/* Don't seek before read/write */
 	gen_push32_val(0);

@@ -39,16 +39,7 @@
 #include "codegen.h"
 
 /* externals */
-extern	int	sym;
 extern	int	lastsym;
-
-/* functions */
-
-BOOL parse_rect() {
-  short rect_tokens[] = {lparen,14,longtype /*x1*/,0, comma, 16, longtype/*y1*/,0,rparen,9,
-						 minus,21,lparen,14,longtype /*x2*/,0, comma, 16, longtype/*y2*/,0,rparen,9,-1,-1};
-  return expect_token_sequence(rect_tokens);
-}
 
 /* WINDOW wdw-id[,title],rectangle[,type][,screen-id] 
    WINDOW CLOSE wdw-id
@@ -56,29 +47,21 @@ BOOL parse_rect() {
    WINDOW ON | OFF | STOP
 */
 void window() {
-  int wtype;
-  insymbol();
-  if (try_change_event_trapping_status(lastsym)) return;
-  if (eat(closesym)) gen_call_sargs("_CloseWdw","il",4);
-  else if (eat(outputsym)) gen_call_sargs("_ChangeOutputWdw","il",4);
-  else {
-      /* open a window */
-      long_expr(); /* Wdw-id */
-      if (eat_comma()) {
-          if (sym != comma) {
-              wtype=expr();
-              if (wtype != stringtype) _error(4); /* type mismatch */
-          } else gen_push32_val(0);	/* NULL */
-          
-          if (!eat_comma()) return;
-          if (!parse_rect()) return;
-          
-          try_arg_with_default(-1); /* optional window type */
-          try_arg_with_default(0);  /* optional screen-id */
-          
-          /* call open-window routine */
-          gen_call_void("_OpenWdw",32);
-      }
-  }
+    /* l,[s,]r[,l][,l] */
+    /* FIXME: The problem here is if there is a comma after ",",
+       I must:
+         - parse_rect if '('
+         - expr() if !'('
+
+       Instead of a list of symbols, this ought to be a list of parameter types,
+       with an "optional" flag.
+    */
+    struct Function f_openwdw = {"l?sr?l?l",2, {-1,0}, "_OpenWdw", 32};
+    
+    insymbol();
+    if (try_change_event_trapping_status(lastsym)) return;
+    else if (eat(closesym))  gen_call_sargs("_CloseWdw","il",4);
+    else if (eat(outputsym)) gen_call_sargs("_ChangeOutputWdw","il",4);
+    else gen_arglist(&f_openwdw); 
 }
 

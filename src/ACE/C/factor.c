@@ -101,13 +101,12 @@ BOOL factorfunc()
 
 static int handleident() {
   char sub_name[80],buf[80],srcbuf[80];
-  char func_name[MAXIDSIZE],func_address[MAXIDSIZE+9];
+  char func_name[MAXIDSIZE];
   char ext_name[MAXIDSIZE+1];
   int  arraytype=undefined;
   SYM  *fact_item;
   int  oldlevel;
   int  ftype=undefined;
-  BYTE libnum;
   BOOL need_symbol = TRUE;
 
   /* does object exist? */

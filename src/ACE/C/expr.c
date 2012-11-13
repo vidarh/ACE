@@ -177,7 +177,7 @@ static int negterm()
 
   /* unary negation? */
   if (sym == minus) negate=TRUE;
-  if ((sym == minus) || (sym == plus)) insymbol();
+  if (!eat(minus)) eat(plus);
   
   localtype=expterm();
   if (localtype == undefined) return(localtype);
@@ -191,7 +191,7 @@ static int negterm()
 
 
 static int generic_expr(int mysym, int (* subexpr)(), void(* gen)(int)) {
-  int  op,firsttype,localtype;
+  int  firsttype,localtype;
   CODE *cx[5];
   
   firsttype=subexpr();
@@ -202,7 +202,6 @@ static int generic_expr(int mysym, int (* subexpr)(), void(* gen)(int)) {
 	if (firsttype != notype) {
 	  while (sym == mysym) {
 		alloc_coerce_space(firsttype,cx,5);
-		op=sym;
 		insymbol();
 		localtype=subexpr(); 
 		if (localtype == undefined) return undefined;

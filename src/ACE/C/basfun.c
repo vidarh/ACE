@@ -149,8 +149,108 @@ int argstr(int sftype) {
   return stringtype;
 }
 
-int parse_gen_params(int type, const char * params) {
-  while (*params && *params != ':') {
+BOOL parse_rect() {
+  short rect_tokens[] = {lparen,14,longtype /*x1*/,0, comma, 16, longtype/*y1*/,0,rparen,9,
+						 minus,21,lparen,14,longtype /*x2*/,0, comma, 16, longtype/*y2*/,0,rparen,9,-1,-1};
+  return expect_token_sequence(rect_tokens);
+}
+
+void gen_arglist(const struct Function * f) {
+    const char * params = f->args;
+    const long * defaults = f->defaults;
+    int ok = FALSE;
+    while (*params) {
+        long type = undefined;
+        int opt = *params == '?';
+        if (opt) ++params;
+        fprintf(stderr,"PARAM1: %c/%c - sym=%d\n",*params,params[1],sym);
+        ok = FALSE;
+        if (sym == comma || sym == endofline) {
+            if (opt) {
+                gen_push32_val(*defaults);
+                ++defaults;
+            } else {
+                _error(4);
+                ++params;
+                continue;
+            }
+        } else {
+            fprintf(stderr,"PARAM2: %c/%c\n",*params,params[1]);
+            switch(*params) {
+            case 'l':
+                if (type == undefined) type = expr();
+                type = make_sure_long(type);
+                ok = type == longtype;
+                break;
+            case 's':
+                fprintf(stderr,"Trying string\n");
+                if (opt && sym == lparen) break;
+                fprintf(stderr,"Ok, going ahead with string\n");
+                if (type == undefined) type = expr();
+                ok = type == stringtype;
+                if (ok) {
+                    if (!opt) {
+                        _error(4);
+                        return;
+                    }
+                } else {
+                    type = undefined;
+                }
+                break;
+            case 'r':
+                fprintf(stderr,"Trying rect\n");
+                if (opt && sym != lparen) break;
+                fprintf(stderr,"Going ahead with rect sym=%d\n",sym);
+
+                if (!parse_rect()) {
+                    fprintf(stderr,"parse_rect returned false\n");
+                    if (!opt) {
+                        _error(16); /* FIXME */
+                        return;
+                    }
+                } else ok = TRUE;
+                fprintf(stderr,"Parsed rect\n");
+                type = undefined;
+                break;
+            default:
+                ok = FALSE;
+                fprintf(stderr,"ERR ... sym=%d\n",sym);
+                continue;
+            }
+        }
+        fprintf(stderr,"NEXT\n");
+        ++params;
+        
+        if (*params) {
+            fprintf(stderr,"OK? %d\n",ok);
+            if (!ok && opt) continue;
+            if (!ok && !opt) {
+                return; /* Shouldn't really happen */
+            }
+            fprintf(stderr,"OK! opt? %d, sym=%d, *params=%c\n",opt, sym, *params);
+            if (*params == '?') {
+                fprintf(stderr,"Trying comma (sym=%d\n",sym);
+                if (!try_comma()) {
+                    gen_push32_val(*defaults);
+                    ++defaults;
+                    params+=2;
+                }
+            } else {
+                fprintf(stderr,"Eat_comma\n");
+                eat_comma();
+            }
+        }
+
+    }
+
+    gen_call_void(f->call,f->stackadj);
+    fprintf(stderr,"Returning, sym=%d\n",sym);
+}
+
+int parse_farglist(int type, const char * params, const long * defaults, int optional) {
+    fprintf(stderr,"farglist: %s\n",params);
+  while (*params && *params != ':' && *params != ']') {
+      fprintf(stderr,"(%c/%c), %d\n",params[0],params[1],sym);
 	switch(params[0]) {
 	case 'i':
         insymbol();
@@ -158,37 +258,71 @@ int parse_gen_params(int type, const char * params) {
 	  check_for_event();
 	  break;
     case 'r':
-      parse_rect();
+        if (optional && sym != lparen) break;
+        parse_rect();
       break;
 	case 's':
-	  if (type != stringtype) _error(4); return undefined;
+        if (type == -1 && sym != lparen) type = expr();
+        if (type != stringtype) {
+            if (!optional) _error(4); 
+            return undefined;
+        }
 	  break;
 	case 'w':
-	  if (make_sure_short(type) == undefined) return undefined;
-	  break;
+        if (type == -1) type = expr();
+        if (optional && type == stringtype) return undefined;
+        if (make_sure_short(type) == undefined) return undefined;
+        break;
 	case 'l':
-	  if (make_sure_long(type) == undefined) return undefined;
+        if (type == -1) type = expr();
+        if (optional && type == stringtype) return undefined;
+        if (make_sure_long(type) == undefined) return undefined;
 	  break;
 	case 'f':
-	  if (type == stringtype) {
-		_error(4); return undefined;
-	  }
-	  gen_Flt(type);
-	  type = singletype;
-	  break;
+        if (type == -1) type = expr();
+        if (type == stringtype) {
+            if (!optional) _error(4); 
+            return undefined;
+        }
+        gen_Flt(type);
+        type = singletype;
+        break;
 	case '#':
 	  if (sym == hash) insymbol();
 	  break;
 	case ',':
-	  if (sym != comma) { _error(16); return undefined; }
-	  insymbol();
-	  type = expr();
+        if (!try_comma()) { 
+            if (!optional) _error(16); 
+            return undefined; 
+        }
+        if (params[1] != ']' && params[1] != 'r') type = expr();
+        else type = -1;
 	  break;
+    case '[':
+        type = parse_farglist(type,params+1,defaults,TRUE);
+        if (type != undefined) {
+            gen_push32_val(*defaults);
+        }
+        defaults +=1;
+        while(*params != ']') params+=1;
+        fprintf(stderr,"]]]\n");
 	}
 	params+=1;
 	while (*params == ' ') params += 1;
   }
   return type;
+}
+
+int parse_arglist(const struct Function * f) {
+    int res;
+    res = parse_farglist(expr(),f->args, f->defaults, FALSE);
+    if (res) gen_call_void(f->call, f->stackadj);
+    return res;
+}
+
+int parse_gen_params(int type, const char * params) {
+    long defaults[] = {0};
+    return parse_farglist(type,params,&defaults, FALSE);
 }
 
 int stringfunction()
@@ -205,6 +339,7 @@ int stringfunction()
  if (sym != lparen) _error(14);
  else {
    insymbol();
+   fprintf(stderr,"FOO %d\n",sym);
    sftype=expr();
    
    switch(func) {
@@ -226,15 +361,6 @@ int stringfunction()
 	 } else { _error(4); sftype=undefined; }
 	 break;
 
-   case hexsym  : /* i */
-	 if (sftype != stringtype) {
-	   sftype = make_integer(sftype);
-	   if (sftype == longtype) gen_call_args("_hexstrlong","t0,d0 : a0",0);
-	   else gen_call_args("_hexstrshort","t0,d0.w : a0",0);
-	   sftype=stringtype;
-	 } else { _error(4); sftype=undefined; }
-	 break;
-			  
    case inputboxsym :
    case inputboxstrsym : /* s,s?,s?,l?,l? */
 	 if (sftype == stringtype) { 	/* prompt */ 	
@@ -253,6 +379,14 @@ int stringfunction()
 	   }
 	 } else { _error(4); sftype=undefined; }
 	 break;
+
+   case hexsym  : /* i */
+	 if (sftype != stringtype) {
+       gen_hexstr(sftype);
+	   sftype=stringtype;
+	 } else { _error(4); sftype=undefined; }
+	 break;
+			  
 			 
     /* INSTR$([I,]X$,Y$) */
    case instrsym  : /* l?, s, s */
@@ -268,12 +402,7 @@ int stringfunction()
 	 if (sftype == stringtype) {
          if (eat_comma()) {
              if (expr() == stringtype) {
-                 gen_pop_addr(1);		/* Y$ */
-                 gen_pop_addr(0);		/* X$ */
-                 if (offset_on_stack) gen_pop32d(0);	/* I */
-                 else gen_load32d_val(1,0); /* I = 1 */
-                 
-                 gen_call("_instr",0); /* returns posn of Y$ in X$ */
+                 gen_instr(offset_on_stack);
                  sftype=longtype;
              } else { _error(4); sftype=undefined; }
          }
@@ -285,17 +414,18 @@ int stringfunction()
 	 break;
 				
    case ascsym:      sftype = gen_fcall("_asc",sftype,"s",shorttype,"a2 : d0.w",0); break;
-   case binstrsym:   sftype = gen_fcall("_binstr",sftype,"l",stringtype,"t0,d0:a0",0); break;
-   case inputstrsym: sftype = gen_fcall("_inputstrfromfile",sftype,"E l,#l", stringtype, "d0,d1",0); break;     
    case leftstrsym:  sftype = gen_fcall("_leftstr",sftype,"s,w",stringtype,"d0.w,a0,t1:a0",0); break;
-   case lensym  :    sftype = gen_fcall("_strlen",sftype,"s",longtype,"a2",0); break;
-   case octstrsym:   sftype = gen_fcall("_octstr",sftype,"l",stringtype,"t0,d0:a0",0); break;
+   case lensym:      sftype = gen_fcall("_strlen",sftype,"",longtype,"a2",0); break;
    case rightstrsym: sftype = gen_fcall("_rightstr",sftype,"s,w",stringtype,"d0.w,a0,t1:a0",0); break;
    case spcsym:      sftype = gen_fcall("_spc",sftype,"w",stringtype,"d0.w,t0",0); break;
    case spacestrsym: sftype = gen_fcall("_spacestring",sftype,"w",stringtype,"d0.w,t0",0); break;
    case ptabsym:     sftype = gen_fcall("_ptab", sftype,"w",stringtype,":a0",0); break;
    case tabsym:      sftype = gen_fcall("_horiz_tab",sftype,"w",stringtype,":a0",0); break;
    case ucasestrsym: sftype = gen_fcall("_ucase",sftype,"s",stringtype,"a1,t0:a0",0); break;
+
+   case binstrsym:   sftype = gen_fcall("_binstr",sftype,"l",stringtype,"t0,d0:a0",0); break;
+   case inputstrsym: sftype = gen_fcall("_inputstrfromfile",sftype,"E l,#l", stringtype, "d0,d1",0); break;     
+   case octstrsym:   sftype = gen_fcall("_octstr",sftype,"l",stringtype,"t0,d0:a0",0); break;
 
    case strstrsym : /* n == numeric */
 	 if (sftype != stringtype) {
@@ -409,7 +539,7 @@ BOOL numfunc()
   case locsym	 	: return(TRUE);
   case lofsym	 	: return(TRUE);
   case logsym    	: return(TRUE);
-  case longintsym    	: return(TRUE);
+  case longintsym   : return(TRUE);
   case menusym	 	: return(TRUE);
   case mousesym  	: return(TRUE);
   case msgboxsym 	: return(TRUE);
@@ -440,7 +570,6 @@ BOOL numfunc()
 int numericfunction() {
   int  func;
   int  nftype=undefined;
-  char labname[80],lablabel[80];
   char varptr_obj_name[MAXIDSIZE];
 
   if (!numfunc()) return undefined;

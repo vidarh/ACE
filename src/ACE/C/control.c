@@ -224,7 +224,7 @@ void if_statement() {
 
 void while_statement() {
   /* WHILE...WEND */
-  CODE *cx1,*cx2,*cx[3];
+  CODE *cx2,*cx[3];
   char labname1[80],lablabel1[80];
   char labname2[80],lablabel2[80];
   char labname3[80],lablabel3[80];
@@ -234,7 +234,6 @@ void while_statement() {
   
   make_label(labname1,lablabel1);
   gen_label(lablabel1);
-  cx1=curr_code;
   
   insymbol();
   exprtype=expr();
@@ -308,47 +307,35 @@ void case_statement() {
  
   do {
 	if ((exprtype = make_sure_long(expr())) != undefined) {
-	  if (sym == colon) {
-		insymbol();
-   
-		gen_test_ne(labname1,lablabel1);
-		gen_nop();	/* try next case */
-		cx = curr_code;
-		gen_label(lablabel1);   /* execute code for THIS case */
+        if (expect(colon,24)) {
+            gen_test_ne(labname1,lablabel1);
+            gen_nop();	/* try next case */
+            cx = curr_code;
+            gen_label(lablabel1);   /* execute code for THIS case */
 		
-		statement();
-		if (sym == colon) statement(); /* multi-statement */
+            statement();
+            if (sym == colon) statement(); /* multi-statement */
 		
-		gen_jmp("  ");
-		case_ptr[casecount++] = curr_code; /* branch to end of CASE */
+            gen_jmp("  ");
+            case_ptr[casecount++] = curr_code; /* branch to end of CASE */
 		
-		/* label for next case */
-		make_label(labname2,lablabel2);
-		gen_label(lablabel2);
-		change(cx,"jmp",labname2,"  ");
-	  } else _error(24); /* colon expected */
+            /* label for next case */
+            make_label(labname2,lablabel2);
+            gen_label(lablabel2);
+            change(cx,"jmp",labname2,"  ");
+        }
 	}
 	while (sym == endofline) insymbol(); /* skip empty line(s) */
   }
   while ((exprtype == longtype) && (sym != endsym) &&
 		 (casecount < MAXCASES) && (!end_of_source));
 
- /* END CASE */
- if (sym != endsym) 
-    _error(52);
- else 
- {
-  insymbol();
-  if (sym != casesym)
-     _error(52);
-  else
-  {
-   make_label(case_end_labname,case_end_lablabel);
-   gen_label(case_end_lablabel);
-   for (i=0;i<casecount;i++) change(case_ptr[i],"jmp",case_end_labname,"  ");
-   insymbol();
+  /* END CASE */
+  if (expect(endsym,52) && expect(casesym,52)) {
+      make_label(case_end_labname,case_end_lablabel);
+      gen_label(case_end_lablabel);
+      for (i=0;i<casecount;i++) change(case_ptr[i],"jmp",case_end_labname,"  ");
   }
- }
 }
 
 static int for_assign(char * addr)
@@ -366,8 +353,7 @@ static int for_assign(char * addr)
   
   /* assign it */
   insymbol(); 
-  if (sym == equal) { 
-	insymbol(); 
+  if (expect(equal,5)) {
 	exprtype = expr();
 	
 	/* can't use a stringtype! */
@@ -388,16 +374,15 @@ static int for_assign(char * addr)
 		/* longtype or singletype */
 		gen_pop32_var(addr);
 	}
-  } else _error(5); /* '=' expected */
+  }
  return(storage_item->type);  /* -> type for WHOLE for..next statement */
 }
 
-void for_statement()
-{
-  /* FOR variable=x to y [STEP [+|-]z]
-	 Statement Block
-	 NEXT [variable]
-  */
+/* FOR variable=x to y [STEP [+|-]z]
+   Statement Block
+   NEXT [variable]
+*/
+void for_statement() {
   CODE *cx1,*cx2;
   char labname1[80],lablabel1[80],labname2[80],lablabel2[80];
   char labname3[80],lablabel3[80];
@@ -413,17 +398,15 @@ void for_statement()
   
   if (countertype == undefined) return;
 
-  if (sym == tosym) {
+  if (eat(tosym)) {
 	  /* limit */
-	  insymbol();
 	  limittype=expr();
 	  limittype=assign_coerce(countertype,limittype);
 	  if (limittype == notype) { _error(4); return; }
 	  if (limittype == shorttype) strcpy(limitaddr,"2(sp)");
 	  else strcpy(limitaddr,"4(sp)");
-	  if (sym == stepsym) {
+	  if (eat(stepsym)) {
           /* step */
-          insymbol();
           steptype=expr();
           steptype=assign_coerce(countertype,steptype);
           if (steptype == notype) { _error(4); return; }
@@ -528,12 +511,11 @@ void on_branch()
 {
   char lab[80],lablabel[80];
   int  branch;
-  int  btype;
   long i,opt=0;
 
 /* ON <integer-expression> GOTO | GOSUB <label> | <line> */
 
-  btype=expr();
+  expr();
   if (make_sure_long(expr()) != undefined) {
 	if (sym != gotosym && sym != gosubsym) _error(56);
 	else {
@@ -573,19 +555,11 @@ void on_branch()
   }
 }
 
-void block_statement()
-{
-/*
-** BLOCK..END BLOCK
-*/
+/* BLOCK..END BLOCK */
+void block_statement() {
 	insymbol(); 
 	while (sym == endofline) insymbol(); /* skip blank line(s) */	
 	while ((sym != endsym) && (!end_of_source)) statement();
 
-	if (sym != endsym) _error(80);
- 	else {
-	  insymbol();
-	  if (sym != blocksym) _error(80);
-	  else insymbol();
-	}
+	(void)(expect(endsym,80) && expect(blocksym,80));
 }

@@ -91,8 +91,7 @@ static void say() {
   insymbol();
   if (expr() != stringtype) _error(4);  /* phoneme string on stack */
   
-  if (sym == comma) {
-	insymbol();
+  if (try_comma()) {
 	if ((sym == ident) && (obj == variable)) {
 	  if (!exist(id,array)) _error(28); 
 	  else if (curr_item->type != shorttype) _error(28); 
@@ -460,23 +459,11 @@ BOOL  need_symbol=TRUE;
 	 } else _error(7); 
 	 break;
    case colon: /* multi-statement? */
-	 while (sym == colon) { insymbol(); statement(); }
+       while (eat(colon)) { statement(); }
 	 break;
    case assemsym: assem(); break;
    case areasym:  area(); break;
    case areafillsym: areafill(); break;
-   case backsym: 
-	 insymbol();
-	 gen_Flt(expr());
-	 gen_call_args("_back","d0",0);
-	 enter_XREF("_MathTransBase");
-	 break;
-   case beepsym: 
-	 gen_jsr("_beep");
-	 enter_XREF("_MathBase");  /* _sound needs mathffp.library */
-	 insymbol();
-	 break;
-   case bevelboxsym: bevel_box(); break;
 	 
 	 /* event trapping activation/deactivation? */
    case breaksym:
@@ -547,8 +534,9 @@ BOOL  need_symbol=TRUE;
    case pendownsym:   gen_jsr("_pendown"); insymbol(); break;
    case penupsym:     gen_jsr("_penup"); insymbol(); break;
 
-   case fontsym:      gen_call_sargs("_change_text_font","is,l",8); break;
+   case fontsym:      gen_call_sargs("_change_text_font",",l",8); break;
    case stylesym:     gen_call_sargs("_change_text_style","il",4); break;
+   case bevelboxsym:  gen_call_sargs("_BevelBox","ir,l",20); break;
 
    case scrollsym:    if (parse_gen_params(0,"ir,w,w")) gen_scrollraster(); break; 
 
@@ -559,6 +547,25 @@ BOOL  need_symbol=TRUE;
    case turnrightsym: insymbol(); gen_fcall("_turnright",expr(),"s",shorttype,"d0.w",0); break;
    case fixsym:       insymbol(); gen_fcall("_fix",expr(),"l",longtype,"d0",0); break;
 
+   case backsym: 
+	 insymbol();
+	 gen_Flt(expr());
+	 gen_call_args("_back","d0",0);
+	 enter_XREF("_MathTransBase");
+	 break;
+
+   case forwardsym:
+	 insymbol();
+	 gen_Flt(expr());
+	 gen_call_args("_forward","d0",0);
+	 enter_XREF("_MathTransBase");
+	 break;
+
+   case beepsym: 
+	 gen_jsr("_beep");
+	 enter_XREF("_MathBase");  /* _sound needs mathffp.library */
+	 insymbol();
+	 break;
 
    case clearsym:
 	 insymbol(); 
@@ -588,13 +595,6 @@ BOOL  need_symbol=TRUE;
 	   _error(36); /* can only use EXIT SUB in a subprogram! */
 	   insymbol();
 	 }
-	 break;
-
-   case forwardsym:
-	 insymbol();
-	 gen_Flt(expr());
-	 gen_call_args("_forward","d0",0);
-	 enter_XREF("_MathTransBase");
 	 break;
 
    case getsym: 
@@ -640,8 +640,7 @@ BOOL  need_symbol=TRUE;
    case locatesym: 
 	 insymbol();
 	 make_sure_short(expr());  /* ROW */
-	 if (sym == comma) {
-	   insymbol();
+	 if (try_comma()) {
 	   make_sure_short(expr());
 	 } else gen_push16_val(1); /* COLUMN */
 	 gen_call_args("_locate","d1.w,d0.w",0);
@@ -675,10 +674,7 @@ BOOL  need_symbol=TRUE;
    insymbol();
    if (sym == stepsym || sym == lparen)  {
 	 /* Graphics PUT */
-   } else {
-	 /* Random File PUT */
-	 random_file_put();
-   }
+   } else random_file_put();
    break;
  case remsym: 
    while ((sym != endofline) && (!end_of_source)) nextch();
@@ -713,8 +709,7 @@ BOOL  need_symbol=TRUE;
    if (sym != forsym) gen_jsr("_sleep"); 
    else { 
 	 /* SLEEP FOR <seconds> */ 
-	 insymbol();
-	 gen_fcall("_sleep_for_secs",expr(),"s",notype,"",4);
+	 gen_fcall("_sleep_for_secs",expr(),"is",notype,"",4);
    }
    break;
 

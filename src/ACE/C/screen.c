@@ -60,11 +60,6 @@ void	screen() {
   } else {
 	/* SCREEN screen-id,width,height,colors,mode */
 	/* open a screen */
-
-	static short tokens[] = {shorttype /* screen-d */,0, comma, 16, shorttype /* width */   ,0, comma, 16,
-							 shorttype /* height */  ,0, comma, 16, shorttype /* depth */   ,0, comma, 16,
-							 shorttype /* mode */    ,0, -1   , -1};
-
-	if (expect_token_sequence(&tokens)) gen_openscreen();
+	if (parse_gen_params(expr(),"w,w,w,w,w")) gen_openscreen();
   }
 }

@@ -42,34 +42,18 @@ extern	char	tempstrname[80];
 /* -------------- */
 
 void poke() {
-  insymbol();
-  if (make_sure_long(expr()) != undefined) {
-	if (sym == comma) { 
-	  /* get value */
-	  insymbol();
-	  gen_pokeb(expr());
-	}
-  }
+  if (in_long_expr() != undefined && try_comma()) gen_pokeb(expr());
 }
 
 void pokew() {
-  insymbol();
-  if (make_sure_long(expr()) != undefined) {
-	if (sym == comma) { 
-	  /* get value */
-	  insymbol();
-	  gen_pokew(expr());
-	}
-  }
+    if (in_long_expr() != undefined && try_comma()) gen_pokew();
 }
 
 void pokel() {
   int datatype;
-  insymbol();
-  if (make_sure_long(expr()) != undefined) {  
-	if (sym == comma) { 
+  if (in_long_expr()!= undefined) {  
+      if (try_comma()) {
 	  /* get value */
-	  insymbol();
 	  datatype=make_integer(expr());
 	  if ((datatype == shorttype) || (datatype == longtype)) gen_pokel(expr());
 	  else _error(4);
@@ -118,8 +102,7 @@ void swap() {
 	if (sym != comma) _error(16);
 	else {
 	  insymbol();
-	  if (sym != ident) _error(7);
-	  else {
+	  if (eat_token(ident,7)) {
 		strcpy(second,id);
 		address_of_object();
 		get_obj_info(second,&dataobj2,&typ2);

@@ -17,7 +17,7 @@ all: ace
 ace: $(OBJS)
 	$(CC) -o ace $(LDFLAGS) $(OBJS)
 
-$(OBJS): acedef.h
+$(OBJS): acedef.h codegen.h
 
 lex.c: lexvar.c
 
