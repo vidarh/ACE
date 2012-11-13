@@ -426,7 +426,6 @@ int stringfunction()
 
    case binstrsym:   sftype = gen_fcall("_binstr",sftype,"l",stringtype,"t0,d0:a0",0); break;
    case inputstrsym: sftype = gen_fcall("_inputstrfromfile",sftype,"E l,#l", stringtype, "d0,d1",0); break;     
-   case octstrsym:   sftype = gen_fcall("_octstr",sftype,"l",stringtype,"t0,d0:a0",0); break;
 
    case strstrsym : /* n == numeric */
 	 if (sftype != stringtype) {
