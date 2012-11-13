@@ -1,0 +1,4 @@
+#!/bin/sh
+
+make $1.s
+mv $1.s $1.s.expect
