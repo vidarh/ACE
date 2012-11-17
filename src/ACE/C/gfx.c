@@ -193,7 +193,6 @@ void circle() {
   insymbol();
   relative = parse_step();
   if (!expect_token_sequence(point_tokens)) return;
-  insymbol();
   if (sym != comma) { _error(29); return; } /* radius expected -> no point going on */
   /* radius */
   insymbol();
@@ -252,9 +251,9 @@ void circle() {
   
   gen_pop32d(1); /* y */
   
-  if (!start_angle) gen_load32d(0,3);   /* default is zero */
-  if (!end_angle)  gen_save32d_val(0xb3800049,4);  /* default is 359 */
-  if (!aspect) gen_save32d_val(0xe147af3f,5);  /* default is .44 */
+  if (!start_angle) gen_load32d_val(0,3);   /* default is zero */
+  if (!end_angle)  gen_load32d_val(0xb3800049,4);  /* default is 359 */
+  if (!aspect) gen_load32d_val(0xe147af3f,5);  /* default is .44 */
   
   gen_jsr("_ellipse");
   enter_XREF("_MathTransBase");  /* need these 3 libs for _ellipse */
