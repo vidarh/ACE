@@ -195,7 +195,6 @@ void input_single(SYM * storage, const char * func, char * addrbuf, int lev);
 
 int gen_push_var(const char * absbuf, int mbr_type, int member_offset);
 int parse_gen_params(int type, const char * params);
-void gen_arglist(const struct Function * f);
 int gen_fcall(const char * funcname, int type, const char * params, int ret, const char * callargs, int stackadj);
 void gen_gfxcall(const char * lvo);
 void gen_call_args(const char * label, const char * args, unsigned int stack);
