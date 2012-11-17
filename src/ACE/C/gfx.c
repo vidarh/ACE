@@ -153,6 +153,7 @@ void paint() {
   BOOL paintcolor=FALSE;
   BOOL bordercolor=FALSE;
 
+  insymbol();
   if (!expect_token_sequence(point_tokens)) return;
 
   if (try_comma()) {
