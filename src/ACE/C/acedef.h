@@ -80,13 +80,19 @@ typedef uint32_t ULONG;
 #include <string.h>
 #include <stdlib.h>
 
+
 struct Function {
     const char * args;
-    int minargs;
     long defaults[20];
     const char * call;
     long stackadj;
 };
+
+struct ParseSequence {
+    signed int sym;
+    struct Function f;
+};
+
 
 /* AmigaBASIC reserved words */
 enum { 	abssym = 0,

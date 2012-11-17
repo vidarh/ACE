@@ -262,20 +262,30 @@ int parse_farglist(int type, const char * params, const long * defaults, int opt
         parse_rect();
       break;
 	case 's':
-        if (type == -1 && sym != lparen) type = expr();
-        if (type != stringtype) {
-            if (!optional) _error(4); 
-            return undefined;
+        if (optional) {
+            if (try_comma()) {
+                if (sym != comma) {
+                    if (expr() != stringtype) _error(4);
+                } else {
+                    gen_push32_val(*defaults);
+                    ++defaults;
+                }
+            } else {
+                gen_push32_val(*defaults);
+                ++defaults;
+            }
+        } else {
+            
+            if (type != stringtype) {
+                _error(4); 
+                return undefined;
+            }
         }
 	  break;
 	case 'w':
-        if (type == -1) type = expr();
-        if (optional && type == stringtype) return undefined;
         if (make_sure_short(type) == undefined) return undefined;
         break;
 	case 'l':
-        if (type == -1) type = expr();
-        if (optional && type == stringtype) return undefined;
         if (make_sure_long(type) == undefined) return undefined;
 	  break;
 	case 'f':
@@ -291,13 +301,9 @@ int parse_farglist(int type, const char * params, const long * defaults, int opt
 	  if (sym == hash) insymbol();
 	  break;
 	case ',':
-        if (!try_comma()) { 
-            if (!optional) _error(16); 
-            return undefined; 
-        }
-        if (params[1] != ']' && params[1] != 'r') type = expr();
-        else type = -1;
-	  break;
+        if (!eat_comma()) return undefined;
+        type = expr();
+ 	  break;
     case '[':
         type = parse_farglist(type,params+1,defaults,TRUE);
         if (type != undefined) {
@@ -319,6 +325,75 @@ int parse_arglist(const struct Function * f) {
     if (res) gen_call_void(f->call, f->stackadj);
     return res;
 }
+
+void parse_alt_sequence(struct ParseSequence * p,int num) {
+    while(--num >= 0) {
+        if (p->sym == -1 || p->sym == sym) {
+            parse_call_func(&p->f);
+            return;
+        }
+        ++p;
+    }
+}
+
+void parse_call_func(const struct Function * f) {
+
+    const char * args = f->args;
+    const char * def = f->defaults;
+    fprintf(stderr,"pcf '%s'\n",f->call);
+    while (*args) {
+        fprintf(stderr,"sym=%d\n",sym);
+        switch(*args) {
+        case 'i':
+            insymbol();
+            break;
+        case 'l':
+            long_expr();
+            break;
+        case 's':
+            if (expr() != stringtype) {
+                _error(4);
+                return undefined;
+            }
+            break;
+        case 'r':
+            if (!parse_rect()) return;
+            break;
+        case 'b':
+            if (eat(onsym))       gen_push32_val(1);
+            else if (eat(offsym)) gen_push32_val(0);
+            else long_expr();
+            break;
+        case ',':
+            if (!eat_comma()) return;
+            break;
+        case '!':
+            if (!peek(comma)) {
+                _error(16);
+                return;
+            }
+            break;
+        case '?':
+            ++args;
+            switch (*args) {
+            case 'l':
+                opt_arg(longtype, *def);
+                ++def;
+                break;
+            case 's':
+                opt_arg(stringtype,*def);
+                ++def;
+                break;
+            };
+            break;
+        }
+        ++args;
+    }
+
+    gen_call_void(f->call, f->stackadj);
+}
+
+
 
 int parse_gen_params(int type, const char * params) {
     long defaults[] = {0};

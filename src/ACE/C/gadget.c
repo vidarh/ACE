@@ -46,20 +46,22 @@ BOOL on_match_gen_call(int token, const char * f, const char * params, int stack
    GADGET MOD gadget-id,knob-pos[,max-notches]
    GADGET gadget-id,status[,gadget-value,(x1,y1)-(x2,y2),type[,style][,font,size,txtstyle]]
 */
+
+struct ParseSequence seq_gadget[] = {
+    {closesym,  {"il", {0}, "_CloseGadget", 4}},
+    {outputsym, {"il", {0}, "_SetCurrentGadget", 4}},
+    {waitsym,   {"il", {0}, "_WaitGadget", 4}},
+    {modsym,    {"il,l?l", {-1}, "_modify_gad", 12}},
+};
+
 void gadget() {
     int  gtype;
     int val;
-    struct Function modify = {"l,l[,l]", 2, {-1}, "_modify_gad",12};
 	insymbol();
-	if (try_change_event_trapping_status(lastsym) ||
-        on_match_gen_call(closesym,  "_CloseGadget","l",4) ||
-        on_match_gen_call(outputsym, "_SetCurrentGadget","l",4) ||
-        on_match_gen_call(waitsym,   "_WaitGadget","l",4)) return;
+	if (try_change_event_trapping_status(lastsym)) return;
+    parse_alt_sequence(seq_gadget,4);
 
-    if (eat(modsym)) {
-        parse_arglist(&modify);
-        return;
-    }
+    /* FIXME: Extract parsing code from parse_call_func into parse_call_func_args ... */
 
     long_expr(); /* gadget-id */
     if (!eat_comma()) return;

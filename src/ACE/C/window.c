@@ -38,48 +38,25 @@
 #include "acedef.h"
 #include "codegen.h"
 
-/* externals */
-extern	int	lastsym;
-extern  int sym;
-
 /* WINDOW wdw-id[,title],rectangle[,type][,screen-id] 
    WINDOW CLOSE wdw-id
    WINDOW OUTPUT wdw-id 
    WINDOW ON | OFF | STOP
 */
-void window() {
-    /* l,[s,]r[,l][,l] */
-    /* FIXME: The problem here is if there is a comma after ",",
-       I must:
-         - parse_rect if '('
-         - expr() if !'('
 
-       Instead of a list of symbols, this ought to be a list of parameter types,
-       with an "optional" flag.
-    */
-    struct Function f_openwdw = {"?l?l",2, {-1,0}, "_OpenWdw", 32};
-    
+/* FIXME: Unsure if the '!' rule is needed. */
+struct ParseSequence seq_window[] = {
+    {closesym,  {"il", {0}, "_CloseWdw", 4}},
+    {outputsym, {"il", {0}, "_ChangeOutputWdw", 4}},
+    {-1,        {"l!?s,r?l?l",{0,-1,0}, "_OpenWdw", 32}}
+};
+
+extern	int	lastsym;
+
+void window() {
     insymbol();
     if (try_change_event_trapping_status(lastsym)) return;
-    else if (eat(closesym))  gen_call_sargs("_CloseWdw","il",4);
-    else if (eat(outputsym)) gen_call_sargs("_ChangeOutputWdw","il",4);
-    else {
-        //gen_arglist(&f_openwdw); 
-        
-        /* open a window */
-        make_sure_long(expr()); /* Wdw-id */
-        if (!peek(comma)) {
-            _error(16);
-            return;
-        }
-
-        opt_arg(stringtype,0);
-        if (!eat_comma()) return;
-        if (!parse_rect()) return;
-        opt_arg(longtype,-1); /* optional window type */
-        opt_arg(longtype,0);  /* optional screen-id */
-        gen_call_void("_OpenWdw",32);
-    }
+    parse_alt_sequence(seq_window,3);
 }
 
 

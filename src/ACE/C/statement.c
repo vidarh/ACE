@@ -329,7 +329,10 @@ static void handle_label(char * label_name)
 /*-----------*/
 /* statement */
 /*-----------*/
- 
+
+struct Function f_font     = {"is,l",{},"_change_text_font", 8};
+struct Function f_style    = {"il",  {},"_change_text_style",4}; 
+struct Function f_bevelbox = {"ir,l",{},"_BevelBox",20};
 void statement()
 {
 char  buf[50],idholder[50],sub_name[80];
@@ -534,9 +537,9 @@ BOOL  need_symbol=TRUE;
    case pendownsym:   gen_jsr("_pendown"); insymbol(); break;
    case penupsym:     gen_jsr("_penup"); insymbol(); break;
 
-   case fontsym:      gen_call_sargs("_change_text_font",",l",8); break;
-   case stylesym:     gen_call_sargs("_change_text_style","il",4); break;
-   case bevelboxsym:  gen_call_sargs("_BevelBox","ir,l",20); break;
+   case fontsym:      parse_call_func(&f_font); break;
+   case stylesym:     parse_call_func(&f_style); break;
+   case bevelboxsym:  parse_call_func(&f_bevelbox); break;
 
    case scrollsym:    if (parse_gen_params(0,"ir,w,w")) gen_scrollraster(); break; 
 
@@ -709,7 +712,8 @@ BOOL  need_symbol=TRUE;
    if (sym != forsym) gen_jsr("_sleep"); 
    else { 
 	 /* SLEEP FOR <seconds> */ 
-	 gen_fcall("_sleep_for_secs",expr(),"is",notype,"",4);
+     insymbol();
+	 gen_fcall("_sleep_for_secs",expr(),"f",notype,"",4);
    }
    break;
 
