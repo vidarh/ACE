@@ -247,7 +247,7 @@ void gen_arglist(const struct Function * f) {
     fprintf(stderr,"Returning, sym=%d\n",sym);
 }
 
-int parse_farglist(int type, const char * params, const long * defaults, int optional) {
+static int parse_farglist(int type, const char * params, const long * defaults, int optional) {
     fprintf(stderr,"farglist: %s\n",params);
   while (*params && *params != ':' && *params != ']') {
       fprintf(stderr,"(%c/%c), %d\n",params[0],params[1],sym);
@@ -317,13 +317,6 @@ int parse_farglist(int type, const char * params, const long * defaults, int opt
 	while (*params == ' ') params += 1;
   }
   return type;
-}
-
-int parse_arglist(const struct Function * f) {
-    int res;
-    res = parse_farglist(expr(),f->args, f->defaults, FALSE);
-    if (res) gen_call_void(f->call, f->stackadj);
-    return res;
 }
 
 void parse_bool() {

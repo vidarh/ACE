@@ -67,7 +67,6 @@ int long_expr(void);
 int in_long_expr(void);
 int eat_comma(void);
 int eat(int);
-int parse_arglist(const struct Function * f);
 void opt_arg(int type, int val);
 int expect(int token, int err) ;
 int peek(int);
