@@ -465,8 +465,8 @@ static int notexpr() {
 }
 
 static int andexpr() { return generic_expr(andsym, &notexpr,&gen_and); }
-static int eorexpr() { return generic_expr(orsym, &andexpr,&gen_eor); }
-static int orexpr() { return generic_expr(orsym, &eorexpr,&gen_or); }
+static int eorexpr() { return generic_expr(orsym, &andexpr,&gen_or); }
+static int orexpr() { return generic_expr(orsym, &eorexpr,&gen_eor); }
 
 static void gen_eqv(int localtype) {
   if (localtype == shorttype) gen_jsr("_eqvw");
