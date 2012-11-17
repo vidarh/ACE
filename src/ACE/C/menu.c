@@ -38,19 +38,20 @@ extern	int	lastsym;
    MENU CLEAR
    MENU ON | OFF | STOP
 */
+
 void menu() {
     insymbol();
     if (try_change_event_trapping_status(lastsym)) return;
     if (eat(clearsym)) gen_jsr("_ClearMenu");
     else if (eat(waitsym)) gen_jsr("_WaitMenu");
     else {
-        parse_gen_params(expr(),"l,l,li"); /* menu-id,item-id,state */
+        parse_gen_params(expr(),"l,l,l"); /* menu-id,item-id,state */
         if (!peek(comma)) {
             gen_call_void("_ChangeMenuState",12);
             return;	
         }
-        parse_gen_params_with_default(0,",s",0); /* title-string */
-        parse_gen_params_with_default(0,",s",0); /* command-key */
+        opt_arg(stringtype,0); /* title-string */
+        opt_arg(stringtype,0); /* command_key */
         gen_call_void("_ModifyMenu",20);
     }
 }
