@@ -172,6 +172,11 @@ static void m68k_jsr(const char * label) {
 void gen_move16(const char * src, const char * dest) { gen("move.w",src,dest); }
 void gen_move32(const char * src, const char * dest) { gen("move.l",src,dest); }
 
+void gen_move(const char * src, const char *dest, int type) {
+    if (type == shorttype) gen_move16(src,dest);
+    else gen_move32(src,dest);
+}
+
 void gen_dataptr_next()
 {
 	/* advance to next DATA item */
@@ -543,6 +548,11 @@ void gen_pop16_var(const char * label) {
   gen("move.w","(sp)+",label);
 }
 
+void gen_pop_var(const char * label, int type) {
+    if (type == shorttype) gen_pop16_var(label);
+    else gen_pop32_var(label);
+}
+
 static void gen_push16d(unsigned char reg) {
   gen("move.w",dreg[reg],"-(sp)");
 }
@@ -622,11 +632,14 @@ void gen_save32a(unsigned char reg, const char * label) {
   gen("move.l",areg[reg],label);
 }
 
-void gen_frame_offset_simple(int offset, const char * buf1)
+void gen_frame_offset_simple(int offset, int local_off)
 {
-  gen("move.l","a4","d0");   /* frame pointer */
-  gen_sub32d_val(offset,0);  /* offset from frame top */
-  gen_save32d(0,buf1);       /* store address in level ONE frame */
+    char buf1[40];
+    itoa(local_off,buf1,10);
+    strcat(buf1,"(a5)");
+    gen("move.l","a4","d0");   /* frame pointer */
+    gen_sub32d_val(offset,0);  /* offset from frame top */
+    gen_save32d(0,buf1);       /* store address in level ONE frame */
 }
 
 void gen_frame_offset_addr(int offset, int local_off)

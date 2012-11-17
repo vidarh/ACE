@@ -186,7 +186,7 @@ void gen_load16d(const char * label, unsigned char reg);
 void gen_load32a_plus_index(const char * addrbuf);
 void gen_push_deref_array(SYM * storage, char * addrbuf);
 void gen_loadd(int typ, const char * label, unsigned char reg);
-void gen_frame_offset_simple(int offset, const char * buf1);
+void gen_frame_offset_simple(int offset, int local_off);
 
 void input_long(SYM * storage, const char * func, char * addrbuf, int lev);
 void input_short(SYM * storage,const char * func, char * addrbuf, int lev);

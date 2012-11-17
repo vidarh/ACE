@@ -51,6 +51,24 @@ extern	SYM	*curr_item;
 extern	CODE	*curr_code;
 extern	int  	addr[2]; 
 
+static int type_identifiers() {
+    int sub_type = undefined;
+    insymbol();
+    /* type identifiers */
+    if (sym == shortintsym || sym == longintsym || sym == addresssym ||
+        sym == singlesym || sym == stringsym) {
+        switch(sym) {
+        case shortintsym : sub_type = shorttype;  break;
+        case longintsym  : sub_type = longtype;   break;
+        case addresssym  : sub_type = longtype;   break;
+        case singlesym   : sub_type = singletype; break;
+        case stringsym   : sub_type = stringtype; break;
+      }
+      insymbol();
+  }
+  return sub_type;
+}
+
 /* functions */
 void forward_ref()
 {
@@ -62,20 +80,7 @@ void forward_ref()
   /* declare a forward reference to a SUB -- see declare() 
 	 NO checking against symbol table is carried out */
   
-  insymbol();
-  
-  /* type identifiers */
-  if (sym == shortintsym || sym == longintsym || sym == addresssym ||
-	  sym == singlesym || sym == stringsym) {
-      switch(sym) {
-      case shortintsym : sub_type = shorttype;  break;
-      case longintsym  : sub_type = longtype;   break;
-      case addresssym  : sub_type = longtype;   break;
-      case singlesym   : sub_type = singletype; break;
-      case stringsym   : sub_type = stringtype; break;
-      }
-      insymbol();
-  }
+  sub_type = type_identifiers();
 
  if (sym != ident) _error(7);
  else {
@@ -107,21 +112,7 @@ void forward_ref()
   } else {
 	/* parameters expected */
 	do {
-	  param_type = undefined;
-	  insymbol();
-	  
-	  /* type identifiers */
-	  if (sym == shortintsym || sym == longintsym || sym == addresssym ||
-		  sym == singlesym || sym == stringsym) {
-		switch(sym) {
-		case shortintsym : param_type = shorttype;  break;
-		case longintsym  : param_type = longtype;   break;
-		case addresssym  : param_type = longtype;   break;
-		case singlesym   : param_type = singletype; break;
-		case stringsym   : param_type = stringtype; break;
-		}
-		insymbol();
-	  }
+      param_type = type_identifiers();
 
 	  if (sym != ident) _error(7);  /* ident expected */
 	  else {
@@ -181,43 +172,33 @@ void load_params(SYM * sub_ptr) {
 
 	  /* store parameter information temporarily since further stack operations  
 		 may corrupt data in next frame if stored immediately */
+
+      int size = 0;
+
 	  if (sub_ptr->p_type[i] == shorttype) {
-		par_addr -= 2; 
-		/* save parameter type */
-		formaltype[i]=shorttype; /* not data TYPE but STORE type (2 or 4 bytes) */
-
-		/* save address of formal */
-		itoa(par_addr,addrbuf,10);
-		strcat(addrbuf,"(sp)");
-		strcpy(formaladdr[i],addrbuf);
-
-		/* create temporary store in current stack frame -> don't use a global
-		   data object as it could be clobbered during recursion! */
-		addr[lev] += 2;
-		itoa(-1*addr[lev],formaltemp[i],10);
-		strcat(formaltemp[i],frame_ptr[lev]); 
-		
-		/* store it */
-		gen_pop16_var(formaltemp[i]);
+          size = 2;
+          formaltype[i]=shorttype; /* not data TYPE but STORE type (2 or 4 bytes) */
 	  } else { /* long, single, string, array */   
-		par_addr -= 4; 
-		/* save parameter type */
-		formaltype[i]=longtype;  /* storage requirement is 4 bytes */
+          size = 4;
+          formaltype[i]=longtype;  /* not data TYPE but STORE type (2 or 4 bytes) */
+      }
 
-		/* save address of formal */
-		itoa(par_addr,addrbuf,10);
-		strcat(addrbuf,"(sp)");
-		strcpy(formaladdr[i],addrbuf);
+      par_addr -= size; 
 
-		/* create temporary store in current stack frame -> don't use a global
-		   data object as it could be clobbered during recursion! */
-		addr[lev] += 4;
-		itoa(-1*addr[lev],formaltemp[i],10);
-		strcat(formaltemp[i],frame_ptr[lev]); 
-    
-		/* store it */
-		gen_pop32_var(formaltemp[i]);
-	  }
+      /* save address of formal */
+      itoa(par_addr,addrbuf,10);
+      strcat(addrbuf,"(sp)");
+      strcpy(formaladdr[i],addrbuf);
+
+      /* create temporary store in current stack frame -> don't use a global
+         data object as it could be clobbered during recursion! */
+      addr[lev] += size;
+
+      itoa(-1*addr[lev],formaltemp[i],10);
+      strcat(formaltemp[i],frame_ptr[lev]); 
+	
+      /* store it */
+      gen_pop_var(formaltemp[i], formaltype[i]);
    
 	  i++;
 	}
@@ -232,10 +213,7 @@ void load_params(SYM * sub_ptr) {
 
 	  /* load parameters into next frame */
 	  for (n=0;n<sub_ptr->no_of_params;n++) {
-		if (formaltype[n] == shorttype) 
-		  gen_move16(formaltemp[n],formaladdr[n]); /* short */
-		else
-		  gen_move32(formaltemp[n],formaladdr[n]); /* long,string,single,array */
+    	  gen_move(formaltemp[n],formaladdr[n], formaltype[n]);
 	  }
 	}
 
@@ -260,22 +238,7 @@ void sub_params(SYM * sub_ptr) {
 	
 	/* formal parameters expected */
 	do {
-	  param_type=undefined;
-	  
-	  insymbol();
-
-	  /* type identifiers */
-	  if (sym == shortintsym || sym == longintsym || sym == addresssym ||
-		  sym == singlesym || sym == stringsym) {
-		switch(sym) {
-		case shortintsym : param_type = shorttype;  break;
-		case longintsym  : param_type = longtype;   break;
-		case addresssym  : param_type = longtype;   break;
-		case singlesym   : param_type = singletype; break;
-		case stringsym   : param_type = stringtype; break;
-		}
-		insymbol();
-	  }
+      param_type = type_identifiers();
 
 	  if (sym != ident) _error(7);  /* ident expected */
 	  else {
@@ -373,10 +336,10 @@ void parse_shared_vars() {
 		/* if simple numeric variable (short,long,single) or structure 
 		   -> get address */
 		if ((zero_ptr->type != stringtype) && (zero_ptr->object != array)) {
-		  gen_frame_offset_simple(zero_ptr->address,buf1);
+		  gen_frame_offset_simple(zero_ptr->address,-1*one_ptr->address);
 		} else {
 		  /* array or string -> level ZERO already contains address */
-		  gen_frame_offset_addr(-1*zero_ptr->address,buf1);
+		  gen_frame_offset_addr(-1*zero_ptr->address,-1*one_ptr->address);
 		}
 	  }
 	}
