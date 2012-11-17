@@ -189,7 +189,8 @@ void circle() {
   BOOL start_angle=FALSE;
   BOOL end_angle=FALSE;
   BOOL aspect=FALSE;
-  
+
+  insymbol();
   relative = parse_step();
   if (!expect_token_sequence(point_tokens)) return;
   insymbol();
@@ -425,6 +426,7 @@ void color() {
 /* AREA [STEP](x,y) */
 void area() {
   BOOL relative;
+  insymbol();
   relative = parse_step();
   if (!expect_token_sequence(point_tokens)) return;
   gen_area(relative);
