@@ -326,51 +326,42 @@ int parse_arglist(const struct Function * f) {
     return res;
 }
 
-void parse_alt_sequence(struct ParseSequence * p,int num) {
-    while(--num >= 0) {
-        if (p->sym == -1 || p->sym == sym) {
-            parse_call_func(&p->f);
-            return;
-        }
-        ++p;
-    }
+void parse_bool() {
+    if (eat(onsym))       gen_push32_val(1);
+    else if (eat(offsym)) gen_push32_val(0);
+    else long_expr();
 }
 
-void parse_call_func(const struct Function * f) {
 
-    const char * args = f->args;
-    const char * def = f->defaults;
-    fprintf(stderr,"pcf '%s'\n",f->call);
+BOOL parse_call_func_args(const char * args, const char * def) {
     while (*args) {
-        fprintf(stderr,"sym=%d\n",sym);
+        fprintf(stderr,"sym=%d / *args=%c\n",sym,*args);
         switch(*args) {
         case 'i':
             insymbol();
             break;
         case 'l':
-            long_expr();
+            if (!long_expr()) return FALSE;
             break;
         case 's':
             if (expr() != stringtype) {
                 _error(4);
-                return undefined;
+                return FALSE;
             }
             break;
         case 'r':
-            if (!parse_rect()) return;
+            if (!parse_rect()) return FALSE;
             break;
         case 'b':
-            if (eat(onsym))       gen_push32_val(1);
-            else if (eat(offsym)) gen_push32_val(0);
-            else long_expr();
+            parse_bool();
             break;
         case ',':
-            if (!eat_comma()) return;
+            if (!eat_comma()) return FALSE;
             break;
         case '!':
             if (!peek(comma)) {
                 _error(16);
-                return;
+                return FALSE;
             }
             break;
         case '?':
@@ -389,8 +380,24 @@ void parse_call_func(const struct Function * f) {
         }
         ++args;
     }
+    return TRUE;
+}
 
+BOOL parse_call_func(const struct Function * f) {
+    fprintf(stderr,"pcf '%s'\n",f->call);
+    if (!parse_call_func_args(f->args,f->defaults)) return FALSE;
     gen_call_void(f->call, f->stackadj);
+    return TRUE;
+}
+
+BOOL parse_alt_sequence(struct ParseSequence * p,int num) {
+    while(--num >= 0) {
+        if (p->sym == -1 || p->sym == sym) {
+            return parse_call_func(&p->f);
+        }
+        ++p;
+    }
+    return FALSE;
 }
 
 

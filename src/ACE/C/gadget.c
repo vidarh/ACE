@@ -34,12 +34,6 @@
 extern	int	sym;
 extern	int	lastsym;
 
-BOOL on_match_gen_call(int token, const char * f, const char * params, int stack_adj) {
-    if (!eat(token)) return FALSE;
-    gen_call_sargs(f,params,stack_adj);
-    return TRUE;
-}
-
 /* 
    GADGET ON | OFF | STOP
    GADGET (WAIT|CLOSE|OUTPUT) gadget-id
@@ -59,15 +53,9 @@ void gadget() {
     int val;
 	insymbol();
 	if (try_change_event_trapping_status(lastsym)) return;
-    parse_alt_sequence(seq_gadget,4);
+    if (parse_alt_sequence(seq_gadget,4)) return;
 
-    /* FIXME: Extract parsing code from parse_call_func into parse_call_func_args ... */
-
-    long_expr(); /* gadget-id */
-    if (!eat_comma()) return;
-    if (eat(onsym))       gen_push32_val(1);
-    else if (eat(offsym)) gen_push32_val(0);
-    else long_expr(); /* status */
+    parse_call_func_args("l,b",0); /* gadget-id , status */
     
     if (!try_comma()) {
         gen_call_void("_ChangeGadgetStatus",8);
@@ -82,6 +70,8 @@ void gadget() {
         parse_rect();	/* (x1,y1)-(x2,y2) */
         if (try_comma()) {
             /* Gadget Type. */
+
+            /* FIXME: Regression: This is not actually *used* anywhere, should probably push32_val if val != -1 */
             val = -1;
             switch (sym) {
             case buttonsym:  val = 1; break;
