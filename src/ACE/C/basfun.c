@@ -333,6 +333,12 @@ void parse_bool() {
 }
 
 
+void parse_channel() {
+  insymbol();
+  if (sym == hash) insymbol();
+  make_sure_long(expr()); /* channel */
+}
+
 BOOL parse_call_func_args(const char * args, const char * def) {
     while (*args) {
         fprintf(stderr,"sym=%d / *args=%c\n",sym,*args);
@@ -357,6 +363,9 @@ BOOL parse_call_func_args(const char * args, const char * def) {
             break;
         case ',':
             if (!eat_comma()) return FALSE;
+            break;
+        case '#':
+            if (sym == hash) insymbol();
             break;
         case '!':
             if (!peek(comma)) {

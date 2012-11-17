@@ -25,37 +25,21 @@
 #include "codegen.h"
 
 /* externals */
-extern	int	sym;
 extern	BOOL	iffused;
-
-void parse_channel() {
-  insymbol();
-  if (sym == hash) insymbol();
-  make_sure_long(expr()); /* channel */
-}
-
-/*  IFF READ [#]channel[,screen-id] */
-static void iff_read() {
-  parse_channel();
-  if (sym != comma) gen_push32_val(-1); /* no screen-id */
-  else {
-      /* screen-id */
-      insymbol();
-      make_sure_long();
-      gen_call_void("_IFFPicRead",8);
-  }
-}
 
 /* IFF OPEN #channel, filename
        READ | CLOSE #channel 
  */
+
+struct ParseSequence seq_iff[] = {
+    {opensym,  {"i#l,s", {0},  "_IFFPicOpen", 8}},
+    {readsym,  {"i#l?l", {-1}, "_IFFPicRead", 8}},
+    {closesym, {"i#l",   {0},  "_IFFPicClose",4}}
+};
+
 void iff() {
   insymbol();
-  switch(sym) {
-  case opensym  : gen_call_sargs("_IFFPicOpen","#l,s",8); break;
-  case readsym  : iff_read(); break;
-  case closesym : gen_call_sargs("_IFFPicClose","#l",4); break;
-  }
+  parse_alt_sequence(seq_iff,3);
   /* We need to tell ACE to create/delete ILBM.library. */
   iffused = TRUE;
 }
