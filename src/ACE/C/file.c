@@ -322,10 +322,7 @@ void files() {
   } else gen_push32_val(0);  /* NULL for storage file name */
       
   /* target file or directory specified? */
-  if (sym == comma) {
-	insymbol();
-	if (expr() != stringtype) _error(4);
-  } else  gen_push32_val(0);  /* NULL for target name */
+  opt_arg(stringtype,0); /* NULL for target name */
   gen_files();
 }
 
@@ -349,22 +346,15 @@ void random_file_action() {
   if (sym == hash) insymbol(); /* skip '#' if present */
   make_sure_long(expr()); /* filenum */
 
-  if (sym != comma)  {_error(16); return;}
+  if (eat_comma()) return;
   /* Structure variable address and size. */
-  insymbol();
   if (!exist(id,structure)) { _error(79); return; }
 
   structVar = curr_item;
   push_struct_var_info(structVar);
   
   insymbol();
-  if (try_comma()) {
-	/* Optional record number. */
-      long_expr();
-  } else {
-	/* Don't seek before read/write */
-	gen_push32_val(0);
-  }
+  opt_arg(longtype,0); /* Optional record numer; 0 default = don't seek before read/write */
 }
 
 /* SYNTAX: GET [#]fileNum, structVar [, recordNum] */
