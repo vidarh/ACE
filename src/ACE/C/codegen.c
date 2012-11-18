@@ -1317,7 +1317,6 @@ void gen_files()      { gen_call_void("_files",4); }
 void gen_chdir(int e) { gen_fcall("_chdir",e,"s",stringtype,"d1",0); }
 void gen_getrecord()  { gen_call_void("_GetRecord",16); }
 void gen_putrecord()  { gen_call_void("_PutRecord",16); }
-void gen_openscreen() { gen_call_args("_openscreen","d4.w,d3.w,d2.w,d1.w,d0.w",0); }
 
 void gen_push_nullstring() {
 	 enter_DATA("_nullstring:","dc.b 0");

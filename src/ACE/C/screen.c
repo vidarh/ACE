@@ -57,8 +57,8 @@ void	screen() {
           gen_jsr("_change_screen_depth");
       }
   } else {
-	/* SCREEN screen-id,width,height,colors,mode */
-	/* open a screen */
-	if (parse_gen_params(expr(),"w,w,w,w,w")) gen_openscreen();
+      /* SCREEN screen-id,width,height,colors,mode */
+      struct Function f_openscreen = {"w,w,w,w,w", {0}, "_openscreen", 0, "d4.w,d3.w,d2.w,d1.w,d0.w"};
+      parse_call_func(f_openscreen);
   }
 }

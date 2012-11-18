@@ -204,7 +204,6 @@ static inline void gen_call(const char * label, unsigned int stack) { gen_call_a
 void gen_counter_incr(int typ, const char * step, const char * counter);
 void gen_fwrite(int exprtype);
 
-void gen_openscreen();
 void gen_writepixel();
 void gen_paint();
 void gen_draw();

@@ -330,9 +330,10 @@ static void handle_label(char * label_name)
 /* statement */
 /*-----------*/
 
-struct Function f_font     = {"is,l",{},"_change_text_font", 8};
-struct Function f_style    = {"il",  {},"_change_text_style",4}; 
-struct Function f_bevelbox = {"ir,l",{},"_BevelBox",20};
+struct Function f_font     = {"is,l",{},"_change_text_font", 8, ""};
+struct Function f_style    = {"il",  {},"_change_text_style",4, ""}; 
+struct Function f_bevelbox = {"ir,l",{},"_BevelBox",20, ""};
+
 void statement()
 {
 char  buf[50],idholder[50],sub_name[80];
