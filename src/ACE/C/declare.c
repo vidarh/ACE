@@ -507,7 +507,6 @@ void define_external_object()
 {
   /* declare an external function or variable */
   
-  insymbol();
   if (sym  == functionsym) define_ext(extfunc,33);
   else define_ext(extvar,54);
 }
