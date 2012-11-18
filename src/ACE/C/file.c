@@ -59,7 +59,7 @@ extern	char	tempstrname[80];
 /* functions */
 /* OPEN mode,[#]filenumber,filespec */
 void open_a_file() {
- if (parse_gen_params(expr(),"Eis,#l,s")) gen_openfile();
+    if (parse_call_func_args(expr(),"Eis,#l,s")) gen_openfile();
 }
 
 /* CLOSE [#]filenumber[,[#]filenumber..] */

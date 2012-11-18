@@ -34,20 +34,6 @@
 extern	int	sym;
 extern	int	lastsym;
 
-/* 
-   GADGET ON | OFF | STOP
-   GADGET (WAIT|CLOSE|OUTPUT) gadget-id
-   GADGET MOD gadget-id,knob-pos[,max-notches]
-   GADGET gadget-id,status[,gadget-value,(x1,y1)-(x2,y2),type[,style][,font,size,txtstyle]]
-*/
-
-struct ParseSequence seq_gadget[] = {
-    {closesym,  {"il", {0}, "_CloseGadget", 4}},
-    {outputsym, {"il", {0}, "_SetCurrentGadget", 4}},
-    {waitsym,   {"il", {0}, "_WaitGadget", 4}},
-    {modsym,    {"il,l?l", {-1}, "_modify_gad", 12}},
-};
-
 void gadget() {
     int  gtype;
     int val;

@@ -86,6 +86,7 @@ struct Function {
     long defaults[20];
     const char * call;
     long stackadj;
+    const char * callargs;
 };
 
 struct ParseSequence {
@@ -93,6 +94,9 @@ struct ParseSequence {
     struct Function f;
 };
 
+extern struct ParseSequence seq_window[];
+extern struct ParseSequence seq_gadget[];
+extern struct ParseSequence seq_iff[];
 
 /* AmigaBASIC reserved words */
 enum { 	abssym = 0,

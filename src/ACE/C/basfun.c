@@ -256,6 +256,9 @@ BOOL parse_call_func_args(const char * args, const char * def) {
                 return FALSE;
             }
             break;
+        case 'E':
+            check_for_event();
+            break;
         case 'r':
             if (!parse_rect()) return FALSE;
             break;

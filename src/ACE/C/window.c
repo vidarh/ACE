@@ -38,19 +38,6 @@
 #include "acedef.h"
 #include "codegen.h"
 
-/* WINDOW wdw-id[,title],rectangle[,type][,screen-id] 
-   WINDOW CLOSE wdw-id
-   WINDOW OUTPUT wdw-id 
-   WINDOW ON | OFF | STOP
-*/
-
-/* FIXME: Unsure if the '!' rule is needed. */
-struct ParseSequence seq_window[] = {
-    {closesym,  {"il", {0}, "_CloseWdw", 4}},
-    {outputsym, {"il", {0}, "_ChangeOutputWdw", 4}},
-    {-1,        {"l!?s,r?l?l",{0,-1,0}, "_OpenWdw", 32}}
-};
-
 extern	int	lastsym;
 
 void window() {

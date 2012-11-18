@@ -27,16 +27,6 @@
 /* externals */
 extern	BOOL	iffused;
 
-/* IFF OPEN #channel, filename
-       READ | CLOSE #channel 
- */
-
-struct ParseSequence seq_iff[] = {
-    {opensym,  {"i#l,s", {0},  "_IFFPicOpen", 8}},
-    {readsym,  {"i#l?l", {-1}, "_IFFPicRead", 8}},
-    {closesym, {"i#l",   {0},  "_IFFPicClose",4}}
-};
-
 void iff() {
   insymbol();
   parse_alt_sequence(seq_iff,3);

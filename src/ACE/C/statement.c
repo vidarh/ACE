@@ -482,15 +482,15 @@ BOOL  need_symbol=TRUE;
    case defdblsym:   change_id_type(singletype); break;
    case defstrsym:   change_id_type(stringtype); break;
 
-   case casesym: check_for_event(); case_statement(); break;
-   case ifsym:   check_for_event(); if_statement(); break;
-   case serialsym: check_for_event(); serial_command(); break;
-   case printssym: check_for_event(); prints_statement(); break;
-   case readsym: check_for_event(); read_data(); break;
-   case writesym:  check_for_event(); write_to_file(); break;
+   case casesym:     check_for_event(); case_statement(); break;
+   case ifsym:       check_for_event(); if_statement(); break;
+   case serialsym:   check_for_event(); serial_command(); break;
+   case printssym:   check_for_event(); prints_statement(); break;
+   case readsym:     check_for_event(); read_data(); break;
+   case writesym:    check_for_event(); write_to_file(); break;
 
-   case screensym: screen(); check_for_event(); break;
-   case windowsym:  window(); check_for_event(); break;
+   case screensym:   screen(); check_for_event(); break;
+   case windowsym:   window(); check_for_event(); break;
 
    case blocksym:    block_statement(); break;
    case callsym:     call_statement(); break; 
@@ -510,27 +510,27 @@ BOOL  need_symbol=TRUE;
    case forsym:      for_statement(); break;
    case gadgetsym:   gadget(); break;
    case globalsym:   define_common_or_global_variable(sym); break;
-   case librarysym: library(); break;
-   case menusym: menu(); break;
-   case messagesym: message(); break;
-   case msgboxsym: MsgBox(); break;
-   case namesym: ace_rename(); break;
-   case pokesym:    poke(); break;
-   case pokewsym: pokew(); break;
-   case pokelsym: pokel(); break;
-   case opensym: open_a_file(); break;
-   case optionsym: parse_option_list(); break;
-   case paintsym: paint(); break;
-   case patternsym: pattern(); break;
-   case psetsym: pset(); break;
-   case repeatsym: repeat_statement(); break;
-   case stringsym: declare_variable(stringtype); break;
-   case soundsym: sound(); break;
-   case structsym: define_structure(); break;
-   case swapsym: swap(); break;
-   case wavesym: wave(); break;
-   case whilesym: while_statement(); break;
-   case saysym: say(); break;
+   case librarysym:  library(); break;
+   case menusym:     menu(); break;
+   case messagesym:  message(); break;
+   case msgboxsym:   MsgBox(); break;
+   case namesym:     ace_rename(); break;
+   case pokesym:     poke(); break;
+   case pokewsym:    pokew(); break;
+   case pokelsym:    pokel(); break;
+   case opensym:     open_a_file(); break;
+   case optionsym:   parse_option_list(); break;
+   case paintsym:    paint(); break;
+   case patternsym:  pattern(); break;
+   case psetsym:     pset(); break;
+   case repeatsym:   repeat_statement(); break;
+   case stringsym:   declare_variable(stringtype); break;
+   case soundsym:    sound(); break;
+   case structsym:   define_structure(); break;
+   case swapsym:     swap(); break;
+   case wavesym:     wave(); break;
+   case whilesym:    while_statement(); break;
+   case saysym:      say(); break;
 
    case clssym:       gen_jsr("_cls"); insymbol(); break;
    case homesym:      gen_jsr("_home"); insymbol(); break;
@@ -740,43 +740,37 @@ BOOL  need_symbol=TRUE;
    insymbol();
    if (expr() != longtype) _error(4); /* address */
    else {
-	 if (sym != becomes) _error(5);
-	 else {
-	   insymbol();
-	   gen_pop_as_short(expr(),0); /* expression */
-	   gen_pop_addr(0);  /* pop address */
-	   gen_save_indirect16();  /* store expression */
-	 }
+       if (expect(becomes,5)) {
+           gen_pop_as_short(expr(),0); /* expression */
+           gen_pop_addr(0);  /* pop address */
+           gen_save_indirect16();  /* store expression */
+       }
    }
    break;
 
  case longpointer:  /* *&<address> = <expr> */
-  insymbol();
-  if (expr() != longtype)  _error(4); /* address */
-  else {
-	if (sym != becomes) _error(5);
-	else {
-	  insymbol();
-	  make_sure_long(expr());
-	  gen_pop32d(0);  /* pop expression */ 
-	  gen_pop_addr(0);  /* pop address */
-	  gen_save_indirect32();  /* store expression */
-	}
-  }
-  break;
+     insymbol();
+     if (expr() != longtype)  _error(4); /* address */
+     else {
+         if (expect(becomes,5)) {
+             long_expr();
+             gen_pop32d(0);  /* pop expression */ 
+             gen_pop_addr(0);  /* pop address */
+             gen_save_indirect32();  /* store expression */
+         }
+     }
+     break;
 
  case singlepointer: /* *!<address> = <expr> */
    insymbol();
    if (expr() != longtype) _error(4); /* address */
    else {
-	 if (sym != becomes) _error(5);
-	 else {
-	   insymbol();
-	   gen_Flt(expr());
-	   gen_pop32d(0);  /* pop expression */ 
-	   gen_pop_addr(0);  /* pop address */
-	   gen_save_indirect32();  /* store expression */
-	 }
+       if (expect(becomes,5)) {
+           gen_Flt(expr());
+           gen_pop32d(0);  /* pop expression */ 
+           gen_pop_addr(0);  /* pop address */
+           gen_save_indirect32();  /* store expression */
+       }
    }
    break;
  default:
