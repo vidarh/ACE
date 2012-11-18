@@ -4,6 +4,8 @@
 	xref _MathBase
 	xref _LVOSPFlt
 	xref _LVOSPCmp
+	xref _lab1
+	xref _lab2
 	xref _forward
 	xref _MathTransBase
 	xref _LVOSPSub
@@ -25,6 +27,7 @@
 	xref _changetextcolor
 	xref _strcpy
 	xref _streq
+	xref _lab7
 	xref _cls
 	xref _locate
 	xref _Ustringprint
@@ -35,6 +38,7 @@
 	xref _SUB_SNOWFLAKE
 	xref _Ucodeprint
 	xref _strne
+	xref _lab9
 	xref _inkey
 	xref _ucase
 	xref _CloseWdw
@@ -101,7 +105,6 @@ _SUB_KOCH:
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	moveq	#-1,d5
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	beq.s	_lab1
 	moveq	#0,d5
@@ -124,11 +127,11 @@ _lab3:
 	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPSub(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,-12(a5)
 	move.l	-8(a5),-(sp)
 	move.l	(sp)+,d0
@@ -161,11 +164,11 @@ _lab3:
 	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPSub(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,-20(a5)
 	move.l	-8(a5),-(sp)
 	move.l	(sp)+,d0
@@ -198,11 +201,11 @@ _lab3:
 	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPSub(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,-28(a5)
 	move.l	-8(a5),-(sp)
 	move.l	(sp)+,d0
@@ -235,11 +238,11 @@ _lab3:
 	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPSub(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,-36(a5)
 	move.l	-8(a5),-(sp)
 	move.l	(sp)+,d0
@@ -276,7 +279,6 @@ _SUB_SNOWFLAKE:
 	move.l	(sp)+,-12(a5)
 	move.l	-8(a5),-(sp)
 	move.l	(sp)+,-16(a5)
-	move.l	_AbsExecBase,a6
 	jsr	_LVOForbid(a6)
 	move.l	-12(a5),-12(sp)
 	move.l	-16(a5),-16(sp)
@@ -373,10 +375,9 @@ _lab5:
 	move.w	d0,_bg
 	move.w	d0,_bgpen
 	move.l	_RPort,a1
-	move.l	_GfxBase,a6
 	jsr	_LVOSetBPen(a6)
 	move.w	_fg,d0
-	move.w	_bg,d0
+	move.w	_bg,d1
 	jsr	_changetextcolor
 	pea	_stringconst2
 	pea	_stringvar0
@@ -405,13 +406,13 @@ _lab7:
 	pea	_stringconst4
 	jsr	_Ustringprint
 	addq	#4,sp
-	lea	_tempstring0,a0
+	lea	_tempstring0,a1
 	jsr	_inputsingle
 	move.l	d0,-16(a4)
 	pea	_stringconst5
 	jsr	_Ustringprint
 	addq	#4,sp
-	lea	_tempstring1,a0
+	lea	_tempstring1,a1
 	jsr	_inputsingle
 	move.l	d0,-20(a4)
 	jsr	_cls

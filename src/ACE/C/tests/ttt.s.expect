@@ -12,20 +12,173 @@
 	xref _timer
 	xref _randomise
 	xref _rnd
+	xref _lab9
+	xref _lab11
+	xref _lab12
+	xref _lab13
+	xref _lab14
+	xref _lab15
+	xref _lab16
+	xref _lab19
+	xref _lab20
+	xref _lab21
+	xref _lab22
+	xref _lab23
+	xref _lab27
 	xref _TransBase
 	xref _LVOTranslate
 	xref _say
 	xref _cleanup_async_speech
 	xref _sysrequest
+	xref _lab29
+	xref _lab30
 	xref _CloseGadget
 	xref _CloseWdw
 	xref _ChangeGadgetStatus
 	xref _WaitGadget
 	xref _GadFunc
+	xref _lab43
+	xref _lab44
+	xref _lab47
+	xref _lab48
+	xref _lab49
+	xref _lab50
+	xref _lab53
+	xref _lab54
+	xref _lab55
+	xref _lab56
+	xref _lab57
+	xref _lab58
+	xref _lab60
+	xref _lab61
+	xref _lab62
+	xref _lab63
+	xref _lab65
+	xref _lab66
+	xref _lab67
+	xref _lab68
+	xref _lab73
+	xref _lab74
+	xref _lab75
+	xref _lab76
+	xref _lab77
+	xref _lab78
+	xref _lab80
+	xref _lab81
+	xref _lab82
+	xref _lab83
+	xref _lab85
+	xref _lab86
+	xref _lab87
+	xref _lab88
+	xref _lab93
+	xref _lab94
+	xref _lab96
+	xref _lab97
+	xref _lab98
+	xref _lab99
+	xref _lab100
+	xref _lab101
+	xref _lab103
+	xref _lab104
+	xref _lab105
+	xref _lab106
+	xref _lab108
+	xref _lab109
+	xref _lab110
+	xref _lab111
+	xref _lab117
+	xref _lab118
+	xref _lab122
+	xref _lab123
+	xref _lab124
+	xref _lab125
+	xref _lab127
+	xref _lab128
+	xref _lab129
+	xref _lab130
+	xref _lab132
+	xref _lab133
+	xref _lab134
+	xref _lab135
 	xref _LVOSPSub
+	xref _lab142
+	xref _lab143
+	xref _lab145
 	xref _LVOSPMul
 	xref _LVOSPFloor
 	xref _LVOSPFix
+	xref _lab146
+	xref _lab147
+	xref _lab151
+	xref _lab152
+	xref _lab154
+	xref _lab155
+	xref _lab159
+	xref _lab160
+	xref _lab162
+	xref _lab163
+	xref _lab165
+	xref _lab166
+	xref _lab167
+	xref _lab169
+	xref _lab170
+	xref _lab171
+	xref _lab172
+	xref _lab176
+	xref _lab177
+	xref _lab178
+	xref _lab179
+	xref _lab180
+	xref _lab181
+	xref _lab183
+	xref _lab184
+	xref _lab185
+	xref _lab186
+	xref _lab188
+	xref _lab189
+	xref _lab190
+	xref _lab191
+	xref _lab194
+	xref _lab198
+	xref _lab199
+	xref _lab200
+	xref _lab201
+	xref _lab203
+	xref _lab204
+	xref _lab205
+	xref _lab206
+	xref _lab208
+	xref _lab209
+	xref _lab210
+	xref _lab211
+	xref _lab215
+	xref _lab216
+	xref _lab217
+	xref _lab218
+	xref _lab219
+	xref _lab221
+	xref _lab222
+	xref _lab223
+	xref _lab224
+	xref _lab226
+	xref _lab227
+	xref _lab228
+	xref _lab229
+	xref _lab232
+	xref _lab233
+	xref _lab234
+	xref _lab235
+	xref _lab236
+	xref _lab238
+	xref _lab239
+	xref _lab240
+	xref _lab241
+	xref _lab243
+	xref _lab244
+	xref _lab245
+	xref _lab246
+	xref _lab250
 	xref _startup
 	xref _cleanup
 	xref _opentranslator
@@ -87,7 +240,6 @@ _gfx_ok:
 	move.w	#8,-(sp)
 	move.w	(sp)+,d0
 	ext.l	d0
-	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
 	move.l	#$80000041,-(sp)
@@ -99,7 +251,6 @@ _lab0:
 	blt.s	_lab1
 	move.l	-8(a4),d0
 	move.l	4(sp),d1
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	bgt	_lab3
 	jmp	_lab2
@@ -117,9 +268,9 @@ _lab2:
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -188,19 +339,21 @@ _lab3:
 	move.l	d0,-(sp)
 	move.w	#50,-(sp)
 	move.w	#138,-(sp)
-	move.w	(sp)+,d1
 	move.w	(sp)+,d0
+	move.w	(sp)+,d1
 	add.w	d1,d0
-	move.w	d0,-(sp)
+	move.w	(sp)+,d0
+	move.w	(sp)+,d1
 	move.w	(sp)+,d0
 	ext.l	d0
 	move.l	d0,-(sp)
 	move.w	#50,-(sp)
 	move.w	#152,-(sp)
-	move.w	(sp)+,d1
 	move.w	(sp)+,d0
+	move.w	(sp)+,d1
 	add.w	d1,d0
-	move.w	d0,-(sp)
+	move.w	(sp)+,d0
+	move.w	(sp)+,d1
 	move.w	(sp)+,d0
 	ext.l	d0
 	move.l	d0,-(sp)
@@ -221,7 +374,6 @@ _lab3:
 	move.w	#9,-(sp)
 	move.w	(sp)+,d0
 	ext.l	d0
-	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
 	move.l	#$80000041,-(sp)
@@ -233,7 +385,6 @@ _lab4:
 	blt.s	_lab5
 	move.l	-48(a4),d0
 	move.l	4(sp),d1
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	bgt	_lab7
 	jmp	_lab6
@@ -251,9 +402,9 @@ _lab6:
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -276,9 +427,9 @@ _lab6:
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -301,9 +452,9 @@ _lab6:
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -326,9 +477,9 @@ _lab6:
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -348,7 +499,7 @@ _lab6:
 	move.l	(sp)+,d0
 	jsr	_round
 	move.l	d0,-(sp)
-	move.l	#1,-(sp)
+	move.l	#$1,-(sp)
 	pea	_stringconst1
 	move.l	-48(a4),-(sp)
 	move.l	(sp)+,d0
@@ -357,9 +508,9 @@ _lab6:
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -377,9 +528,9 @@ _lab6:
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -397,9 +548,9 @@ _lab6:
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -417,9 +568,9 @@ _lab6:
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -430,7 +581,6 @@ _lab6:
 	move.l	(sp)+,d0
 	jsr	_round
 	move.l	d0,-(sp)
-	move.l	#1,-(sp)
 	move.w	#1,-(sp)
 	move.w	(sp)+,d0
 	ext.l	d0
@@ -488,7 +638,7 @@ _lab7:
 	move.w	(sp)+,d0
 	ext.l	d0
 	move.l	d0,-(sp)
-	move.l	#1,-(sp)
+	move.l	#$1,-(sp)
 	pea	_stringconst2
 	move.l	-52(a4),-(sp)
 	move.l	(sp)+,d0
@@ -506,7 +656,6 @@ _lab7:
 	move.l	(sp)+,d0
 	jsr	_round
 	move.l	d0,-(sp)
-	move.l	#1,-(sp)
 	move.w	#1,-(sp)
 	move.w	(sp)+,d0
 	ext.l	d0
@@ -763,7 +912,6 @@ QUIT:
 	move.w	#10,-(sp)
 	move.w	(sp)+,d0
 	ext.l	d0
-	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
 	move.l	#$80000041,-(sp)
@@ -775,7 +923,6 @@ _lab35:
 	blt.s	_lab36
 	move.l	-48(a4),d0
 	move.l	4(sp),d1
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	bgt	_lab38
 	jmp	_lab37
@@ -818,7 +965,6 @@ CLEAR.GRID:
 	move.w	#9,-(sp)
 	move.w	(sp)+,d0
 	ext.l	d0
-	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
 	move.l	#$80000041,-(sp)
@@ -830,7 +976,6 @@ _lab39:
 	blt.s	_lab40
 	move.l	-48(a4),d0
 	move.l	4(sp),d1
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	bgt	_lab42
 	jmp	_lab41
@@ -848,9 +993,9 @@ _lab41:
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -876,7 +1021,7 @@ _lab41:
 	move.l	(sp)+,d0
 	jsr	_round
 	move.l	d0,-(sp)
-	move.l	#1,-(sp)
+	move.l	#$1,-(sp)
 	pea	_stringconst6
 	move.l	-48(a4),-(sp)
 	move.l	(sp)+,d0
@@ -885,9 +1030,9 @@ _lab41:
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -905,9 +1050,9 @@ _lab41:
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -925,9 +1070,9 @@ _lab41:
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -945,9 +1090,9 @@ _lab41:
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -958,7 +1103,6 @@ _lab41:
 	move.l	(sp)+,d0
 	jsr	_round
 	move.l	d0,-(sp)
-	move.l	#1,-(sp)
 	move.w	#1,-(sp)
 	move.w	(sp)+,d0
 	ext.l	d0
@@ -1007,13 +1151,11 @@ GET.USER.MOVE:
 	move.w	#256,-(sp)
 	move.w	(sp)+,d0
 	ext.l	d0
-	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	moveq	#-1,d5
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	beq.s	_lab43
 	moveq	#0,d5
@@ -1035,9 +1177,9 @@ _lab45:
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -1072,9 +1214,9 @@ _lab45:
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -1092,9 +1234,9 @@ _lab45:
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -1112,9 +1254,9 @@ _lab45:
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -1132,9 +1274,9 @@ _lab45:
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -1145,7 +1287,6 @@ _lab45:
 	move.l	(sp)+,d0
 	jsr	_round
 	move.l	d0,-(sp)
-	move.l	#1,-(sp)
 	move.w	#1,-(sp)
 	move.w	(sp)+,d0
 	ext.l	d0
@@ -1173,7 +1314,6 @@ MAKE.A.MOVE:
 	move.w	#2,-(sp)
 	move.w	(sp)+,d0
 	ext.l	d0
-	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
 	move.l	(sp)+,-80(a4)
@@ -1188,7 +1328,6 @@ _lab46:
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	moveq	#-1,d5
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	bge.s	_lab47
 	moveq	#0,d5
@@ -1209,7 +1348,6 @@ _lab48:
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	moveq	#-1,d5
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	beq.s	_lab49
 	moveq	#0,d5
@@ -1248,7 +1386,6 @@ _lab52:
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	moveq	#-1,d5
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	beq.s	_lab53
 	moveq	#0,d5
@@ -1261,9 +1398,9 @@ _lab53:
 _lab54:
 	move.w	#1,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -1283,9 +1420,9 @@ _lab55:
 	move.l	d5,-(sp)
 	move.w	#5,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -1309,9 +1446,9 @@ _lab56:
 	move.l	d0,-(sp)
 	move.w	#9,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -1328,7 +1465,6 @@ _lab56:
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	moveq	#-1,d5
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	beq.s	_lab57
 	moveq	#0,d5
@@ -1354,9 +1490,9 @@ _lab58:
 _lab59:
 	move.w	#1,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -1376,9 +1512,9 @@ _lab60:
 	move.l	d5,-(sp)
 	move.w	#5,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -1395,7 +1531,6 @@ _lab60:
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	moveq	#-1,d5
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	beq.s	_lab61
 	moveq	#0,d5
@@ -1407,9 +1542,9 @@ _lab61:
 	move.l	d0,-(sp)
 	move.w	#9,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -1447,9 +1582,9 @@ _lab63:
 _lab64:
 	move.w	#1,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -1466,7 +1601,6 @@ _lab64:
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	moveq	#-1,d5
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	beq.s	_lab65
 	moveq	#0,d5
@@ -1474,9 +1608,9 @@ _lab65:
 	move.l	d5,-(sp)
 	move.w	#5,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -1500,9 +1634,9 @@ _lab66:
 	move.l	d0,-(sp)
 	move.w	#9,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -1551,7 +1685,6 @@ _lab72:
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	moveq	#-1,d5
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	beq.s	_lab73
 	moveq	#0,d5
@@ -1564,9 +1697,9 @@ _lab73:
 _lab74:
 	move.w	#3,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -1586,9 +1719,9 @@ _lab75:
 	move.l	d5,-(sp)
 	move.w	#5,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -1612,9 +1745,9 @@ _lab76:
 	move.l	d0,-(sp)
 	move.w	#7,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -1631,7 +1764,6 @@ _lab76:
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	moveq	#-1,d5
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	beq.s	_lab77
 	moveq	#0,d5
@@ -1657,9 +1789,9 @@ _lab78:
 _lab79:
 	move.w	#3,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -1679,9 +1811,9 @@ _lab80:
 	move.l	d5,-(sp)
 	move.w	#5,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -1698,7 +1830,6 @@ _lab80:
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	moveq	#-1,d5
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	beq.s	_lab81
 	moveq	#0,d5
@@ -1710,9 +1841,9 @@ _lab81:
 	move.l	d0,-(sp)
 	move.w	#7,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -1750,9 +1881,9 @@ _lab83:
 _lab84:
 	move.w	#3,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -1769,7 +1900,6 @@ _lab84:
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	moveq	#-1,d5
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	beq.s	_lab85
 	moveq	#0,d5
@@ -1777,9 +1907,9 @@ _lab85:
 	move.l	d5,-(sp)
 	move.w	#5,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -1803,9 +1933,9 @@ _lab86:
 	move.l	d0,-(sp)
 	move.w	#7,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -1854,7 +1984,6 @@ _lab92:
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	moveq	#-1,d5
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	beq.s	_lab93
 	moveq	#0,d5
@@ -1883,7 +2012,6 @@ _lab95:
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	moveq	#-1,d5
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	ble.s	_lab96
 	moveq	#0,d5
@@ -1901,9 +2029,9 @@ _lab97:
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -1928,20 +2056,20 @@ _lab98:
 	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPAdd(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	jsr	_round
 	move.l	d0,-(sp)
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -1970,20 +2098,20 @@ _lab99:
 	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPAdd(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	jsr	_round
 	move.l	d0,-(sp)
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -2000,7 +2128,6 @@ _lab99:
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	moveq	#-1,d5
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	beq.s	_lab100
 	moveq	#0,d5
@@ -2022,11 +2149,11 @@ _lab101:
 	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPAdd(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,-76(a4)
 	jmp	_lab114
 _lab102:
@@ -2037,9 +2164,9 @@ _lab102:
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -2064,20 +2191,20 @@ _lab103:
 	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPAdd(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	jsr	_round
 	move.l	d0,-(sp)
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -2094,7 +2221,6 @@ _lab103:
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	moveq	#-1,d5
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	beq.s	_lab104
 	moveq	#0,d5
@@ -2111,20 +2237,20 @@ _lab104:
 	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPAdd(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	jsr	_round
 	move.l	d0,-(sp)
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -2158,11 +2284,11 @@ _lab106:
 	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPAdd(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,-76(a4)
 	jmp	_lab113
 _lab107:
@@ -2173,9 +2299,9 @@ _lab107:
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -2192,7 +2318,6 @@ _lab107:
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	moveq	#-1,d5
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	beq.s	_lab108
 	moveq	#0,d5
@@ -2205,20 +2330,20 @@ _lab108:
 	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPAdd(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	jsr	_round
 	move.l	d0,-(sp)
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -2247,20 +2372,20 @@ _lab109:
 	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPAdd(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	jsr	_round
 	move.l	d0,-(sp)
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -2299,11 +2424,11 @@ _lab114:
 	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPAdd(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,-8(a4)
 	jmp	_lab95
 _lab115:
@@ -2319,7 +2444,6 @@ _lab116:
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	moveq	#-1,d5
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	beq.s	_lab117
 	moveq	#0,d5
@@ -2340,7 +2464,6 @@ _lab118:
 	move.w	#3,-(sp)
 	move.w	(sp)+,d0
 	ext.l	d0
-	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
 	move.l	#$80000041,-(sp)
@@ -2352,7 +2475,6 @@ _lab119:
 	blt.s	_lab120
 	move.l	-8(a4),d0
 	move.l	4(sp),d1
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	bgt	_lab139
 	jmp	_lab121
@@ -2370,9 +2492,9 @@ _lab121:
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -2397,20 +2519,20 @@ _lab122:
 	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPAdd(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	jsr	_round
 	move.l	d0,-(sp)
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -2439,20 +2561,20 @@ _lab123:
 	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPAdd(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	jsr	_round
 	move.l	d0,-(sp)
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -2469,7 +2591,6 @@ _lab123:
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	moveq	#-1,d5
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	beq.s	_lab124
 	moveq	#0,d5
@@ -2491,11 +2612,11 @@ _lab125:
 	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPAdd(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,-76(a4)
 	jmp	_lab138
 _lab126:
@@ -2506,9 +2627,9 @@ _lab126:
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -2533,20 +2654,20 @@ _lab127:
 	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPAdd(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	jsr	_round
 	move.l	d0,-(sp)
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -2563,7 +2684,6 @@ _lab127:
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	moveq	#-1,d5
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	beq.s	_lab128
 	moveq	#0,d5
@@ -2580,20 +2700,20 @@ _lab128:
 	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPAdd(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	jsr	_round
 	move.l	d0,-(sp)
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -2627,11 +2747,11 @@ _lab130:
 	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPAdd(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,-76(a4)
 	jmp	_lab137
 _lab131:
@@ -2642,9 +2762,9 @@ _lab131:
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -2661,7 +2781,6 @@ _lab131:
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	moveq	#-1,d5
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	beq.s	_lab132
 	moveq	#0,d5
@@ -2674,20 +2793,20 @@ _lab132:
 	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPAdd(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	jsr	_round
 	move.l	d0,-(sp)
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -2716,20 +2835,20 @@ _lab133:
 	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPAdd(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	jsr	_round
 	move.l	d0,-(sp)
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -2774,9 +2893,9 @@ _lab140:
 	sub.l	#80,d0
 	move.l	d0,-(sp)
 	move.l	(sp)+,a0
-	move.l	_MathBase,a6
 	move.l	(a0),d0
 	move.l	#$80000041,d1
+	move.l	_MathBase,a6
 	jsr	_LVOSPSub(a6)
 	move.l	d0,(a0)
 	jmp	_lab46
@@ -2792,7 +2911,6 @@ _lab141:
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	moveq	#-1,d5
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	beq.s	_lab142
 	moveq	#0,d5
@@ -2829,13 +2947,11 @@ _lab145:
 	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d0
-	move.l	(sp)+,d1
-	move.l	_MathBase,a6
+	move.w	(sp)+,d0
+	move.w	(sp)+,d1
 	jsr	_LVOSPMul(a6)
 	move.l	d0,-(sp)
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
 	jsr	_LVOSPFloor(a6)
 	jsr	_LVOSPFix(a6)
 	move.l	d0,-(sp)
@@ -2843,12 +2959,12 @@ _lab145:
 	move.w	(sp)+,d0
 	ext.l	d0
 	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
+	add.l	d1,d0
+	move.l	(sp)+,d0
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	add.l	d1,d0
-	move.l	d0,-(sp)
-	move.l	(sp)+,d0
-	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
 	move.l	(sp)+,-88(a4)
@@ -2859,9 +2975,9 @@ _lab145:
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -2878,7 +2994,6 @@ _lab145:
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	moveq	#-1,d5
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	beq.s	_lab146
 	moveq	#0,d5
@@ -2913,7 +3028,6 @@ _lab150:
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	moveq	#-1,d5
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	bne.s	_lab151
 	moveq	#0,d5
@@ -2931,9 +3045,9 @@ _lab152:
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -2968,9 +3082,9 @@ _lab152:
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -2988,9 +3102,9 @@ _lab152:
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -3008,9 +3122,9 @@ _lab152:
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -3028,9 +3142,9 @@ _lab152:
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -3041,7 +3155,6 @@ _lab152:
 	move.l	(sp)+,d0
 	jsr	_round
 	move.l	d0,-(sp)
-	move.l	#1,-(sp)
 	move.w	#1,-(sp)
 	move.w	(sp)+,d0
 	ext.l	d0
@@ -3128,7 +3241,7 @@ ANOTHER.GAME:
 	move.w	(sp)+,d0
 	ext.l	d0
 	move.l	d0,-(sp)
-	move.l	#1,-(sp)
+	move.l	#$1,-(sp)
 	jsr	_ChangeGadgetStatus
 	add.l	#8,sp
 _lab158:
@@ -3154,13 +3267,11 @@ _lab158:
 	move.w	#256,-(sp)
 	move.w	(sp)+,d0
 	ext.l	d0
-	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	moveq	#-1,d5
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	beq.s	_lab159
 	moveq	#0,d5
@@ -3183,7 +3294,6 @@ _lab161:
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	moveq	#-1,d5
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	beq.s	_lab162
 	moveq	#0,d5
@@ -3210,7 +3320,6 @@ _lab164:
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	moveq	#-1,d5
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	beq.s	_lab165
 	moveq	#0,d5
@@ -3226,7 +3335,6 @@ _lab165:
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	moveq	#-1,d5
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	beq.s	_lab166
 	moveq	#0,d5
@@ -3266,7 +3374,6 @@ _lab168:
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	moveq	#-1,d5
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	ble.s	_lab169
 	moveq	#0,d5
@@ -3293,7 +3400,6 @@ _lab170:
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	moveq	#-1,d5
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	beq.s	_lab171
 	moveq	#0,d5
@@ -3339,7 +3445,6 @@ _lab175:
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	moveq	#-1,d5
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	ble.s	_lab176
 	moveq	#0,d5
@@ -3363,9 +3468,9 @@ _lab177:
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -3390,20 +3495,20 @@ _lab178:
 	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPAdd(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	jsr	_round
 	move.l	d0,-(sp)
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -3432,20 +3537,20 @@ _lab179:
 	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPAdd(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	jsr	_round
 	move.l	d0,-(sp)
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -3485,9 +3590,9 @@ _lab182:
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -3512,20 +3617,20 @@ _lab183:
 	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPAdd(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	jsr	_round
 	move.l	d0,-(sp)
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -3554,20 +3659,20 @@ _lab184:
 	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPAdd(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	jsr	_round
 	move.l	d0,-(sp)
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -3607,9 +3712,9 @@ _lab187:
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -3634,20 +3739,20 @@ _lab188:
 	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPAdd(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	jsr	_round
 	move.l	d0,-(sp)
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -3676,20 +3781,20 @@ _lab189:
 	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPAdd(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	jsr	_round
 	move.l	d0,-(sp)
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -3729,11 +3834,11 @@ _lab192:
 	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPAdd(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,-8(a4)
 	jmp	_lab175
 _lab193:
@@ -3754,7 +3859,6 @@ _lab194:
 	move.w	#3,-(sp)
 	move.w	(sp)+,d0
 	ext.l	d0
-	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
 	move.l	#$80000041,-(sp)
@@ -3766,7 +3870,6 @@ _lab195:
 	blt.s	_lab196
 	move.l	-8(a4),d0
 	move.l	4(sp),d1
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	bgt	_lab213
 	jmp	_lab197
@@ -3784,9 +3887,9 @@ _lab197:
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -3811,20 +3914,20 @@ _lab198:
 	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPAdd(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	jsr	_round
 	move.l	d0,-(sp)
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -3853,20 +3956,20 @@ _lab199:
 	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPAdd(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	jsr	_round
 	move.l	d0,-(sp)
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -3906,9 +4009,9 @@ _lab202:
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -3933,20 +4036,20 @@ _lab203:
 	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPAdd(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	jsr	_round
 	move.l	d0,-(sp)
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -3975,20 +4078,20 @@ _lab204:
 	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPAdd(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	jsr	_round
 	move.l	d0,-(sp)
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -4028,9 +4131,9 @@ _lab207:
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -4055,20 +4158,20 @@ _lab208:
 	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPAdd(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	jsr	_round
 	move.l	d0,-(sp)
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -4097,20 +4200,20 @@ _lab209:
 	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPAdd(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	jsr	_round
 	move.l	d0,-(sp)
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -4161,9 +4264,9 @@ _lab214:
 _lab215:
 	move.w	#1,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -4183,9 +4286,9 @@ _lab216:
 	move.l	d5,-(sp)
 	move.w	#5,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -4209,9 +4312,9 @@ _lab217:
 	move.l	d0,-(sp)
 	move.w	#9,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -4246,9 +4349,9 @@ _lab219:
 _lab220:
 	move.w	#1,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -4268,9 +4371,9 @@ _lab221:
 	move.l	d5,-(sp)
 	move.w	#5,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -4294,9 +4397,9 @@ _lab222:
 	move.l	d0,-(sp)
 	move.w	#9,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -4331,9 +4434,9 @@ _lab224:
 _lab225:
 	move.w	#1,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -4353,9 +4456,9 @@ _lab226:
 	move.l	d5,-(sp)
 	move.w	#5,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -4379,9 +4482,9 @@ _lab227:
 	move.l	d0,-(sp)
 	move.w	#9,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -4424,9 +4527,9 @@ _lab231:
 _lab232:
 	move.w	#3,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -4446,9 +4549,9 @@ _lab233:
 	move.l	d5,-(sp)
 	move.w	#5,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -4472,9 +4575,9 @@ _lab234:
 	move.l	d0,-(sp)
 	move.w	#7,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -4509,9 +4612,9 @@ _lab236:
 _lab237:
 	move.w	#3,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -4531,9 +4634,9 @@ _lab238:
 	move.l	d5,-(sp)
 	move.w	#5,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -4557,9 +4660,9 @@ _lab239:
 	move.l	d0,-(sp)
 	move.w	#7,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -4594,9 +4697,9 @@ _lab241:
 _lab242:
 	move.w	#3,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -4616,9 +4719,9 @@ _lab243:
 	move.l	d5,-(sp)
 	move.w	#5,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -4642,9 +4745,9 @@ _lab244:
 	move.l	d0,-(sp)
 	move.w	#7,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -4682,9 +4785,9 @@ _lab248:
 	sub.l	#80,d0
 	move.l	d0,-(sp)
 	move.l	(sp)+,a0
-	move.l	_MathBase,a6
 	move.l	(a0),d0
 	move.l	#$80000041,d1
+	move.l	_MathBase,a6
 	jsr	_LVOSPAdd(a6)
 	move.l	d0,(a0)
 	jmp	_lab168

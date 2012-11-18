@@ -19,16 +19,28 @@
 	xref ace_ldiv
 	xref _turnright
 	xref _menu_test
+	xref _lab4
+	xref _lab8
 	xref _LVOForbid
 	xref _SUB_POLY
 	xref _penup
 	xref _setxy
 	xref _pendown
+	xref _lab9
+	xref _lab10
 	xref _locate
+	xref _lab11
 	xref _Ustringprint
 	xref _inputshort
+	xref _lab12
+	xref _lab13
 	xref _SUB_SPIRO
+	xref _lab15
+	xref _lab16
 	xref _MenuFunc
+	xref _lab18
+	xref _lab19
+	xref _lab20
 	xref _CloseWdw
 	xref _startup
 	xref _cleanup
@@ -156,10 +168,9 @@ _gfx_ok:
 	move.w	d0,_bg
 	move.w	d0,_bgpen
 	move.l	_RPort,a1
-	move.l	_GfxBase,a6
 	jsr	_LVOSetBPen(a6)
 	move.w	_fg,d0
-	move.w	_bg,d0
+	move.w	_bg,d1
 	jsr	_changetextcolor
 	jsr	_cls
 	jmp	_lab0
@@ -203,6 +214,8 @@ _lab3:
 	add.l	#8,sp
 	move.l	d0,-(sp)
 	move.l	(sp)+,d0
+	move.w	d0,-(sp)
+	move.w	(sp)+,d0
 	jsr	_turnright
 	move.w	(sp),d0
 	add.w	d0,-6(a5)
@@ -250,6 +263,8 @@ _lab8:
 	add.l	#8,sp
 	move.l	d0,-(sp)
 	move.l	(sp)+,d0
+	move.w	d0,-(sp)
+	move.w	(sp)+,d0
 	jsr	_turnright
 	jsr	_penup
 	move.w	#320,-(sp)
@@ -286,7 +301,7 @@ _lab11:
 	pea	_stringconst5
 	jsr	_Ustringprint
 	addq	#4,sp
-	lea	_tempstring0,a0
+	lea	_tempstring0,a1
 	jsr	_inputshort
 	move.w	d0,-6(a4)
 	jsr	_menu_test
@@ -297,7 +312,7 @@ _lab12:
 	pea	_stringconst6
 	jsr	_Ustringprint
 	addq	#4,sp
-	lea	_tempstring1,a0
+	lea	_tempstring1,a1
 	jsr	_inputshort
 	move.w	d0,-8(a4)
 	jsr	_cls
@@ -323,7 +338,7 @@ _lab13:
 	move.w	-12(a4),-12(sp)
 	jsr	_SUB_SPIRO
 _lab14:
-	move.l	#-1,-(sp)
+	move.l	#$ffffffffffffffff,-(sp)
 	move.l	(sp)+,d0
 	cmpi.l	#0,d0
 	bne.s	_lab15

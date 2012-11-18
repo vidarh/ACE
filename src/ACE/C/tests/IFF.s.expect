@@ -4,16 +4,22 @@
 	xref _filerequest
 	xref _strcpy
 	xref _streq
+	xref _lab1
 	xref _IFFPicOpen
 	xref _err
+	xref _lab3
+	xref _lab4
 	xref _strcat
 	xref _sysrequest
 	xref _iff_func
 	xref _openscreen
+	xref _lab6
 	xref _IFFPicRead
+	xref _lab8
 	xref _SUB_CLEANUP
 	xref _inkey
 	xref _mouse
+	xref _lab11
 	xref _sleep
 	xref _startup
 	xref _cleanup
@@ -267,7 +273,6 @@ _lab10:
 	jsr	_streq
 	move.l	d0,-(sp)
 	move.w	#0,-(sp)
-	move.w	(sp)+,d0
 	jsr	_mouse
 	move.w	d0,-(sp)
 	not.w	(sp)

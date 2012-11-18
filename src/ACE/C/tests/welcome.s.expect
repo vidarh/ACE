@@ -73,7 +73,6 @@ _gfx_ok:
 	move.w	#8,-(sp)
 	move.w	(sp)+,d0
 	ext.l	d0
-	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
 	move.l	#$80000041,-(sp)
@@ -85,7 +84,6 @@ _lab0:
 	blt.s	_lab1
 	move.l	-8(a4),d0
 	move.l	4(sp),d1
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	bgt	_lab3
 	jmp	_lab2
@@ -103,9 +101,9 @@ _lab2:
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp

@@ -1,6 +1,7 @@
 
+BASIC_PARSER_TESTS=parse_window.test
 REGRESSION_TESTS= _test_len.test
-all: clean $(REGRESSION_TESTS) \
+all: clean $(BASIC_PARSER_TESTS) $(REGRESSION_TESTS) \
     array_via_pointers.test ehb.test flower.test ham.test HopNet.test ifs.test kx.test linkedlist.test pattern2.test \
 	sierp.test spiro.test tree.test welcome.test array_of_structs.test  BezierLab.test boxit.test dragon.test fact.test FractalTree.test \
 	hanoi.test hi.test IFF.test land.test pattern.test shuttle.test snowflake.test torus.test tri.test \

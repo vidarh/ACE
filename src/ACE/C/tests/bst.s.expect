@@ -5,34 +5,95 @@
 	xref _csrlin
 	xref _AbsExecBase
 	xref _LVOPermit
+	xref _lab6
+	xref _lab7
+	xref _lab8
+	xref _lab9
 	xref _LVOForbid
 	xref _SUB_LEFTMOST
+	xref _lab14
+	xref _lab15
+	xref _lab16
+	xref _lab17
+	xref _lab18
+	xref _lab20
+	xref _lab21
+	xref _lab23
+	xref _lab24
+	xref _lab31
+	xref _lab32
 	xref _MathBase
 	xref _LVOSPCmp
+	xref _lab33
+	xref _lab34
 	xref _SUB_DELITEM
+	xref _lab36
+	xref _lab37
 	xref _SUB_DEL
 	xref _inputsingle
 	xref _MathTransBase
+	xref _lab44
+	xref _lab45
 	xref _ACEalloc
+	xref _lab47
+	xref _lab48
 	xref _SUB_INSERT
+	xref _lab53
+	xref _lab54
 	xref _LVOSPFlt
+	xref _lab56
+	xref _lab57
+	xref _lab59
+	xref _lab60
 	xref _SUB_INTREE
 	xref _round
+	xref _lab66
+	xref _lab69
+	xref _lab70
+	xref _lab71
+	xref _lab72
 	xref _Usingleprint
 	xref _Ucodeprint
 	xref _SUB_TRAVERSE
+	xref _lab74
+	xref _lab75
+	xref _lab77
+	xref _lab78
+	xref _lab83
+	xref _lab84
+	xref _lab85
 	xref _SUB_PREPARE_FOR_OUTPUT
+	xref _lab87
+	xref _lab88
+	xref _lab89
+	xref _lab90
 	xref _timer
 	xref _LVOSPAdd
+	xref _lab92
+	xref _lab93
 	xref _setheading
+	xref _lab96
 	xref _pendown
 	xref _forward
 	xref _SUB_GRAPHTREE
+	xref _lab98
 	xref _penup
 	xref _back
+	xref _lab100
+	xref _lab101
+	xref _lab103
+	xref _lab104
+	xref _lab107
+	xref _lab109
+	xref _lab111
+	xref _lab112
+	xref _lab114
+	xref _lab115
 	xref _strsingle
 	xref _strcpy
 	xref _sgnf
+	xref _lab118
+	xref _lab119
 	xref _strlen
 	xref _rightstr
 	xref ace_ldiv
@@ -50,20 +111,65 @@
 	xref _LVOSetBPen
 	xref _cls
 	xref _inputshort
+	xref _lab125
+	xref _lab126
+	xref _lab127
+	xref _lab130
+	xref _lab131
+	xref _lab135
+	xref _lab136
 	xref _SUB_HEIGHT
 	xref _SUB_MAX
+	xref _lab140
+	xref _lab141
+	xref _lab143
+	xref _lab144
 	xref _SUB_MAXITEM
+	xref _lab149
+	xref _lab150
 	xref _SUB_NODES
+	xref _lab155
+	xref _lab156
+	xref _lab157
+	xref _lab159
+	xref _lab160
+	xref _lab161
+	xref _lab163
+	xref _lab164
 	xref _SUB_INSERTITEM
+	xref _lab166
+	xref _lab167
 	xref _SUB_DELETEITEM
+	xref _lab169
+	xref _lab170
 	xref _SUB_SHOWNODES
+	xref _lab172
+	xref _lab173
+	xref _lab175
+	xref _lab176
+	xref _lab178
+	xref _lab179
+	xref _lab181
+	xref _lab182
 	xref _SUB_KILL_TREE
+	xref _lab184
+	xref _lab185
 	xref _SUB_TREEDISPLAYSPEED
+	xref _lab187
+	xref _lab188
+	xref _lab191
+	xref _lab192
+	xref _lab193
+	xref _lab195
+	xref _lab196
+	xref _lab197
+	xref _lab198
 	xref _SUB_SHOWTREE
 	xref _OpenWdw
 	xref _change_text_font
 	xref _SUB_SELECTMENU
 	xref _SUB_DOOPTION
+	xref _lab201
 	xref _CloseWdw
 	xref _startup
 	xref _cleanup
@@ -112,7 +218,7 @@ _intuition_ok:
 _gfx_ok:
 	link	a4,#-110
 
-	move.l	#0,-4(a4)
+	move.l	#$0,-4(a4)
 	move.l	#0,-8(a4)
 	move.l	#0,-12(a4)
 	move.w	#0,-14(a4)
@@ -169,8 +275,8 @@ _SUB_LEFTMOST:
 	link	a5,#-24
 	move.l	_AbsExecBase,a6
 	jsr	_LVOPermit(a6)
-	move.l	#0,-12(a5)
-	move.l	#0,-16(a5)
+	move.l	#$0,-12(a5)
+	move.l	#$0,-16(a5)
 	move.l	-4(a5),-(sp)
 	move.l	(sp)+,a0
 	move.l	(a0),-(sp)
@@ -249,8 +355,8 @@ _SUB_DELITEM:
 	link	a5,#-24
 	move.l	_AbsExecBase,a6
 	jsr	_LVOPermit(a6)
-	move.l	#0,-8(a5)
-	move.l	#0,-12(a5)
+	move.l	#$0,-8(a5)
+	move.l	#$0,-12(a5)
 	move.l	#0,-16(a5)
 	move.l	-4(a5),-(sp)
 	move.l	(sp)+,a0
@@ -399,7 +505,7 @@ _SUB_DEL:
 	link	a5,#-32
 	move.l	_AbsExecBase,a6
 	jsr	_LVOPermit(a6)
-	move.l	#0,-12(a5)
+	move.l	#$0,-12(a5)
 	move.l	-4(a5),-(sp)
 	move.l	(sp)+,a0
 	move.l	(a0),-(sp)
@@ -506,7 +612,7 @@ _SUB_DELETEITEM:
 	pea	_stringconst1
 	jsr	_Ustringprint
 	addq	#4,sp
-	lea	_tempstring0,a0
+	lea	_tempstring0,a1
 	jsr	_inputsingle
 	move.l	d0,-8(a5)
 	move.l	-4(a5),-(sp)
@@ -527,7 +633,7 @@ _SUB_INSERT:
 	link	a5,#-28
 	move.l	_AbsExecBase,a6
 	jsr	_LVOPermit(a6)
-	move.l	#0,-12(a5)
+	move.l	#$0,-12(a5)
 	move.l	-4(a5),-(sp)
 	move.l	(sp)+,a0
 	move.l	(a0),-(sp)
@@ -547,8 +653,8 @@ _lab44:
 	bne.s	_lab45
 	jmp	_lab46
 _lab45:
-	move.l	#12,-(sp)
-	move.l	#9,-(sp)
+	move.l	#$c,-(sp)
+	move.l	#$9,-(sp)
 	jsr	_ACEalloc
 	add.l	#8,sp
 	move.l	d0,-(sp)
@@ -627,7 +733,7 @@ _SUB_INTREE:
 	link	a5,#-28
 	move.l	_AbsExecBase,a6
 	jsr	_LVOPermit(a6)
-	move.l	#0,-12(a5)
+	move.l	#$0,-12(a5)
 	move.l	-4(a5),-(sp)
 	move.l	(sp)+,a0
 	move.l	(a0),-(sp)
@@ -672,7 +778,7 @@ _lab56:
 	bne.s	_lab57
 	jmp	_lab58
 _lab57:
-	move.l	#-1,-(sp)
+	move.l	#$ffffffffffffffff,-(sp)
 	move.l	(sp)+,d0
 	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
@@ -742,7 +848,7 @@ _SUB_INSERTITEM:
 	pea	_stringconst2
 	jsr	_Ustringprint
 	addq	#4,sp
-	lea	_tempstring1,a0
+	lea	_tempstring1,a1
 	jsr	_inputsingle
 	move.l	d0,-8(a5)
 	move.l	-4(a5),-(sp)
@@ -783,7 +889,7 @@ _SUB_TRAVERSE:
 	link	a5,#-22
 	move.l	_AbsExecBase,a6
 	jsr	_LVOPermit(a6)
-	move.l	#0,-10(a5)
+	move.l	#$0,-10(a5)
 	move.l	-4(a5),-(sp)
 	move.l	(sp)+,-10(a5)
 	move.l	-10(a5),-(sp)
@@ -820,7 +926,7 @@ _lab72:
 	move.l	0(a0),-(sp)
 	jsr	_Usingleprint
 	addq	#4,sp
-	move.l	#2,-(sp)
+	move.l	#$2,-(sp)
 	jsr	_Ucodeprint
 	addq	#4,sp
 _lab73:
@@ -853,7 +959,7 @@ _lab75:
 	move.l	0(a0),-(sp)
 	jsr	_Usingleprint
 	addq	#4,sp
-	move.l	#2,-(sp)
+	move.l	#$2,-(sp)
 	jsr	_Ucodeprint
 	addq	#4,sp
 _lab76:
@@ -886,7 +992,7 @@ _lab78:
 	move.l	0(a0),-(sp)
 	jsr	_Usingleprint
 	addq	#4,sp
-	move.l	#2,-(sp)
+	move.l	#$2,-(sp)
 	jsr	_Ucodeprint
 	addq	#4,sp
 _lab79:
@@ -904,7 +1010,7 @@ _lab82:
 	pea	_stringconst3
 	jsr	_Ustringprint
 	addq	#4,sp
-	lea	_tempstring2,a0
+	lea	_tempstring2,a1
 	jsr	_inputsingle
 	move.l	d0,-8(a5)
 	move.l	-8(a5),-(sp)
@@ -917,7 +1023,6 @@ _lab82:
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	moveq	#-1,d5
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	bge.s	_lab83
 	moveq	#0,d5
@@ -933,7 +1038,6 @@ _lab83:
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	moveq	#-1,d5
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	ble.s	_lab84
 	moveq	#0,d5
@@ -978,7 +1082,7 @@ _SUB_GRAPHTREE:
 	link	a5,#-30
 	move.l	_AbsExecBase,a6
 	jsr	_LVOPermit(a6)
-	move.l	#0,-8(a5)
+	move.l	#$0,-8(a5)
 	move.l	a4,d0
 	sub.l	#14,d0
 	move.l	d0,-12(a5)
@@ -1029,15 +1133,15 @@ _lab91:
 	move.l	d0,-(sp)
 	move.l	-16(a5),-(sp)
 	move.l	#$1,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	_MathBase,a6
 	jsr	_LVOSPAdd(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	moveq	#-1,d5
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	blt.s	_lab92
 	moveq	#0,d5
@@ -1128,15 +1232,15 @@ _lab102:
 	move.l	d0,-(sp)
 	move.l	-16(a5),-(sp)
 	move.l	#$1,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	_MathBase,a6
 	jsr	_LVOSPAdd(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	moveq	#-1,d5
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	blt.s	_lab103
 	moveq	#0,d5
@@ -1221,15 +1325,15 @@ _lab113:
 	move.l	d0,-(sp)
 	move.l	-16(a5),-(sp)
 	move.l	#$1,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	_MathBase,a6
 	jsr	_LVOSPAdd(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	moveq	#-1,d5
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	blt.s	_lab114
 	moveq	#0,d5
@@ -1258,7 +1362,6 @@ _lab117:
 	move.l	0(a0),-(sp)
 	move.l	(sp)+,d1
 	jsr	_sgnf
-	move.l	d0,-(sp)
 	move.w	#1,-(sp)
 	neg.w	(sp)
 	move.w	(sp)+,d0
@@ -1286,10 +1389,11 @@ _lab119:
 	move.w	(sp)+,d0
 	ext.l	d0
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	sub.l	d1,d0
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	move.w	(sp)+,d0
@@ -1328,10 +1432,11 @@ _lab120:
 	move.w	(sp)+,d1
 	muls	d1,d0
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	sub.l	d1,d0
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	jsr	_ycor
@@ -1348,7 +1453,7 @@ _lab120:
 	jsr	_LVOSetAPen(a6)
 	move.w	_bgpen,_bg
 	move.w	_fg,d0
-	move.w	_bg,d0
+	move.w	_bg,d1
 	jsr	_changetextcolor
 	move.l	-28(a5),-(sp)
 	move.l	(sp)+,a0
@@ -1363,7 +1468,7 @@ _lab120:
 	jsr	_LVOSetAPen(a6)
 	move.w	_bgpen,_bg
 	move.w	_fg,d0
-	move.w	_bg,d0
+	move.w	_bg,d1
 	jsr	_changetextcolor
 	jsr	_xcor
 	move.w	d0,-(sp)
@@ -1376,10 +1481,11 @@ _lab120:
 	move.w	(sp)+,d1
 	muls	d1,d0
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	add.l	d1,d0
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	jsr	_ycor
@@ -1419,10 +1525,9 @@ _SUB_SHOWTREE:
 	move.w	d0,_bg
 	move.w	d0,_bgpen
 	move.l	_RPort,a1
-	move.l	_GfxBase,a6
 	jsr	_LVOSetBPen(a6)
 	move.w	_fg,d0
-	move.w	_bg,d0
+	move.w	_bg,d1
 	jsr	_changetextcolor
 	jsr	_cls
 	move.w	#90,-(sp)
@@ -1461,7 +1566,7 @@ _lab124:
 	pea	_stringconst4
 	jsr	_Ustringprint
 	addq	#4,sp
-	lea	_tempstring5,a0
+	lea	_tempstring5,a1
 	jsr	_inputshort
 	move.l	-4(a5),a0
 	move.w	d0,(a0)
@@ -1551,7 +1656,7 @@ _SUB_HEIGHT:
 	link	a5,#-24
 	move.l	_AbsExecBase,a6
 	jsr	_LVOPermit(a6)
-	move.l	#0,-8(a5)
+	move.l	#$0,-8(a5)
 	move.l	-4(a5),-(sp)
 	move.l	(sp)+,-8(a5)
 	move.l	-8(a5),-(sp)
@@ -1599,11 +1704,11 @@ _lab136:
 	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPAdd(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,-78(a4)
 	jmp	_lab138
 _lab137:
@@ -1624,7 +1729,7 @@ _SUB_MAXITEM:
 	link	a5,#-12
 	move.l	_AbsExecBase,a6
 	jsr	_LVOPermit(a6)
-	move.l	#0,-8(a5)
+	move.l	#$0,-8(a5)
 	move.l	-4(a5),-(sp)
 	move.l	(sp)+,-8(a5)
 	move.l	-8(a5),-(sp)
@@ -1692,7 +1797,7 @@ _SUB_NODES:
 	link	a5,#-16
 	move.l	_AbsExecBase,a6
 	jsr	_LVOPermit(a6)
-	move.l	#0,-8(a5)
+	move.l	#$0,-8(a5)
 	move.l	-4(a5),-(sp)
 	move.l	(sp)+,-8(a5)
 	move.l	-8(a5),-(sp)
@@ -1726,22 +1831,22 @@ _lab150:
 	move.l	-16(a5),-12(sp)
 	jsr	_SUB_NODES
 	move.l	-86(a4),-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	_MathBase,a6
 	jsr	_LVOSPAdd(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.w	#1,-(sp)
 	move.w	(sp)+,d0
 	ext.l	d0
-	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPAdd(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,-86(a4)
 	jmp	_lab152
 _lab151:
@@ -1821,7 +1926,7 @@ _lab154:
 	pea	_stringconst14
 	jsr	_Ustringprint
 	addq	#4,sp
-	lea	_tempstring6,a0
+	lea	_tempstring6,a1
 	jsr	_inputsingle
 	move.l	d0,-8(a5)
 	move.l	-8(a5),-(sp)
@@ -1834,7 +1939,6 @@ _lab154:
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	moveq	#-1,d5
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	bge.s	_lab155
 	moveq	#0,d5
@@ -1850,7 +1954,6 @@ _lab155:
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	moveq	#-1,d5
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	ble.s	_lab156
 	moveq	#0,d5
@@ -1882,7 +1985,7 @@ _SUB_DOOPTION:
 	link	a5,#-52
 	move.l	_AbsExecBase,a6
 	jsr	_LVOPermit(a6)
-	move.l	#0,-16(a5)
+	move.l	#$0,-16(a5)
 	move.l	a4,d0
 	sub.l	#14,d0
 	move.l	d0,-20(a5)
@@ -2041,7 +2144,7 @@ _lab173:
 	move.l	-78(a4),-(sp)
 	jsr	_Usingleprint
 	addq	#4,sp
-	move.l	#2,-(sp)
+	move.l	#$2,-(sp)
 	jsr	_Ucodeprint
 	addq	#4,sp
 	move.l	#0,-(sp)
@@ -2079,7 +2182,7 @@ _lab176:
 	move.l	-82(a4),-(sp)
 	jsr	_Usingleprint
 	addq	#4,sp
-	move.l	#2,-(sp)
+	move.l	#$2,-(sp)
 	jsr	_Ucodeprint
 	addq	#4,sp
 	move.l	#0,-(sp)
@@ -2117,7 +2220,7 @@ _lab179:
 	move.l	-86(a4),-(sp)
 	jsr	_Usingleprint
 	addq	#4,sp
-	move.l	#2,-(sp)
+	move.l	#$2,-(sp)
 	jsr	_Ucodeprint
 	addq	#4,sp
 	move.l	#0,-(sp)
@@ -2194,7 +2297,7 @@ _lab187:
 	jmp	_lab189
 _lab188:
 	move.l	-12(a5),-(sp)
-	move.l	#-1,-(sp)
+	move.l	#$ffffffffffffffff,-(sp)
 	move.l	(sp)+,d0
 	move.l	(sp)+,a0
 	move.l	d0,(a0)
@@ -2358,10 +2461,9 @@ _lab158:
 	move.w	d0,_bg
 	move.w	d0,_bgpen
 	move.l	_RPort,a1
-	move.l	_GfxBase,a6
 	jsr	_LVOSetBPen(a6)
 	move.w	_fg,d0
-	move.w	_bg,d0
+	move.w	_bg,d1
 	jsr	_changetextcolor
 	jsr	_cls
 	move.w	#1,-(sp)
@@ -2408,7 +2510,7 @@ _lab158:
 	jsr	_LVOSetAPen(a6)
 	move.w	_bgpen,_bg
 	move.w	_fg,d0
-	move.w	_bg,d0
+	move.w	_bg,d1
 	jsr	_changetextcolor
 	move.l	#0,-(sp)
 	move.l	(sp)+,-4(a4)

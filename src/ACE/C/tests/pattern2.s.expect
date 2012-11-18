@@ -88,16 +88,16 @@ _gfx_ok:
 	move.l	(sp)+,-4(a4)
 	move.w	#0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
 	add.l	d0,d7
 	lsl.l	#1,d7
 	move.l	d7,_tmpelement
-	move.l	#52428,-(sp)
+	move.l	#$cccc,-(sp)
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	move.l	_tmpelement,d7
@@ -105,9 +105,9 @@ _gfx_ok:
 	move.w	(sp)+,0(a0,d7.L)
 	move.w	#1,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -118,11 +118,11 @@ _gfx_ok:
 	move.l	_tmpelement,d7
 	move.l	-4(a4),a0
 	move.w	(sp)+,0(a0,d7.L)
-	move.l	#1,d1
+	moveq	#1,d1
 	jsr	_linepattern
 	move.l	-4(a4),a0
-	move.l	#3,d0
-	move.l	#0,d1
+	moveq	#3,d0
+	moveq	#0,d1
 	jsr	_areapattern
 	move.w	#0,-(sp)
 	move.w	#0,-(sp)

@@ -4,6 +4,8 @@
 	xref _MathBase
 	xref _LVOSPFlt
 	xref _LVOSPCmp
+	xref _lab1
+	xref _lab2
 	xref _forward
 	xref _MathTransBase
 	xref _LVOSPSub
@@ -30,6 +32,7 @@
 	xref _inkey
 	xref _ucase
 	xref _strne
+	xref _lab6
 	xref _CloseWdw
 	xref _startup
 	xref _cleanup
@@ -93,7 +96,6 @@ _SUB_BOXIT:
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	moveq	#-1,d5
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	beq.s	_lab1
 	moveq	#0,d5
@@ -121,11 +123,11 @@ _lab3:
 	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPSub(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,-8(a5)
 	move.l	_AbsExecBase,a6
 	jsr	_LVOForbid(a6)
@@ -141,11 +143,11 @@ _lab3:
 	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPSub(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,-12(a5)
 	move.l	_AbsExecBase,a6
 	jsr	_LVOForbid(a6)
@@ -161,11 +163,11 @@ _lab3:
 	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPSub(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,-16(a5)
 	move.l	_AbsExecBase,a6
 	jsr	_LVOForbid(a6)
@@ -181,11 +183,11 @@ _lab3:
 	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPSub(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,-20(a5)
 	move.l	_AbsExecBase,a6
 	jsr	_LVOForbid(a6)
@@ -201,11 +203,11 @@ _lab3:
 	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPSub(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,-24(a5)
 	move.l	_AbsExecBase,a6
 	jsr	_LVOForbid(a6)
@@ -263,10 +265,9 @@ _lab0:
 	move.w	d0,_bg
 	move.w	d0,_bgpen
 	move.l	_RPort,a1
-	move.l	_GfxBase,a6
 	jsr	_LVOSetBPen(a6)
 	move.w	_fg,d0
-	move.w	_bg,d0
+	move.w	_bg,d1
 	jsr	_changetextcolor
 	jsr	_cls
 	jsr	_penup

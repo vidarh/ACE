@@ -4,6 +4,8 @@
 	xref _MathBase
 	xref _LVOSPFlt
 	xref _LVOSPCmp
+	xref _lab1
+	xref _lab2
 	xref _turnright
 	xref _forward
 	xref _MathTransBase
@@ -15,9 +17,12 @@
 	xref _Ustringprint
 	xref _Ucodeprint
 	xref _argcount
+	xref _lab5
+	xref _lab6
 	xref _arg
 	xref _strcpy
 	xref _streq
+	xref _lab8
 	xref _SUB_USAGE
 	xref _inputsingle
 	xref _val
@@ -34,6 +39,7 @@
 	xref _cls
 	xref _locate
 	xref _round
+	xref _lab12
 	xref _Usingleprint
 	xref _penup
 	xref _setxy
@@ -41,6 +47,7 @@
 	xref _inkey
 	xref _ucase
 	xref _strne
+	xref _lab15
 	xref _CloseWdw
 	xref _closescreen
 	xref _startup
@@ -107,7 +114,6 @@ _SUB_TREE:
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	moveq	#-1,d5
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	blt.s	_lab1
 	moveq	#0,d5
@@ -128,8 +134,8 @@ _lab3:
 	jsr	_forward
 	move.l	-4(a5),-(sp)
 	move.l	#$1,-(sp)
-	move.l	(sp)+,d0
-	move.l	(sp)+,d1
+	move.w	(sp)+,d0
+	move.w	(sp)+,d1
 	move.l	_MathBase,a6
 	jsr	_LVOSPMul(a6)
 	move.l	d0,-(sp)
@@ -149,8 +155,8 @@ _lab3:
 	jsr	_forward
 	move.l	-4(a5),-(sp)
 	move.l	#$1,-(sp)
-	move.l	(sp)+,d0
-	move.l	(sp)+,d1
+	move.w	(sp)+,d0
+	move.w	(sp)+,d1
 	move.l	_MathBase,a6
 	jsr	_LVOSPMul(a6)
 	move.l	d0,-(sp)
@@ -246,7 +252,7 @@ _lab8:
 	pea	_stringconst2
 	jsr	_Ustringprint
 	addq	#4,sp
-	lea	_tempstring1,a0
+	lea	_tempstring1,a1
 	jsr	_inputsingle
 	move.l	d0,-20(a4)
 	jmp	_lab10
@@ -319,10 +325,9 @@ _lab11:
 	move.w	d0,_bg
 	move.w	d0,_bgpen
 	move.l	_RPort,a1
-	move.l	_GfxBase,a6
 	jsr	_LVOSetBPen(a6)
 	move.w	_fg,d0
-	move.w	_bg,d0
+	move.w	_bg,d1
 	jsr	_changetextcolor
 	jsr	_cls
 	move.w	#3,-(sp)
@@ -342,7 +347,7 @@ _lab12:
 	pea	_stringconst4
 	jsr	_Ustringprint
 	addq	#4,sp
-	lea	_tempstring2,a0
+	lea	_tempstring2,a1
 	jsr	_inputsingle
 	move.l	d0,-20(a4)
 	jsr	_cls
@@ -361,7 +366,7 @@ _lab13:
 	move.l	-20(a4),-(sp)
 	jsr	_Usingleprint
 	addq	#4,sp
-	move.l	#2,-(sp)
+	move.l	#$2,-(sp)
 	jsr	_Ucodeprint
 	addq	#4,sp
 	move.l	#0,-(sp)

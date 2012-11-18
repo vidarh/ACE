@@ -16,6 +16,7 @@
 	xref _strcpy
 	xref _ucase
 	xref _strne
+	xref _lab1
 	xref _val
 	xref _MathBase
 	xref _MathTransBase
@@ -28,7 +29,9 @@
 	xref _LVOSPAdd
 	xref _LVODraw
 	xref _inkey
+	xref _lab7
 	xref _streq
+	xref _lab10
 	xref _CloseWdw
 	xref _startup
 	xref _cleanup
@@ -117,10 +120,9 @@ _gfx_ok:
 	move.w	d0,_bg
 	move.w	d0,_bgpen
 	move.l	_RPort,a1
-	move.l	_GfxBase,a6
 	jsr	_LVOSetBPen(a6)
 	move.w	_fg,d0
-	move.w	_bg,d0
+	move.w	_bg,d1
 	jsr	_changetextcolor
 	jsr	_penup
 _lab0:
@@ -133,10 +135,10 @@ _lab0:
 	pea	_stringconst1
 	jsr	_Ustringprint
 	addq	#4,sp
-	move.l	#3,-(sp)
+	move.l	#$3,-(sp)
 	jsr	_Ucodeprint
 	addq	#4,sp
-	move.l	#2,-(sp)
+	move.l	#$2,-(sp)
 	jsr	_Ucodeprint
 	addq	#4,sp
 	pea	_tempstring0
@@ -175,7 +177,7 @@ _lab1:
 	addq	#4,sp
 	move.l	d0,-(sp)
 	move.l	(sp)+,-8(a4)
-	move.l	#10,-(sp)
+	move.l	#$a,-(sp)
 	move.l	(sp)+,-12(a4)
 	move.w	#3,-(sp)
 	move.w	(sp)+,d0
@@ -216,36 +218,34 @@ _lab4:
 	jsr	_power
 	add.l	#8,sp
 	move.l	d0,-(sp)
-	move.l	(sp)+,d0
-	move.l	(sp)+,d1
+	move.w	(sp)+,d0
+	move.w	(sp)+,d1
 	move.l	_MathBase,a6
 	jsr	_LVOSPMul(a6)
 	move.l	d0,-(sp)
 	move.l	#0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPSub(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,-12(a4)
 	move.l	-12(a4),-(sp)
 	move.l	#0,-(sp)
-	move.l	(sp)+,d0
-	move.l	(sp)+,d1
-	move.l	_MathBase,a6
+	move.w	(sp)+,d0
+	move.w	(sp)+,d1
 	jsr	_LVOSPMul(a6)
 	move.l	d0,-(sp)
 	move.w	#100,-(sp)
 	move.w	(sp)+,d0
 	ext.l	d0
-	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPAdd(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	jsr	_round
 	move.l	d0,-(sp)

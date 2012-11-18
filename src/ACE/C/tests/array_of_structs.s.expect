@@ -5,6 +5,8 @@
 	xref _strcpy
 	xref _inputlong
 	xref _ACEalloc
+	xref _lab3
+	xref _lab4
 	xref _beep
 	xref _MathBase
 	xref lmulu
@@ -51,7 +53,7 @@ _intuition_ok:
 _gfx_ok:
 	link	a4,#-20
 
-	move.l	#0,-4(a4)
+	move.l	#$0,-4(a4)
 	pea	_array0
 	move.l	(sp)+,-8(a4)
 	move.w	#1,-(sp)
@@ -63,11 +65,11 @@ _gfx_ok:
 	move.w	(sp)+,d0
 	ext.l	d0
 	move.l	d0,-(sp)
-	move.l	#1,-(sp)
+	move.l	#$1,-(sp)
 _lab0:
 	move.l	-12(a4),d0
 	move.l	4(sp),d1
-	cmpi.l	#0,(sp)
+	cmpi.l	#$0,(sp)
 	blt.s	_lab1
 	cmp.l	d1,d0
 	bgt	_lab6
@@ -92,11 +94,11 @@ _lab2:
 	pea	_stringconst1
 	jsr	_Ustringprint
 	addq	#4,sp
-	lea	_tempstring1,a0
+	lea	_tempstring1,a1
 	jsr	_inputlong
 	move.l	d0,-20(a4)
-	move.l	#1026,-(sp)
-	move.l	#9,-(sp)
+	move.l	#$402,-(sp)
+	move.l	#$9,-(sp)
 	jsr	_ACEalloc
 	add.l	#8,sp
 	move.l	d0,-(sp)
@@ -133,9 +135,9 @@ _lab5:
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -163,11 +165,11 @@ _lab6:
 	move.w	(sp)+,d0
 	ext.l	d0
 	move.l	d0,-(sp)
-	move.l	#1,-(sp)
+	move.l	#$1,-(sp)
 _lab7:
 	move.l	-12(a4),d0
 	move.l	4(sp),d1
-	cmpi.l	#0,(sp)
+	cmpi.l	#$0,(sp)
 	blt.s	_lab8
 	cmp.l	d1,d0
 	bgt	_lab10
@@ -180,9 +182,9 @@ _lab9:
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -200,7 +202,6 @@ _lab9:
 	jsr	_Ustringprint
 	addq	#4,sp
 	move.w	#20,-(sp)
-	move.w	(sp)+,d0
 	jsr	_horiz_tab
 	move.l	a0,-(sp)
 	jsr	_Ustringprint
@@ -215,7 +216,7 @@ _lab9:
 	move.l	d0,-(sp)
 	jsr	_Ushortprint
 	addq	#4,sp
-	move.l	#2,-(sp)
+	move.l	#$2,-(sp)
 	jsr	_Ucodeprint
 	addq	#4,sp
 	move.l	#0,-(sp)

@@ -1,15 +1,24 @@
 
 	xref _ACEalloc
 	xref _SUB_MAKE.NODE
+	xref _lab1
+	xref _lab2
 	xref _Ustringprint
 	xref _Ucodeprint
 	xref _MathBase
 	xref _strcpy
 	xref _Ustringinput
+	xref _lab5
+	xref _lab6
 	xref _ucase
 	xref _streq
+	xref _lab9
+	xref _lab10
 	xref _cls
+	xref _lab12
+	xref _lab13
 	xref _strne
+	xref _lab14
 	xref _startup
 	xref _cleanup
 	xref _openmathffp
@@ -51,15 +60,15 @@ _intuition_ok:
 _gfx_ok:
 	link	a4,#-28
 
-	move.l	#0,-4(a4)
-	move.l	#0,-8(a4)
-	move.l	#0,-12(a4)
-	move.l	#0,-16(a4)
+	move.l	#$0,-4(a4)
+	move.l	#$0,-8(a4)
+	move.l	#$0,-12(a4)
+	move.l	#$0,-16(a4)
 	jmp	_lab0
 _SUB_MAKE.NODE:
 	link	a5,#0
-	move.l	#1028,-(sp)
-	move.l	#9,-(sp)
+	move.l	#$404,-(sp)
+	move.l	#$9,-(sp)
 	jsr	_ACEalloc
 	add.l	#8,sp
 	move.l	d0,-(sp)
@@ -108,10 +117,10 @@ _lab4:
 	pea	_stringconst2
 	jsr	_Ustringprint
 	addq	#4,sp
-	move.l	#3,-(sp)
+	move.l	#$3,-(sp)
 	jsr	_Ucodeprint
 	addq	#4,sp
-	move.l	#2,-(sp)
+	move.l	#$2,-(sp)
 	jsr	_Ucodeprint
 	addq	#4,sp
 	pea	_tempstring0

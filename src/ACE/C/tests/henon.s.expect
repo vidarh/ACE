@@ -7,31 +7,53 @@
 	xref _LVOSPMul
 	xref _LVOSPDiv
 	xref _round
-	xref _GfxBase
 	xref _RPort
+	xref _GfxBase
 	xref _LVOMove
 	xref _LVOWritePixel
 	xref _MathTransBase
 	xref _LVOSPCos
+	xref _LVOSPExp
 	xref _LVOSPSin
 	xref ace_lrem
 	xref _LVOSetAPen
 	xref _fgdpen
 	xref _bgpen
 	xref _changetextcolor
+	xref _lab6
+	xref _lab7
 	xref _menu_test
+	xref _lab8
 	xref _absf
 	xref _LVOSPCmp
+	xref _lab9
+	xref _lab10
+	xref _lab11
 	xref _LVOSPAdd
+	xref _lab12
+	xref _lab13
+	xref _lab14
+	xref _lab15
+	xref _lab16
 	xref _LVOForbid
 	xref _SUB_SET_UNIVERSAL_POINT
+	xref _lab19
+	xref _lab21
 	xref _openscreen
+	xref _lab23
 	xref _OpenWdw
+	xref _lab24
 	xref _palette
 	xref _ModifyMenu
+	xref _lab25
 	xref _SUB_HENONATTRACTOR
+	xref _lab27
 	xref _sleep
+	xref _lab28
 	xref _MenuFunc
+	xref _lab30
+	xref _lab31
+	xref _lab32
 	xref _CloseWdw
 	xref _closescreen
 	xref _startup
@@ -88,63 +110,58 @@ _SUB_SET_UNIVERSAL_POINT:
 	jsr	_LVOPermit(a6)
 	move.l	-4(a5),-(sp)
 	move.l	#$fffffffffffffffa,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	_MathBase,a6
 	jsr	_LVOSPSub(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.w	#640,-(sp)
 	move.w	(sp)+,d0
 	ext.l	d0
-	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d0
-	move.l	(sp)+,d1
-	move.l	_MathBase,a6
+	move.w	(sp)+,d0
+	move.w	(sp)+,d1
 	jsr	_LVOSPMul(a6)
 	move.l	d0,-(sp)
 	move.l	#$6,-(sp)
 	move.l	#$fffffffffffffffa,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPSub(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
 	jsr	_LVOSPDiv(a6)
 	move.l	d0,-(sp)
 	move.l	(sp)+,-12(a5)
 	move.l	-8(a5),-(sp)
 	move.l	#$fffffffffffffffa,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPSub(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.w	#400,-(sp)
 	move.w	(sp)+,d0
 	ext.l	d0
-	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d0
-	move.l	(sp)+,d1
-	move.l	_MathBase,a6
+	move.w	(sp)+,d0
+	move.w	(sp)+,d1
 	jsr	_LVOSPMul(a6)
 	move.l	d0,-(sp)
 	move.l	#$6,-(sp)
 	move.l	#$fffffffffffffffa,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPSub(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
 	jsr	_LVOSPDiv(a6)
 	move.l	d0,-(sp)
 	move.l	(sp)+,-16(a5)
@@ -162,11 +179,11 @@ _SUB_SET_UNIVERSAL_POINT:
 	move.w	d0,-(sp)
 	move.w	(sp)+,d1
 	move.w	(sp)+,d0
-	move.l	_GfxBase,a6
 	move.l	_RPort,a1
 	move.l	a1,a3
 	move.w	d0,d3
 	move.w	d1,d4
+	move.l	_GfxBase,a6
 	jsr	_LVOMove(a6)
 	move.w	d4,d1
 	move.w	d3,d0
@@ -197,10 +214,12 @@ _SUB_HENONATTRACTOR:
 	move.l	_MathTransBase,a6
 	jsr	_LVOSPCos(a6)
 	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	jsr	_LVOSPExp(a6)
+	move.l	d0,-(sp)
 	move.l	(sp)+,-4(a5)
 	move.l	#$a,-(sp)
 	move.l	(sp)+,d0
-	move.l	_MathTransBase,a6
 	jsr	_LVOSPSin(a6)
 	move.l	d0,-(sp)
 	move.l	(sp)+,-8(a5)
@@ -216,14 +235,14 @@ _SUB_HENONATTRACTOR:
 	move.l	d0,-(sp)
 	move.l	#$6,-(sp)
 	move.l	#$fffffffffffffffa,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	_MathBase,a6
 	jsr	_LVOSPSub(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
 	jsr	_LVOSPDiv(a6)
 	move.l	d0,-(sp)
 	move.l	(sp)+,-28(a5)
@@ -235,14 +254,13 @@ _SUB_HENONATTRACTOR:
 	move.l	d0,-(sp)
 	move.l	#$6,-(sp)
 	move.l	#$fffffffffffffffa,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPSub(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
 	jsr	_LVOSPDiv(a6)
 	move.l	d0,-(sp)
 	move.l	(sp)+,-32(a5)
@@ -255,11 +273,11 @@ _SUB_HENONATTRACTOR:
 	move.w	(sp)+,d0
 	ext.l	d0
 	move.l	d0,-(sp)
-	move.l	#1,-(sp)
+	move.l	#$1,-(sp)
 _lab2:
 	move.l	-40(a5),d0
 	move.l	4(sp),d1
-	cmpi.l	#0,(sp)
+	cmpi.l	#$0,(sp)
 	blt.s	_lab3
 	cmp.l	d1,d0
 	bgt	_lab22
@@ -275,10 +293,11 @@ _lab4:
 	move.l	(sp)+,-36(a5)
 	move.w	-50(a5),-(sp)
 	move.w	#1,-(sp)
-	move.w	(sp)+,d1
 	move.w	(sp)+,d0
+	move.w	(sp)+,d1
 	add.w	d1,d0
-	move.w	d0,-(sp)
+	move.w	(sp)+,d0
+	move.w	(sp)+,d1
 	move.w	(sp)+,d0
 	ext.l	d0
 	move.l	d0,-(sp)
@@ -294,10 +313,11 @@ _lab4:
 	move.w	(sp)+,-50(a5)
 	move.w	-50(a5),-(sp)
 	move.w	#1,-(sp)
-	move.w	(sp)+,d1
 	move.w	(sp)+,d0
+	move.w	(sp)+,d1
 	add.w	d1,d0
-	move.w	d0,-(sp)
+	move.w	(sp)+,d0
+	move.w	(sp)+,d1
 	move.w	(sp)+,d0
 	move.w	d0,_fg
 	move.w	d0,_fgdpen
@@ -306,7 +326,7 @@ _lab4:
 	jsr	_LVOSetAPen(a6)
 	move.w	_bgpen,_bg
 	move.w	_fg,d0
-	move.w	_bg,d0
+	move.w	_bg,d1
 	jsr	_changetextcolor
 _lab5:
 	move.l	-36(a5),-(sp)
@@ -335,7 +355,6 @@ _lab8:
 	move.l	-20(a5),-(sp)
 	move.l	(sp)+,d0
 	jsr	_absf
-	move.l	d0,-(sp)
 	move.l	#$33f50700000,-(sp)
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
@@ -349,7 +368,6 @@ _lab9:
 	move.l	-24(a5),-(sp)
 	move.l	(sp)+,d0
 	jsr	_absf
-	move.l	d0,-(sp)
 	move.l	#$33f50700000,-(sp)
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
@@ -371,79 +389,73 @@ _lab10:
 _lab11:
 	move.l	-20(a5),-(sp)
 	move.l	-4(a5),-(sp)
-	move.l	(sp)+,d0
-	move.l	(sp)+,d1
+	move.w	(sp)+,d0
+	move.w	(sp)+,d1
 	move.l	_MathBase,a6
 	jsr	_LVOSPMul(a6)
 	move.l	d0,-(sp)
 	move.l	-24(a5),-(sp)
 	move.l	-20(a5),-(sp)
 	move.l	-20(a5),-(sp)
-	move.l	(sp)+,d0
-	move.l	(sp)+,d1
-	move.l	_MathBase,a6
+	move.w	(sp)+,d0
+	move.w	(sp)+,d1
 	jsr	_LVOSPMul(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPSub(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	-8(a5),-(sp)
-	move.l	(sp)+,d0
-	move.l	(sp)+,d1
-	move.l	_MathBase,a6
+	move.w	(sp)+,d0
+	move.w	(sp)+,d1
 	jsr	_LVOSPMul(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPSub(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,-12(a5)
 	move.l	-20(a5),-(sp)
 	move.l	-8(a5),-(sp)
-	move.l	(sp)+,d0
-	move.l	(sp)+,d1
-	move.l	_MathBase,a6
+	move.w	(sp)+,d0
+	move.w	(sp)+,d1
 	jsr	_LVOSPMul(a6)
 	move.l	d0,-(sp)
 	move.l	-24(a5),-(sp)
 	move.l	-20(a5),-(sp)
 	move.l	-20(a5),-(sp)
-	move.l	(sp)+,d0
-	move.l	(sp)+,d1
-	move.l	_MathBase,a6
+	move.w	(sp)+,d0
+	move.w	(sp)+,d1
 	jsr	_LVOSPMul(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPSub(a6)
-	move.l	d0,-(sp)
-	move.l	-4(a5),-(sp)
 	move.l	(sp)+,d0
 	move.l	(sp)+,d1
-	move.l	_MathBase,a6
+	move.l	-4(a5),-(sp)
+	move.w	(sp)+,d0
+	move.w	(sp)+,d1
 	jsr	_LVOSPMul(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPAdd(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,-16(a5)
 	move.l	-12(a5),-(sp)
 	move.l	#$fffffffffffffffa,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
+	jsr	_LVOSPSub(a6)
+	move.l	(sp)+,d0
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
-	jsr	_LVOSPSub(a6)
-	move.l	d0,-(sp)
-	move.l	(sp)+,d0
 	jsr	_absf
-	move.l	d0,-(sp)
-	move.l	#2147483647,-(sp)
+	move.l	#$7fffffff,-(sp)
 	move.l	(sp)+,d0
 	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
@@ -457,7 +469,6 @@ _lab11:
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	moveq	#-1,d5
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	blt.s	_lab12
 	moveq	#0,d5
@@ -466,15 +477,15 @@ _lab12:
 	move.l	(sp)+,-44(a5)
 	move.l	#$6,-(sp)
 	move.l	-16(a5),-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	_MathBase,a6
 	jsr	_LVOSPSub(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	jsr	_absf
-	move.l	d0,-(sp)
-	move.l	#2147483647,-(sp)
+	move.l	#$7fffffff,-(sp)
 	move.l	(sp)+,d0
 	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
@@ -488,7 +499,6 @@ _lab12:
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	moveq	#-1,d5
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	blt.s	_lab13
 	moveq	#0,d5
@@ -536,10 +546,11 @@ _lab18:
 	move.w	(sp)+,d0
 	ext.l	d0
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	add.l	d1,d0
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,-36(a5)
 	jsr	_menu_test
 	cmpi.l	#0,d0
@@ -555,16 +566,16 @@ _lab20:
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
 	move.l	#$19,-(sp)
-	move.l	(sp)+,d0
-	move.l	(sp)+,d1
+	move.w	(sp)+,d0
+	move.w	(sp)+,d1
 	move.l	_MathBase,a6
 	jsr	_LVOSPMul(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPAdd(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,-20(a5)
 	move.l	#$10,-(sp)
 	move.l	-40(a5),-(sp)
@@ -573,16 +584,15 @@ _lab20:
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
 	move.l	#$21,-(sp)
-	move.l	(sp)+,d0
-	move.l	(sp)+,d1
-	move.l	_MathBase,a6
+	move.w	(sp)+,d0
+	move.w	(sp)+,d1
 	jsr	_LVOSPMul(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPAdd(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,-24(a5)
 	move.l	(sp),d0
 	add.l	d0,-40(a5)
@@ -660,13 +670,11 @@ _lab24:
 	move.w	#0,-(sp)
 	move.w	(sp)+,d0
 	ext.l	d0
-	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
 	move.w	#0,-(sp)
 	move.w	(sp)+,d0
 	ext.l	d0
-	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
 	move.l	(sp)+,d3
@@ -684,13 +692,11 @@ _lab24:
 	move.w	#1,-(sp)
 	move.w	(sp)+,d0
 	ext.l	d0
-	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
 	move.w	#1,-(sp)
 	move.w	(sp)+,d0
 	ext.l	d0
-	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
 	move.l	(sp)+,d3
@@ -708,13 +714,11 @@ _lab24:
 	move.w	#1,-(sp)
 	move.w	(sp)+,d0
 	ext.l	d0
-	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
 	move.w	#0,-(sp)
 	move.w	(sp)+,d0
 	ext.l	d0
-	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
 	move.l	(sp)+,d3
@@ -732,13 +736,11 @@ _lab24:
 	move.w	#0,-(sp)
 	move.w	(sp)+,d0
 	ext.l	d0
-	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
 	move.w	#0,-(sp)
 	move.w	(sp)+,d0
 	ext.l	d0
-	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
 	move.l	(sp)+,d3
@@ -756,7 +758,6 @@ _lab24:
 	move.w	#1,-(sp)
 	move.w	(sp)+,d0
 	ext.l	d0
-	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
 	move.l	#$7,-(sp)
@@ -818,7 +819,7 @@ _lab24:
 _lab25:
 	jsr	_SUB_HENONATTRACTOR
 _lab26:
-	move.l	#-1,-(sp)
+	move.l	#$ffffffffffffffff,-(sp)
 	move.l	(sp)+,d0
 	cmpi.l	#0,d0
 	bne.s	_lab27

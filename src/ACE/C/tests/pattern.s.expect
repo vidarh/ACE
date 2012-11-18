@@ -30,6 +30,7 @@
 	xref _paint
 	xref _inkey
 	xref _streq
+	xref _lab5
 	xref _sleep
 	xref _CloseWdw
 	xref _closescreen
@@ -93,7 +94,6 @@ _gfx_ok:
 	move.w	#7,-(sp)
 	move.w	(sp)+,d0
 	ext.l	d0
-	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
 	move.l	#$80000041,-(sp)
@@ -105,7 +105,6 @@ _lab0:
 	blt.s	_lab1
 	move.l	-8(a4),d0
 	move.l	4(sp),d1
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	bgt	_lab3
 	jmp	_lab2
@@ -123,9 +122,9 @@ _lab2:
 	move.l	(sp)+,d0
 	move.w	d0,-(sp)
 	moveq	#0,d7
-	move.w	(sp)+,d1
-	ext.l	d1
-	move.l	d1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	move.l	#1,-(sp)
 	jsr	lmulu
 	add.l	#8,sp
@@ -207,13 +206,11 @@ _lab3:
 	move.w	#0,-(sp)
 	move.w	(sp)+,d0
 	ext.l	d0
-	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
 	move.w	#0,-(sp)
 	move.w	(sp)+,d0
 	ext.l	d0
-	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
 	move.l	(sp)+,d3
@@ -231,13 +228,11 @@ _lab3:
 	move.w	#1,-(sp)
 	move.w	(sp)+,d0
 	ext.l	d0
-	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
 	move.w	#1,-(sp)
 	move.w	(sp)+,d0
 	ext.l	d0
-	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
 	move.l	(sp)+,d3
@@ -255,13 +250,11 @@ _lab3:
 	move.w	#1,-(sp)
 	move.w	(sp)+,d0
 	ext.l	d0
-	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
 	move.w	#0,-(sp)
 	move.w	(sp)+,d0
 	ext.l	d0
-	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
 	move.l	(sp)+,d3
@@ -279,13 +272,11 @@ _lab3:
 	move.w	#0,-(sp)
 	move.w	(sp)+,d0
 	ext.l	d0
-	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
 	move.w	#0,-(sp)
 	move.w	(sp)+,d0
 	ext.l	d0
-	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
 	move.l	(sp)+,d3
@@ -293,13 +284,13 @@ _lab3:
 	move.l	(sp)+,d1
 	move.w	(sp)+,d0
 	jsr	_palette
-	move.l	#52428,-(sp)
+	move.l	#$cccc,-(sp)
 	move.l	(sp)+,d0
-	move.l	#0,d1
+	moveq	#0,d1
 	jsr	_linepattern
 	move.l	-4(a4),a0
-	move.l	#8,d0
-	move.l	#0,d1
+	moveq	#8,d0
+	moveq	#0,d1
 	jsr	_areapattern
 	move.w	#320,-(sp)
 	move.w	#0,-(sp)
@@ -330,7 +321,7 @@ _lab3:
 	jsr	_LVOSetAPen(a6)
 	move.w	_bgpen,_bg
 	move.w	_fg,d0
-	move.w	_bg,d0
+	move.w	_bg,d1
 	jsr	_changetextcolor
 	move.w	#0,d0
 	jsr	_areafill
@@ -346,16 +337,13 @@ _lab3:
 	move.w	#3,-(sp)
 	move.w	(sp)+,d0
 	move.l	_RPort,a1
-	move.l	_GfxBase,a6
 	jsr	_LVOSetAPen(a6)
 	move.l	_RPort,a1
-	move.l	_GfxBase,a6
 	move.w	(sp)+,d1
 	move.w	(sp)+,d0
 	jsr	_LVODraw(a6)
 	move.w	_fgdpen,d0
 	move.l	_RPort,a1
-	move.l	_GfxBase,a6
 	jsr	_LVOSetAPen(a6)
 	move.w	#100,-(sp)
 	move.w	#150,-(sp)
@@ -364,7 +352,6 @@ _lab3:
 	move.w	d0,_xmin
 	move.w	d1,_ymin
 	move.l	_RPort,a1
-	move.l	_GfxBase,a6
 	move.w	#200,-(sp)
 	move.w	#200,-(sp)
 	move.w	_xmin,-(sp)
@@ -372,12 +359,10 @@ _lab3:
 	move.w	#2,-(sp)
 	move.w	(sp)+,d0
 	move.l	_RPort,a1
-	move.l	_GfxBase,a6
 	jsr	_LVOSetAPen(a6)
 	move.w	(sp)+,_ymin
 	move.w	(sp)+,_xmin
 	move.l	_RPort,a1
-	move.l	_GfxBase,a6
 	move.w	(sp)+,d3
 	move.w	(sp)+,d2
 	move.w	_ymin,d1
@@ -385,7 +370,6 @@ _lab3:
 	jsr	_LVORectFill(a6)
 	move.w	_fgdpen,d0
 	move.l	_RPort,a1
-	move.l	_GfxBase,a6
 	jsr	_LVOSetAPen(a6)
 	move.w	#100,-(sp)
 	move.w	#100,-(sp)
@@ -403,21 +387,18 @@ _lab3:
 	move.l	(sp)+,d2
 	move.w	(sp)+,_shorty
 	move.w	(sp)+,_shortx
-	move.w	_shortx,d0
-	ext.l	d0
-	move.l	_MathBase,a6
-	jsr	_LVOSPFlt(a6)
-	move.l	d0,_floatx
 	move.w	_shorty,d0
 	ext.l	d0
 	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
-	move.l	d0,_floaty
-	move.l	_floatx,d0
-	move.l	_floaty,d1
+	move.l	d0,-(sp)
+	move.w	_shortx,d0
+	ext.l	d0
+	jsr	_LVOSPFlt(a6)
+	move.l	(sp)+,d1
 	moveq	#0,d3
-	move.l	#$b3800049,d4
-	move.l	#$e147af3f,d5
+	move.l	#3011510345,d4
+	move.l	#3779571519,d5
 	jsr	_ellipse
 	move.w	_fgdpen,d0
 	move.l	_RPort,a1
@@ -431,9 +412,9 @@ _lab3:
 	move.w	(sp)+,d1
 	move.w	(sp)+,d0
 	jsr	_paint
-	move.l	#1,d1
+	moveq	#1,d1
 	jsr	_linepattern
-	move.l	#1,d1
+	moveq	#1,d1
 	jsr	_areapattern
 	move.w	#300,-(sp)
 	move.w	#125,-(sp)
@@ -447,16 +428,13 @@ _lab3:
 	move.w	#2,-(sp)
 	move.w	(sp)+,d0
 	move.l	_RPort,a1
-	move.l	_GfxBase,a6
 	jsr	_LVOSetAPen(a6)
 	move.l	_RPort,a1
-	move.l	_GfxBase,a6
 	move.w	(sp)+,d1
 	move.w	(sp)+,d0
 	jsr	_LVODraw(a6)
 	move.w	_fgdpen,d0
 	move.l	_RPort,a1
-	move.l	_GfxBase,a6
 	jsr	_LVOSetAPen(a6)
 	move.w	#300,-(sp)
 	move.w	#150,-(sp)
@@ -465,7 +443,6 @@ _lab3:
 	move.w	d0,_xmin
 	move.w	d1,_ymin
 	move.l	_RPort,a1
-	move.l	_GfxBase,a6
 	move.w	#400,-(sp)
 	move.w	#199,-(sp)
 	move.w	_xmin,-(sp)
@@ -473,12 +450,10 @@ _lab3:
 	move.w	#3,-(sp)
 	move.w	(sp)+,d0
 	move.l	_RPort,a1
-	move.l	_GfxBase,a6
 	jsr	_LVOSetAPen(a6)
 	move.w	(sp)+,_ymin
 	move.w	(sp)+,_xmin
 	move.l	_RPort,a1
-	move.l	_GfxBase,a6
 	move.w	(sp)+,d3
 	move.w	(sp)+,d2
 	move.w	_ymin,d1
@@ -486,7 +461,6 @@ _lab3:
 	jsr	_LVORectFill(a6)
 	move.w	_fgdpen,d0
 	move.l	_RPort,a1
-	move.l	_GfxBase,a6
 	jsr	_LVOSetAPen(a6)
 _lab4:
 	jsr	_inkey
@@ -551,8 +525,6 @@ _xmin	ds.w 1
 _ymin	ds.w 1
 _shortx	ds.w 1
 _shorty	ds.w 1
-_floatx	ds.l 1
-_floaty	ds.l 1
 _dataptr:	ds.l 1
 _initialSP:	ds.l 1
 

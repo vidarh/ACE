@@ -265,7 +265,7 @@ _lab6:
 	jsr	_LVOSetAPen(a6)
 	move.w	_bgpen,_bg
 	move.w	_fg,d0
-	move.w	_bg,d0
+	move.w	_bg,d1
 	jsr	_changetextcolor
 	move.w	#18,-(sp)
 	move.w	-12(a4),-(sp)
@@ -320,7 +320,7 @@ _lab6:
 	jsr	_LVOSetAPen(a6)
 	move.w	_bgpen,_bg
 	move.w	_fg,d0
-	move.w	_bg,d0
+	move.w	_bg,d1
 	jsr	_changetextcolor
 	move.w	#18,-(sp)
 	move.w	-12(a4),-(sp)
@@ -375,7 +375,7 @@ _lab6:
 	jsr	_LVOSetAPen(a6)
 	move.w	_bgpen,_bg
 	move.w	_fg,d0
-	move.w	_bg,d0
+	move.w	_bg,d1
 	jsr	_changetextcolor
 	move.w	#18,-(sp)
 	move.w	-12(a4),-(sp)
@@ -430,7 +430,7 @@ _lab6:
 	jsr	_LVOSetAPen(a6)
 	move.w	_bgpen,_bg
 	move.w	_fg,d0
-	move.w	_bg,d0
+	move.w	_bg,d1
 	jsr	_changetextcolor
 	move.w	#18,-(sp)
 	move.w	-12(a4),-(sp)
@@ -492,9 +492,12 @@ _lab9:
 	jsr	_sleep
 	jmp	_lab8
 _lab10:
+	move.w	#1,-(sp)
+	move.w	(sp)+,d0
+	ext.l	d0
+	move.l	d0,-(sp)
 	jsr	_CloseWdw
 	addq	#4,sp
-	move.l	d0,-(sp)
 	move.w	#1,-(sp)
 	move.w	(sp)+,d0
 	jsr	_closescreen

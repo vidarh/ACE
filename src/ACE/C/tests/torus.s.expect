@@ -11,6 +11,7 @@
 	xref _turnright
 	xref _inkey
 	xref _streq
+	xref _lab9
 	xref _CloseWdw
 	xref _closescreen
 	xref _startup

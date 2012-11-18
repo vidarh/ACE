@@ -25,6 +25,7 @@
 	xref _inkey
 	xref _ucase
 	xref _strne
+	xref _lab11
 	xref _CloseWdw
 	xref _startup
 	xref _cleanup
@@ -120,10 +121,9 @@ _gfx_ok:
 	move.w	d0,_bg
 	move.w	d0,_bgpen
 	move.l	_RPort,a1
-	move.l	_GfxBase,a6
 	jsr	_LVOSetBPen(a6)
 	move.w	_fg,d0
-	move.w	_bg,d0
+	move.w	_bg,d1
 	jsr	_changetextcolor
 	jsr	_cls
 	jmp	_lab0

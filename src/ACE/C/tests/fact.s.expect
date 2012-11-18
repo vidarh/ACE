@@ -4,6 +4,8 @@
 	xref _MathBase
 	xref _LVOSPFlt
 	xref _LVOSPCmp
+	xref _lab1
+	xref _lab2
 	xref _LVOSPSub
 	xref _LVOForbid
 	xref _SUB_FACT
@@ -12,7 +14,13 @@
 	xref _Ustringprint
 	xref _inputsingle
 	xref _MathTransBase
+	xref _lab7
+	xref _lab8
+	xref _lab9
+	xref _lab10
 	xref _Usingleprint
+	xref _lab12
+	xref _lab13
 	xref _startup
 	xref _cleanup
 	xref _openmathffp
@@ -76,7 +84,6 @@ _SUB_FACT:
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	moveq	#-1,d5
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	blt.s	_lab1
 	moveq	#0,d5
@@ -104,19 +111,19 @@ _lab3:
 	move.l	_MathBase,a6
 	jsr	_LVOSPFlt(a6)
 	move.l	d0,-(sp)
-	move.l	(sp)+,d1
 	move.l	(sp)+,d0
-	move.l	_MathBase,a6
+	move.l	(sp)+,d1
 	jsr	_LVOSPSub(a6)
-	move.l	d0,-(sp)
+	move.l	(sp)+,d0
+	move.l	(sp)+,d1
 	move.l	(sp)+,-8(a5)
 	move.l	_AbsExecBase,a6
 	jsr	_LVOForbid(a6)
 	move.l	-8(a5),-12(sp)
 	jsr	_SUB_FACT
 	move.l	-4(a4),-(sp)
-	move.l	(sp)+,d0
-	move.l	(sp)+,d1
+	move.w	(sp)+,d0
+	move.w	(sp)+,d1
 	move.l	_MathBase,a6
 	jsr	_LVOSPMul(a6)
 	move.l	d0,-(sp)
@@ -134,7 +141,7 @@ _lab6:
 	pea	_stringconst0
 	jsr	_Ustringprint
 	addq	#4,sp
-	lea	_tempstring0,a0
+	lea	_tempstring0,a1
 	jsr	_inputsingle
 	move.l	d0,-8(a4)
 	move.l	-8(a4),-(sp)
@@ -148,7 +155,6 @@ _lab6:
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	moveq	#-1,d5
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	bge.s	_lab7
 	moveq	#0,d5
@@ -170,7 +176,6 @@ _lab8:
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	moveq	#-1,d5
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	bne.s	_lab9
 	moveq	#0,d5
@@ -193,7 +198,7 @@ _lab10:
 	move.l	-4(a4),-(sp)
 	jsr	_Usingleprint
 	addq	#4,sp
-	move.l	#2,-(sp)
+	move.l	#$2,-(sp)
 	jsr	_Ucodeprint
 	addq	#4,sp
 	move.l	#0,-(sp)
@@ -211,7 +216,6 @@ _lab11:
 	move.l	(sp)+,d1
 	move.l	(sp)+,d0
 	moveq	#-1,d5
-	move.l	_MathBase,a6
 	jsr	_LVOSPCmp(a6)
 	beq.s	_lab12
 	moveq	#0,d5
