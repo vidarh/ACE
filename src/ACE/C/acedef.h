@@ -97,6 +97,7 @@ struct ParseSequence {
 extern struct ParseSequence seq_window[];
 extern struct ParseSequence seq_gadget[];
 extern struct ParseSequence seq_iff[];
+extern struct ParseSequence seq_screen[];
 
 /* AmigaBASIC reserved words */
 enum { 	abssym = 0,

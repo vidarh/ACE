@@ -37,9 +37,8 @@ void	screen() {
   insymbol();
 
   /* SCREEN CLOSE screen-id */
-  if (eat(closesym)) {
-	gen_pop_as_short(expr(),0); /* screen-id */
-	gen_jsr("_closescreen");
+
+  if (parse_alt_sequence(seq_screen,1)) {
   } else if (sym == forwardsym || sym == backsym) {
       /* SCREEN FORWARD|BACK screen-id */
       rword = sym;

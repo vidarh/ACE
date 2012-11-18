@@ -39,3 +39,8 @@ struct ParseSequence seq_iff[] = {
     {closesym, {"i#l",   {0},  "_IFFPicClose",4, ""}}
 };
 
+/* SCREEN CLOSE <screen-id> */
+
+struct ParseSequence seq_screen[] = {
+    {closesym, {"iw",    {0},  "_closescreen",0, "d0.w"}}
+};
