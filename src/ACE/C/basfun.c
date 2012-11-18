@@ -49,6 +49,8 @@
 	   10th March 1996
 */
 
+#include <assert.h>
+
 #include "acedef.h"
 #include "codegen.h" 
 /* locals */
@@ -250,6 +252,9 @@ BOOL parse_call_func_args(const char * args, const char * def) {
         case 'l':
             if (!long_expr()) return FALSE;
             break;
+        case 'f':
+            gen_Flt(expr());
+            break;
         case 'w':
             if (make_sure_short(expr()) == undefined) return undefined;
             break;
@@ -302,6 +307,7 @@ BOOL parse_call_func_args(const char * args, const char * def) {
 BOOL parse_call_func(const struct Function * f) {
     fprintf(stderr,"pcf '%s'\n",f->call);
     if (!parse_call_func_args(f->args,f->defaults)) return FALSE;
+    assert(f->callargs);
     gen_call_args(f->call, f->callargs, f->stackadj);
     return TRUE;
 }

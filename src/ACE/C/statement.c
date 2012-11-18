@@ -333,6 +333,7 @@ static void handle_label(char * label_name)
 struct Function f_font     = {"is,l",{},"_change_text_font", 8, ""};
 struct Function f_style    = {"il",  {},"_change_text_style",4, ""}; 
 struct Function f_bevelbox = {"ir,l",{},"_BevelBox",20, ""};
+struct Function f_palette  = {"iw,f,f,f",{}, "_palette", 0, "d3,d2,d1,d0.w"};
 
 void statement()
 {
@@ -544,7 +545,8 @@ BOOL  need_symbol=TRUE;
 
    case scrollsym:    if (parse_gen_params(0,"ir,w,w")) gen_scrollraster(); break; 
 
-   case palettesym:   insymbol(); gen_fcall("_palette",expr(),"w,f,f,f",notype,"d3,d2,d1,d0.w",0); break;
+   case palettesym:   parse_call_func(&f_palette); break;
+
    case setxysym:     insymbol(); gen_fcall("_setxy",expr(),"w,w",shorttype,"d1.w,d0.w",0); break; 
    case turnsym:      insymbol(); gen_fcall("_turn",expr(),"w",shorttype,"d0.w",0); break;
    case turnleftsym:  insymbol(); gen_fcall("_turnleft",expr(),"w",shorttype,"d0.w",0); break;
@@ -553,8 +555,7 @@ BOOL  need_symbol=TRUE;
 
    case backsym: 
 	 insymbol();
-	 gen_Flt(expr());
-	 gen_call_args("_back","d0",0);
+	 gen_fcall("_back", expr(), "f",notype,"d0",0);
 	 enter_XREF("_MathTransBase");
 	 break;
 
