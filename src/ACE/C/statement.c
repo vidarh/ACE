@@ -543,7 +543,7 @@ BOOL  need_symbol=TRUE;
    case stylesym:     parse_call_func(&f_style); break;
    case bevelboxsym:  parse_call_func(&f_bevelbox); break;
 
-   case scrollsym:    if (parse_gen_params(0,"ir,w,w")) gen_scrollraster(); break; 
+   case scrollsym:    if (parse_call_func_args("ir,w,w",0)) gen_scrollraster(); break; 
 
    case palettesym:   parse_call_func(&f_palette); break;
 

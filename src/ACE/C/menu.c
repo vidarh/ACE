@@ -45,7 +45,7 @@ void menu() {
     if (eat(clearsym)) gen_jsr("_ClearMenu");
     else if (eat(waitsym)) gen_jsr("_WaitMenu");
     else {
-        parse_gen_params(expr(),"l,l,l"); /* menu-id,item-id,state */
+        parse_call_func_args("l,l,l",0); /* menu-id,item-id,state */
         if (!peek(comma)) {
             gen_call_void("_ChangeMenuState",12);
             return;	
