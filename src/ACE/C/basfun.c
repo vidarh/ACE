@@ -867,39 +867,52 @@ int address_of_object() {
   else { _error(43); return(undefined); }
 }
 
+static int type_to_size(SYM * item) {
+    int type = item->type;
+    if (type == shorttype) return 2;
+    if (type == longtype)   return 4;
+    if (type == singletype) return 4;
+    if (type == stringtype) return (long)item->size;
+    assert(0); /* Should not get here */
+}
+
+static int typesym_to_size(int s) {
+    if (s == bytesym) return 1;
+    if (s == shortintsym) return 2;
+    if (s == longintsym || s == addresssym) return 4;
+    if (s == singlesym) return 4;
+    if (s == stringsym) return MAXSTRLEN;
+    return 0;
+}
+
 /* push the size (in bytes)  of a data object or type onto the stack.  */
 static int find_object_size() {
-  int   nftype=longtype;
-  if (sym == ident) {
-	/* variable */
-	if (exist(id,variable)) {
-	  if (curr_item->type == shorttype)       gen_push32_val(2); 
-	  else if (curr_item->type == longtype)   gen_push32_val(4); 
-	  else if (curr_item->type == singletype) gen_push32_val(4); 
-	  else if (curr_item->type == stringtype) gen_push32_val((long)curr_item->size);
-	} else if (exist(id,array) || exist(id,structdef)) {
-	  /* array variable or structure definition */
-	  gen_push32_val((long)curr_item->size);
-	} else  if (exist(id,structure)) { /* structure variable */
-	  gen_push32_val((long)curr_item->other->size);
-	} else {
-	  _error(43);	 /* undeclared array or variable */
-	  nftype=undefined;
-	}
-  }  else {
-	/* type identifier? */
-   if (sym == bytesym) gen_push32_val(1); 
-   else if (sym == shortintsym) gen_push32_val(2); 
-   else if (sym == longintsym || sym == addresssym) gen_push32_val(4); 
-   else if (sym == singlesym) gen_push32_val(4); 
-   else if (sym == stringsym) gen_push32_val(MAXSTRLEN);
-   else {
-	 /* expected an identifier or type */
-	 _error(60);
-	 nftype=undefined;
-   }
- }
-
- insymbol();
- return(nftype);
+    int   nftype=longtype;
+    if (sym == ident) {
+        /* variable */
+        if (exist(id,variable)) {
+            gen_push32_val(type_to_size(curr_item));
+        } else if (exist(id,array) || exist(id,structdef)) {
+            /* array variable or structure definition */
+            gen_push32_val((long)curr_item->size);
+        } else  if (exist(id,structure)) { /* structure variable */
+            gen_push32_val((long)curr_item->other->size);
+        } else {
+            _error(43);	 /* undeclared array or variable */
+            nftype=undefined;
+        }
+    }  else {
+        /* type identifier? */
+        int size = typesym_to_size(sym);
+        if (size > 0) gen_push32_val(size);
+        else {
+            /* expected an identifier or type */
+            _error(60);
+            nftype=undefined;
+        }
+    }
+    
+    insymbol();
+    return(nftype);
 }
+    
