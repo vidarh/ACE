@@ -327,7 +327,6 @@ void gen_load_indirect_addr(unsigned char ar, unsigned char dest) {
 
 void gen_ext8to16(BYTE d)  { gen("ext.w",dreg[d],"  "); }
 void gen_ext16to32(BYTE d) { gen("ext.l",dreg[d],"  "); }
-void gen_ext8to32(BYTE d) { gen_ext8to16(d); gen_ext16to32(d); }
 
 void gen_cmp32_val(long val, const char * target) {
   char buf[16];
