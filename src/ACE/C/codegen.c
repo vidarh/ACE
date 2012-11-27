@@ -579,6 +579,11 @@ void gen_pop16d(unsigned char reg) {
   gen("move.w","(sp)+",dreg[reg]);
 }
 
+void gen_pop(int type) {
+    if (type == shorttype) gen_pop16d(0); /* short */
+    else gen_pop32d(0); /* long, single, string */
+}
+
 void gen_push_addr(unsigned char reg) {
   gen("move.l",areg[reg],"-(sp)");
 }

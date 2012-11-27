@@ -266,39 +266,31 @@ static void call_statement() {
 }
 
 
-/* ------*/
-/* sound */
-/* ------*/
 
+/* SOUND period, duration [,volume][,voice] 
+   period (short) 0..32767 
+   duration (single) 0..77 
+   volume (short) 0..64; default = 64
+   voice (short) 0..3; defau;t = 0
+
+   make a tone of given period, duration and volume through 
+   the specified channel 
+*/
 static void sound() {
-/* make a tone of given period, duration and volume through 
-   the specified channel */
-
-    BOOL voice=FALSE;
-    BOOL volume=FALSE;
-
-    insymbol();
-    make_sure_short(expr());  /* period (short) 0..32767 */ 
-
-    if (eat_comma()) {
-        gen_Flt(expr());  /* duration (single) 0..77 */
-    }
+    parse_call_func_args("iw,f",0);
 
     if (try_comma()) {
         if (sym != comma) {  /* if comma -> skip volume */
             make_sure_short(expr());  /* volume (short) 0..64 */
-            volume=TRUE;
+            gen_pop16d(2);  /* pop volume */
         } else gen_load32d_val(64,2);   /* default volume = 64 */
     } else gen_load32d_val(64,2);   /* default volume = 64 */
 
     if (try_comma()) {
         make_sure_short(expr());  /* voice (short) 0..3 */
-        voice=TRUE;
+        gen_pop16d(3);  /* pop voice */
     } else gen_load32d_val(0,3);   /* default voice = 0 */
     
-    if (voice)  gen_pop16d(3);  /* pop voice */
-    if (volume) gen_pop16d(2);  /* pop volume */
-
     gen_call_args("_sound","d1,d0.w",0);
     enter_XREF("_MathBase");
 }   

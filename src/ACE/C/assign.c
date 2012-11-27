@@ -383,11 +383,8 @@ void assign() {
 		  /* longtype or singletype */
 		  gen_pop32_var(addrbuf);
 	  } else {
-		/* External subprogram being assigned a value */
-		if (storage_item->type == shorttype) gen_pop16d(0);
-		else
-		  /* longint, single, string */
-		  gen_pop32d(0);
+          /* External subprogram being assigned a value */
+          gen_pop(storage_item->type);
 	  }
 	  break;
 		 
