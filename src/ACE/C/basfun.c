@@ -427,7 +427,6 @@ int stringfunction()
    case ptabsym:     sftype = gen_fcall("_ptab", sftype,"w",stringtype,":a0",0); break;
    case tabsym:      sftype = gen_fcall("_horiz_tab",sftype,"w",stringtype,":a0",0); break;
    case ucasestrsym: sftype = gen_fcall("_ucase",sftype,"s",stringtype,"a1,t0:a0",0); break;
-
    case binstrsym:   sftype = gen_fcall("_binstr",sftype,"l",stringtype,"t0,d0:a0",0); break;
    case inputstrsym: sftype = gen_fcall("_inputstrfromfile",sftype,"E l,#l", stringtype, "d0,d1",0); break;     
 
@@ -698,26 +697,21 @@ int numericfunction() {
 	break; 
 
   case abssym : /* n */
-	if (nftype == shorttype) gen_call_args("_absw","d0.w : d0.w",0);
-	else if (nftype == longtype) gen_call_args("_absl","d0 : d0",0);
-	else if (nftype == singletype) {
-	  gen_call_args("_absf", "d0 : d0",0);
-	  enter_XREF("_MathBase");
-	} else { _error(4); nftype=undefined; }
-	break;
+      if (nftype == shorttype) gen_call_args("_absw","d0.w : d0.w",0);
+      else if (nftype == longtype) gen_call_args("_absl","d0 : d0",0);
+      else if (nftype == singletype) {
+          gen_call_args("_absf", "d0 : d0",0);
+          enter_XREF("_MathBase");
+      } else { _error(4); nftype=undefined; }
+      break;
 	
 	
-  case pointsym :	/* w,w */
-	if ((nftype = parse_gen_params(nftype,"w,w"))  != undefined) gen_point();
-	break;
-	
-  case shlsym  : /* l,l */
-	if ((nftype = parse_gen_params(nftype,"l,l")) != undefined) gen_shl();
-	break;
-	
-  case shrsym  : /* l, l */
-	if ((nftype = parse_gen_params(nftype,"l,l")) != undefined) gen_shl(); 
-	break;
+  case pointsym:
+      if ((nftype = parse_gen_params(nftype,"w,w"))  != undefined) gen_point(); break;
+  case shlsym:
+      if ((nftype = parse_gen_params(nftype,"l,l")) != undefined) gen_shl(); break;
+  case shrsym:
+      if ((nftype = parse_gen_params(nftype,"l,l")) != undefined) gen_shl(); break;
 
   case atnsym: nftype = gen_single_func(&gen_atan,nftype); break;
   case cossym: nftype = gen_single_func(&gen_cos,nftype);
