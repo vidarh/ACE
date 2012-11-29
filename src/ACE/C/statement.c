@@ -83,6 +83,7 @@ extern	BOOL 	have_equal;
 extern	BOOL	narratorused;
 extern	BOOL	end_of_source;
 extern	char 	exit_sub_name[80];
+extern	BOOL	iffused;
 
 int   statetype; /* Used by randomize and wave */
 
@@ -497,7 +498,11 @@ BOOL  need_symbol=TRUE;
    case datasym:     get_data(); break;
    case declaresym:  declare(); break;
    case dimsym:      dim(); break;
-   case iffsym:      iff(); break;
+   case iffsym:
+       insymbol();
+       parse_alt_sequence(seq_iff,3);
+       iffused = TRUE;
+       break;
    case killsym:     kill(); break;
    case externalsym: define_external_object(); break;
    case filessym:    files(); break;
