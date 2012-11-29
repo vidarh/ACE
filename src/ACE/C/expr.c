@@ -61,9 +61,7 @@ BOOL coerce(int * typ1,int * typ2,CODE * cx[])
    return(TRUE);
  }
  if ((*typ1 == shorttype) && (*typ2 == longtype))  {
-   change(cx[0],"move.w","(sp)+","d0");
-   change(cx[1],"ext.l","d0","  ");
-   change(cx[2],"move.l","d0","-(sp)");
+     coerce_word_to_long(cx);
    *typ1=longtype;
    return(TRUE);
  }
@@ -362,8 +360,6 @@ static int modterm()
 		
 		if (localtype == longtype) gen_lmod();
 		else {
-		  gen_pop32d(1);   /* divisor */
-		  gen_pop32d(0);   /* dividend */
 		  gen_fmod();
 		  localtype=singletype;
 		}
@@ -468,19 +464,8 @@ static int andexpr() { return generic_expr(andsym, &notexpr,&gen_and); }
 static int eorexpr() { return generic_expr(orsym, &andexpr,&gen_or); }
 static int orexpr() { return generic_expr(orsym, &eorexpr,&gen_eor); }
 
-static void gen_eqv(int localtype) {
-  if (localtype == shorttype) gen_jsr("_eqvw");
-  else gen_jsr("_eqvl");
-}
-
 static int eqvexpr() {
   return generic_expr(eqvsym,&orexpr,&gen_eqv);
-}
-
-void gen_imp(int type) {
-  if (type == shorttype) gen_jsr("_impw");
-  else gen_jsr("_impl");
-  push_result(type);
 }
 
 int expr() {

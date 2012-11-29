@@ -1106,11 +1106,32 @@ void gen_str_concat()
   gen_pea(tempstrname);
 }
 
+void coerce_word_to_long(CODE * cx[]) {
+   change(cx[0],"move.w","(sp)+","d0");
+   change(cx[1],"ext.l","d0","  ");
+   change(cx[2],"move.l","d0","-(sp)");
+}
+
+void gen_eqv(int localtype) {
+  if (localtype == shorttype) gen_jsr("_eqvw");
+  else gen_jsr("_eqvl");
+}
+
+
+void gen_imp(int type) {
+  if (type == shorttype) gen_jsr("_impw");
+  else gen_jsr("_impl");
+  push_result(type);
+}
+
+
 void gen_fmod() 
 {
-  /* single MOD */
-  gen_call("_modffp",0);
-  enter_XREF("_MathBase");
+    /* single MOD */
+    gen_pop32d(1);   /* divisor */
+    gen_pop32d(0);   /* dividend */
+    gen_call("_modffp",0);
+    enter_XREF("_MathBase");
 }
 
 void gen_translate() { 

@@ -96,6 +96,8 @@ void generic_ret();
 
 void gen_push_address(unsigned short indir, const char * addrbuf, int typ);
 
+void gen_eqv(int localtype);
+void gen_imp(int type);
 void gen_flt(void);
 void gen_move32(const char * src, const char * dest);
 
