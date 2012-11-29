@@ -483,6 +483,7 @@ BOOL  need_symbol=TRUE;
    case printssym:   check_for_event(); prints_statement(); break;
    case readsym:     check_for_event(); read_data(); break;
    case writesym:    check_for_event(); write_to_file(); break;
+   case returnsym:   check_for_event(); gen_rts(); insymbol(); break;
 
    case screensym:   screen(); check_for_event(); break;
    case windowsym:   window(); check_for_event(); break;
@@ -535,26 +536,21 @@ BOOL  need_symbol=TRUE;
    case homesym:      gen_jsr("_home"); insymbol(); break;
    case pendownsym:   gen_jsr("_pendown"); insymbol(); break;
    case penupsym:     gen_jsr("_penup"); insymbol(); break;
+   case beepsym:      gen_jsr("_beep"); insymbol(); enter_XREF("_MathBase"); break;
 
    case fontsym:      parse_call_func(&f_font); break;
    case stylesym:     parse_call_func(&f_style); break;
    case bevelboxsym:  parse_call_func(&f_bevelbox); break;
+   case palettesym:   parse_call_func(&f_palette); break;
 
    case scrollsym:    if (parse_call_func_args("ir,w,w",0)) gen_scrollraster(); break; 
-
-   case palettesym:   parse_call_func(&f_palette); break;
 
    case setxysym:     insymbol(); gen_fcall("_setxy",expr(),"w,w",shorttype,"d1.w,d0.w",0); break; 
    case turnsym:      insymbol(); gen_fcall("_turn",expr(),"w",shorttype,"d0.w",0); break;
    case turnleftsym:  insymbol(); gen_fcall("_turnleft",expr(),"w",shorttype,"d0.w",0); break;
    case turnrightsym: insymbol(); gen_fcall("_turnright",expr(),"w",shorttype,"d0.w",0); break;
    case fixsym:       insymbol(); gen_fcall("_fix",expr(),"l",longtype,"d0",0); break;
-
-   case backsym: 
-	 insymbol();
-	 gen_fcall("_back", expr(), "f",notype,"d0",0);
-	 enter_XREF("_MathTransBase");
-	 break;
+   case backsym:      insymbol(); gen_fcall("_back", expr(), "f",notype,"d0",0); enter_XREF("_MathTransBase"); break;
 
    case forwardsym:
 	 insymbol();
@@ -563,16 +559,9 @@ BOOL  need_symbol=TRUE;
 	 enter_XREF("_MathTransBase");
 	 break;
 
-   case beepsym: 
-	 gen_jsr("_beep");
-	 enter_XREF("_MathBase");  /* _sound needs mathffp.library */
-	 insymbol();
-	 break;
-
    case clearsym:
 	 insymbol(); 
-	 if (sym == allocsym) { gen_jsr("_clear_alloc"); }
-	 insymbol();
+	 if (eat(allocsym)) { gen_jsr("_clear_alloc"); }
 	 break;
 	 
    case endsym:
@@ -692,11 +681,6 @@ BOOL  need_symbol=TRUE;
    enter_XREF("_MathBase");
    break;
  case restoresym: gen_move32("#_BASICdata","_dataptr"); insymbol(); break;
- case returnsym: 
-   check_for_event();
-   gen_rts();
-   insymbol();
-   break;
  case setheadingsym: 
    insymbol();
    gen_pop_as_short(expr(),0);
