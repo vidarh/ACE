@@ -4097,7 +4097,7 @@ _lab215:
 	beq.s	_lab216
 	jsr	HANDLE_MENU
 _lab216:
-	move.w	_dataptr,-(sp)
+	move.l	_dataptr,-(sp)
 	pea	_stringvar2
 	move.l	(sp)+,-12(a5)
 	move.l	(sp)+,a1

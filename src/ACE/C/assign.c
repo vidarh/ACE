@@ -736,15 +736,12 @@ void read_data() {
 	  if (typ != stringtype) gen_load32a("_dataptr",1);   /* for _htol */
 
 	  if (storage->type == stringtype) {
-		gen_push16_var("_dataptr"); /* addr of source */
+		gen_push32_var("_dataptr"); /* addr of source */
 		if (storage->object == variable) assign_to_string_variable(storage,MAXSTRLEN);
 		else if (storage->object == array) assign_to_string_array(addrbuf);
 	  } else {
 		gen_jsr("_htol"); /* return LONG from (a1) */
 
-		/* FIXME: Why push the result only for long and short, and then proceed to treat floats completely different?
-		 * It looks like the float(single) and long cases could be entirely the same.
-		 */
 		if (storage->type == longtype) {
 		  push_result(longtype);
 		  make_integer(singletype);
