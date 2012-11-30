@@ -732,39 +732,38 @@ void read_data() {
 	  /* is it an array? (this must already have been dimensioned!) */
 	  if (storage->object == array) point_to_array(storage, addrbuf);
 
-	  /* get next item from DATA list */
-	  if (typ != stringtype) gen_load32a("_dataptr",1);   /* for _htol */
 
 	  if (storage->type == stringtype) {
-		gen_push32_var("_dataptr"); /* addr of source */
-		if (storage->object == variable) assign_to_string_variable(storage,MAXSTRLEN);
-		else if (storage->object == array) assign_to_string_array(addrbuf);
+          gen_dataptr_push(); /* addr of source */
+          if (storage->object == variable) assign_to_string_variable(storage,MAXSTRLEN);
+          else if (storage->object == array) assign_to_string_array(addrbuf);
 	  } else {
-		gen_jsr("_htol"); /* return LONG from (a1) */
+          /* get next item from DATA list and call htol */
+          gen_dataptr_htol(); /* return LONG from (a1) */
 
-		if (storage->type == longtype) {
-		  push_result(longtype);
-		  make_integer(singletype);
-		} else if (storage->type == shorttype) {
-		  push_result(longtype);
-		  make_sure_short(singletype);
-		}
+          if (storage->type == longtype) {
+              push_result(longtype);
+              make_integer(singletype);
+          } else if (storage->type == shorttype) {
+              push_result(longtype);
+              make_sure_short(singletype);
+          }
 
-		if (storage->object == variable) {
-		  if ((storage->shared) && (lev == ONE)) {
-			gen_load32a(addrbuf,0);   /* abs addr of store */
-			if (storage->type == singletype)     gen_save_indirect32();
-            else gen_pop_indirect(storage->type);
-		  } else {
-			if (storage->type == singletype)     gen_save32d(0,addrbuf);
-			else if (storage->type == longtype)  gen_pop32_var(addrbuf);
-			else if (storage->type == shorttype) gen_pop16_var(addrbuf);
-		  }
-		} else if (storage->object == array) {
-		  if (storage->type == singletype)       gen_save_indirect_indexed32("d0");
-		  else if (storage->type == longtype)    gen_pop_indirect_indexed32(2,7);
-		  else if (storage->type == shorttype)   gen_pop_indirect_indexed16(2,7);
-		}
+          if (storage->object == variable) {
+              if ((storage->shared) && (lev == ONE)) {
+                  gen_load32a(addrbuf,0);   /* abs addr of store */
+                  if (storage->type == singletype)     gen_save_indirect32();
+                  else gen_pop_indirect(storage->type);
+              } else {
+                  if (storage->type == singletype)     gen_save32d(0,addrbuf);
+                  else if (storage->type == longtype)  gen_pop32_var(addrbuf);
+                  else if (storage->type == shorttype) gen_pop16_var(addrbuf);
+              }
+          } else if (storage->object == array) {
+              if (storage->type == singletype)       gen_save_indirect_indexed32("d0");
+              else if (storage->type == longtype)    gen_pop_indirect_indexed32(2,7);
+              else if (storage->type == shorttype)   gen_pop_indirect_indexed16(2,7);
+          }
 	  }
 	} else _error(19);  /* variable expected */ 			
 

@@ -198,6 +198,18 @@ void gen_move(const char * src, const char *dest, int type) {
     else gen_move32(src,dest);
 }
 
+void gen_dataptr_push()
+{
+    gen_push32_var("_dataptr");
+}
+
+void gen_dataptr_htol()
+{
+    gen_load32a("_dataptr",1);
+    gen_jsr("_htol"); /* return LONG from (a1) */
+}
+
+
 void gen_dataptr_next()
 {
 	/* advance to next DATA item */
