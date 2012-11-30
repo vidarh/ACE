@@ -793,12 +793,9 @@ int address_of_object() {
 		  }
 		  if (!found) _error(67);  /* not a valid member */
 		  else {
-			/* push address of struct member */
-			gen_load_indirect_addr(0,0);
-			gen_add_addr_offset((long)member->offset);
-			gen_push_addr(0);
-			/* store type for SWAP command */
-			struct_member_type = member->type;	  	
+              gen_push_member_addr((long)member->offset);
+              /* store type for SWAP command */
+              struct_member_type = member->type;	  	
 		  }
 		}
 		insymbol();

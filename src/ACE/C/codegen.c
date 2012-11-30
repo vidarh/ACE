@@ -358,6 +358,13 @@ void gen_load_indirect_addr(unsigned char ar, unsigned char dest) {
   gen("movea.l", buf, areg[dest]);
 }
 
+void gen_push_member_addr(long offset) {
+    /* push address of struct member */
+    gen_load_indirect_addr(0,0);
+    gen_add_addr_offset(offset);
+    gen_push_addr(0);
+}
+
 void gen_ext8to16(BYTE d)  { gen("ext.w",dreg[d],"  "); }
 void gen_ext16to32(BYTE d) { gen("ext.l",dreg[d],"  "); }
 
@@ -1274,7 +1281,30 @@ void gen_writepixel() { gen_libcall("WritePixel", "Gfx"); }
 void gen_paint() { gen_call_args("_paint","d1.w,d0.w",0); }
 void gen_flt() { gen_libcall("SPFlt","Math"); }
 void gen_draw() { gen_libcall("Draw","Gfx"); }
-void gen_rectfill() { gen_libcall("RectFill","Gfx"); }
+
+void gen_box() {
+	gen_pop16d(5);  /* y2 */
+	gen_pop16d(4);  /* x2 */
+	gen_load16d("_ymin",3); /* y1 */
+	gen_load16d("_xmin",2); /* x1 */
+	/* x1=d2; y1=d3 x2=d4; y2=d5 */
+	/* already moved to x1,y1 */
+
+	gen_line_to(4,3); /* x1,y1 - x2,y1 */
+	gen_line_to(4,5); /* x2,y1 - x2,y2 */
+    gen_line_to(2,5); /* x2,y2 - x1,y2 */
+	gen_line_to(2,3); /* x1,y2 - x1,y1 */
+}
+
+void gen_rectfill() { 
+    gen_load_rport();
+	gen_pop16d(3);  /* ymax */
+	gen_pop16d(2);  /* xmax */
+	gen_load16d("_ymin",1); /* ymin */
+	gen_load16d("_xmin",0); /* xmin */
+    gen_libcall("RectFill","Gfx"); 
+}
+
 void gen_scrollraster() { 
   /* pop parameters */
   gen_pop16d(1);		/* delta-y */

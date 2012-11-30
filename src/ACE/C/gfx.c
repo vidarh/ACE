@@ -116,34 +116,18 @@ void pset() {
 
   colorset = pen_color();
 
-  gen_pop16d(1); /* pop y-coordinate */
-  gen_pop16d(0); /* pop x-coordinate */
+  gen_pop_coords();
 
-  if (!colorset) {
-	gen_load32a("_RPort",1);
-	enter_XREF("_RPort");
-  }
+  if (!colorset) gen_load_rport();
 
   if (relative) {
 	gen_rport_rel_xy();
 	gen_gfx_move();
   }
 
-  /* 
-  ** Save appropriate registers for call to WritePixel()
-  ** since Move() may clobber them.
-  */ 
-  gen_move32aa(1,3);
-  gen_move16dd(0,3);
-  gen_move16dd(1,4);
+  gen_save_gfx_regs();
   gen_gfx_move();
-  
-  /* 
-  ** Restore appropriate registers for call to WritePixel().
-  */
-  gen_move16dd(4,1);
-  gen_move16dd(3,0);
-  gen_move32aa(3,1);
+  gen_restore_gfx_regs();
   gen_writepixel();
   reset_pen(colorset);
 }
@@ -181,6 +165,77 @@ void paint() {
 void gen_Flt_expr_pop(int reg) {
     gen_Flt(expr());
     gen_pop32d(reg);
+}
+
+void gen_pop_to_coords() {
+  gen_pop16_var("_shorty"); /* y */
+  gen_pop16_var("_shortx"); /* x */
+}
+
+void gen_pop_coords() {
+  gen_pop16d(1); /* pop y-coordinate */
+  gen_pop16d(0); /* pop x-coordinate */
+}
+
+void gen_linepattern(int restore) {
+	gen_load32d_val(restore,1); 	/* RESTORE flag */
+	gen_jsr("_linepattern");
+}
+
+void gen_areapattern(int restore) {
+    gen_load32d_val(restore,1); 	/* RESTORE flag */
+    gen_jsr("_areapattern");
+}
+
+void gen_load_float_coords() {
+    gen_load_y();
+    gen_ext16to32(0);
+    gen_flt();
+    gen_push32d(0);
+    
+    gen_load_x();
+    gen_ext16to32(0);
+    gen_flt(); /* x is now in D0 */
+    
+    gen_pop32d(1); /* y */
+}
+
+void gen_ellipse() {
+    gen_jsr("_ellipse");
+    enter_XREF("_MathTransBase");  /* need these 3 libs for _ellipse */
+}
+
+void gen_save_gfx_regs() {
+  gen_move32aa(1,3);
+  gen_move16dd(0,3);
+  gen_move16dd(1,4);
+}
+
+void gen_restore_gfx_regs() {
+  gen_move16dd(4,1);
+  gen_move16dd(3,0);
+  gen_move32aa(3,1);
+}
+
+void gen_load_x() {
+	gen_load16d("_shortx",0);
+}
+
+void gen_save_x() {
+	gen_save16d(0,"_shortx");
+}
+
+void gen_load_y() {
+    gen_load16d("_shorty",0);
+}
+
+void gen_save_y() {
+	gen_save16d(0,"_shorty");
+}
+
+void gen_load_rport() {
+	gen_load32a("_RPort",1);
+	enter_XREF("_RPort");
 }
 
 void circle() {
@@ -224,39 +279,27 @@ void circle() {
   
   /* pop radius & (x,y) coordinates */
   gen_pop32d(2);      /* radius */
-  gen_pop16_var("_shorty"); /* y */
-  gen_pop16_var("_shortx"); /* x */
+  gen_pop_to_coords();
   
   if (relative) {
 	gen_load32a("_RPort",1);
-	
-	gen_load16d("_shortx",0);
+
+	gen_load_x();
 	gen_rport_rel_x(0);  /* x + RPort->cp_x */
-	gen_save16d(0,"_shortx");
-	
-	gen_load16d("_shorty",0);
+    gen_save_x();
+
+	gen_load_y();
 	gen_rport_rel_y(0);   /* y + RPort->cp_y */
-	gen_save16d(0,"_shorty");
+    gen_save_y();
   }
 
-  /* convert x & y values to floats */
-  gen_load16d("_shorty",0);
-  gen_ext16to32(0);
-  gen_flt();
-  gen_push32d(0);
+  gen_load_float_coords(); /* convert x & y values to floats */
 
-  gen_load16d("_shortx",0);
-  gen_ext16to32(0);
-  gen_flt(); /* x is now in D0 */
-  
-  gen_pop32d(1); /* y */
-  
   if (!start_angle) gen_load32d_val(0,3);   /* default is zero */
   if (!end_angle)  gen_load32d_val(0xb3800049,4);  /* default is 359 */
   if (!aspect) gen_load32d_val(0xe147af3f,5);  /* default is .44 */
-  
-  gen_jsr("_ellipse");
-  enter_XREF("_MathTransBase");  /* need these 3 libs for _ellipse */
+
+  gen_ellipse();
   
   enter_BSS("_shortx","ds.w 1");
   enter_BSS("_shorty","ds.w 1");
@@ -270,7 +313,7 @@ void enter_min_BSS() {
 
 void gen_move_pnt(short rx, short ry) {
     gen_move16dd(rx,0);
-    gen_move16dd(ry,0);
+    gen_move16dd(ry,1);
 }
 
 void gen_line_to(short rx, short ry) {
@@ -350,43 +393,27 @@ void draw_line()
   /* FIXME: Isn't this better handled with some small runtime library functions? */
   /* draw the line, outline box, or filled box */
   if (box) {
-	gen_pop16d(5);  /* y2 */
-	gen_pop16d(4);  /* x2 */
-	gen_load16d("_ymin",3); /* y1 */
-	gen_load16d("_xmin",2); /* x1 */
-	/* x1=d2; y1=d3 x2=d4; y2=d5 */
-	/* already moved to x1,y1 */
-
-	gen_line_to(4,3); /* x1,y1 - x2,y1 */
-	gen_line_to(4,5); /* x2,y1 - x2,y2 */
-    gen_line_to(2,5); /* x2,y2 - x1,y2 */
-	gen_line_to(2,3); /* x1,y2 - x1,y1 */
-    enter_min_BSS();
+      gen_box();
+      enter_min_BSS();
   }	else if (boxfill) {
-	change(cx,"nop","  ","  ");   /* don't need Move */
-	gen_load32a("_RPort",1);
-	gen_pop16d(3);  /* ymax */
-	gen_pop16d(2);  /* xmax */
-	gen_load16d("_ymin",1); /* ymin */
-	gen_load16d("_xmin",0); /* xmin */
-	gen_rectfill();
-    enter_min_BSS();
+      change(cx,"nop","  ","  ");   /* don't need Move */
+      gen_rectfill();
+      enter_min_BSS();
   } else {
-	/* draw line */
-	gen_load32a("_RPort",1);
-	gen_pop16d(1);  /* y2 */
-	gen_pop16d(0);  /* x2 */
-	/* already moved to x1,y1 */
-	gen_draw();
-	/* don't need to save x1 & x2 in _xmin & _ymin */
-	change(cx1,"nop","  ","  ");
-	change(cx2,"nop","  ","  ");
-	if (colorset) {
-	  change(cx3,"nop","  ","  ");
-	  change(cx4,"nop","  ","  ");
-	  change(cx5,"nop","  ","  ");
-	  change(cx6,"nop","  ","  ");
-	}
+      /* draw line */
+      gen_load_rport();
+      gen_pop_coords();
+      /* already moved to x1,y1 */
+      gen_draw();
+      /* don't need to save x1 & x2 in _xmin & _ymin */
+      change(cx1,"nop","  ","  ");
+      change(cx2,"nop","  ","  ");
+      if (colorset) {
+          change(cx3,"nop","  ","  ");
+          change(cx4,"nop","  ","  ");
+          change(cx5,"nop","  ","  ");
+          change(cx6,"nop","  ","  ");
+      }
   }
   reset_pen(colorset);
 }
@@ -449,16 +476,13 @@ void pattern() {
   insymbol();
   if (eat(restoresym)) {
 	/* restore default pattern */
-	gen_load32d_val(1,1); 	/* RESTORE flag */
-	gen_jsr("_linepattern");
-	gen_load32d_val(1,1); 	/* RESTORE flag */
-	gen_jsr("_areapattern");
+      gen_linepattern(1); /* 1 == RESTORE flag */
+      gen_areapattern(1);
   } else {
 	if (sym != comma) {
 	  /* get line-pattern */
 	  gen_pop_as_short(expr(), 0); /* line-pattern */
-	  gen_load32d_val(0,1); 	/* RESTORE flag */
-	  gen_jsr("_linepattern");
+      gen_linepattern(0); /* RESTORE = 0 */
 	  linepatterncalled=TRUE;
 	} else linepatterncalled=FALSE;
 	
@@ -473,8 +497,7 @@ void pattern() {
                        otherwise area-pattern doesn't
                        seem to work! 
                     */
-                    gen_load32d_val(1,1); 	/* set line-pattern to $FFFF */
-                    gen_jsr("_linepattern");
+                    gen_linepattern(1);
                 }
 		
        	/* get address of array */
@@ -485,8 +508,7 @@ void pattern() {
        	/* size of array? */
 		gen_load32d_val(curr_item->size / 2, 0); 	/* size of array */
 
-		gen_load32d_val(0,1); 	/* RESTORE flag */
-		gen_jsr("_areapattern");
+        gen_areapattern(0);
 		enter_XREF("_MathBase");
 		enter_XREF("_MathTransBase");	/* need to find Log2(size) */
       }

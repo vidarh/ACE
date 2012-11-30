@@ -780,16 +780,16 @@ _lab2:
 	move.w	_ymin,d3
 	move.w	_xmin,d2
 	move.w	d4,d0
-	move.w	d3,d0
+	move.w	d3,d1
 	jsr	_LVODraw(a6)
 	move.w	d4,d0
-	move.w	d5,d0
+	move.w	d5,d1
 	jsr	_LVODraw(a6)
 	move.w	d2,d0
-	move.w	d5,d0
+	move.w	d5,d1
 	jsr	_LVODraw(a6)
 	move.w	d2,d0
-	move.w	d3,d0
+	move.w	d3,d1
 	jsr	_LVODraw(a6)
 	move.w	_fgdpen,d0
 	move.l	_RPort,a1
@@ -1287,16 +1287,16 @@ _lab5:
 	move.w	_ymin,d3
 	move.w	_xmin,d2
 	move.w	d4,d0
-	move.w	d3,d0
+	move.w	d3,d1
 	jsr	_LVODraw(a6)
 	move.w	d4,d0
-	move.w	d5,d0
+	move.w	d5,d1
 	jsr	_LVODraw(a6)
 	move.w	d2,d0
-	move.w	d5,d0
+	move.w	d5,d1
 	jsr	_LVODraw(a6)
 	move.w	d2,d0
-	move.w	d3,d0
+	move.w	d3,d1
 	jsr	_LVODraw(a6)
 	move.w	_fgdpen,d0
 	move.l	_RPort,a1
@@ -1911,16 +1911,16 @@ _lab9:
 	move.w	_ymin,d3
 	move.w	_xmin,d2
 	move.w	d4,d0
-	move.w	d3,d0
+	move.w	d3,d1
 	jsr	_LVODraw(a6)
 	move.w	d4,d0
-	move.w	d5,d0
+	move.w	d5,d1
 	jsr	_LVODraw(a6)
 	move.w	d2,d0
-	move.w	d5,d0
+	move.w	d5,d1
 	jsr	_LVODraw(a6)
 	move.w	d2,d0
-	move.w	d3,d0
+	move.w	d3,d1
 	jsr	_LVODraw(a6)
 	move.w	_fgdpen,d0
 	move.l	_RPort,a1
@@ -2418,16 +2418,16 @@ _lab12:
 	move.w	_ymin,d3
 	move.w	_xmin,d2
 	move.w	d4,d0
-	move.w	d3,d0
+	move.w	d3,d1
 	jsr	_LVODraw(a6)
 	move.w	d4,d0
-	move.w	d5,d0
+	move.w	d5,d1
 	jsr	_LVODraw(a6)
 	move.w	d2,d0
-	move.w	d5,d0
+	move.w	d5,d1
 	jsr	_LVODraw(a6)
 	move.w	d2,d0
-	move.w	d3,d0
+	move.w	d3,d1
 	jsr	_LVODraw(a6)
 	move.w	_fgdpen,d0
 	move.l	_RPort,a1
@@ -3208,16 +3208,16 @@ _lab25:
 	move.w	_ymin,d3
 	move.w	_xmin,d2
 	move.w	d4,d0
-	move.w	d3,d0
+	move.w	d3,d1
 	jsr	_LVODraw(a6)
 	move.w	d4,d0
-	move.w	d5,d0
+	move.w	d5,d1
 	jsr	_LVODraw(a6)
 	move.w	d2,d0
-	move.w	d5,d0
+	move.w	d5,d1
 	jsr	_LVODraw(a6)
 	move.w	d2,d0
-	move.w	d3,d0
+	move.w	d3,d1
 	jsr	_LVODraw(a6)
 	move.w	_fgdpen,d0
 	move.l	_RPort,a1
@@ -4731,16 +4731,16 @@ RESET.NODE:
 	move.w	_ymin,d3
 	move.w	_xmin,d2
 	move.w	d4,d0
-	move.w	d3,d0
+	move.w	d3,d1
 	jsr	_LVODraw(a6)
 	move.w	d4,d0
-	move.w	d5,d0
+	move.w	d5,d1
 	jsr	_LVODraw(a6)
 	move.w	d2,d0
-	move.w	d5,d0
+	move.w	d5,d1
 	jsr	_LVODraw(a6)
 	move.w	d2,d0
-	move.w	d3,d0
+	move.w	d3,d1
 	jsr	_LVODraw(a6)
 	move.w	_fgdpen,d0
 	move.l	_RPort,a1
@@ -5123,16 +5123,16 @@ _lab80:
 	move.w	_ymin,d3
 	move.w	_xmin,d2
 	move.w	d4,d0
-	move.w	d3,d0
+	move.w	d3,d1
 	jsr	_LVODraw(a6)
 	move.w	d4,d0
-	move.w	d5,d0
+	move.w	d5,d1
 	jsr	_LVODraw(a6)
 	move.w	d2,d0
-	move.w	d5,d0
+	move.w	d5,d1
 	jsr	_LVODraw(a6)
 	move.w	d2,d0
-	move.w	d3,d0
+	move.w	d3,d1
 	jsr	_LVODraw(a6)
 	move.w	_fgdpen,d0
 	move.l	_RPort,a1
