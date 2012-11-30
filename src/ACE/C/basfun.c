@@ -106,12 +106,6 @@ BOOL strfunc()
  return(FALSE);
 }
 
-void gen_pop_short_addr(unsigned char tmp,unsigned char dest) {
-  gen_pop16d(tmp);
-  gen_ext16to32(tmp);
-  gen_move32da(tmp,dest);
-}
-
 void load_temp_string(unsigned char reg)
 {
   make_temp_string();
@@ -661,17 +655,6 @@ int numericfunction() {
 
 	
   case peekwsym : /* i */
-	nftype=make_integer(nftype); 
-	if ((nftype == longtype) || (nftype == shorttype)) {
-	  /* get address */
-	  if (nftype == shorttype) gen_pop_short_addr(0,0);
-	  else gen_pop_addr(0); 
-	  /* get value */
-	  gen_push_indirect(shorttype);
-	  nftype=shorttype;
-	}
-	break;
-	
   case peeklsym : /* i */
 	nftype=make_integer(nftype); 
 	if ((nftype == longtype) || (nftype == shorttype)) {
@@ -679,32 +662,13 @@ int numericfunction() {
 	  if (nftype == shorttype) gen_pop_short_addr(0,0);
 	  else gen_pop_addr(0); 
 	  /* get value */
-	  gen_push_indirect(longtype);
-	  nftype=longtype;
-	}			
-	break;
-	
-  case sgnsym  : /* n */
-	if      (nftype == shorttype) nftype = gen_fcall("_sgnw", nftype, "w",longtype,":d0",0);
-	else if (nftype == longtype)  nftype = gen_fcall("_sgnl", nftype, "l",longtype,":d0",0);
-	else if (nftype == singletype) {
-	  gen_call_args("_sgnf","d1 : d0", 0);
-	  enter_XREF("_MathBase");
-	  nftype=longtype;
-	} else { 
-	  _error(4); nftype=undefined;
+	  nftype= func == peekwsym ? shorttype : longtype;
+	  gen_push_indirect(nftype);
 	}
-	break; 
+	break;
 
-  case abssym : /* n */
-      if (nftype == shorttype) gen_call_args("_absw","d0.w : d0.w",0);
-      else if (nftype == longtype) gen_call_args("_absl","d0 : d0",0);
-      else if (nftype == singletype) {
-          gen_call_args("_absf", "d0 : d0",0);
-          enter_XREF("_MathBase");
-      } else { _error(4); nftype=undefined; }
-      break;
-	
+  case sgnsym  : nftype = gen_sgn(nftype); break;
+  case abssym :  nftype = gen_abs(nftype); break;
 	
   case pointsym:
       if ((nftype = parse_gen_params(nftype,"w,w"))  != undefined) gen_point(); break;

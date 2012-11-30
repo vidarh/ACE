@@ -633,6 +633,12 @@ void gen_load32a(const char * label, unsigned char reg) {
   gen("move.l",label,areg[reg]);
 }
 
+void gen_pop_short_addr(unsigned char tmp,unsigned char dest) {
+  gen_pop16d(tmp);
+  gen_ext16to32(tmp);
+  gen_move32da(tmp,dest);
+}
+
 void gen_load32d(const char * label, unsigned char reg) {
   gen("move.l",label,dreg[reg]);
 }
@@ -847,6 +853,10 @@ int nostring(int type) {
     if (type != stringtype) return 1;
     _error(4);
     return 0;
+}
+
+int string(int type) {
+    return !nostring(type);
 }
 
 
@@ -1127,6 +1137,26 @@ void gen_power()
   enter_XREF("_MathTransBase"); /* opens FFP+IEEE SP transcendental libraries */
 }
 
+int gen_sgn(int nftype) {
+    if      (nftype == shorttype) nftype = gen_fcall("_sgnw", nftype, "w",longtype,":d0",0);
+    else if (nftype == longtype)  nftype = gen_fcall("_sgnl", nftype, "l",longtype,":d0",0);
+    else if (nftype == singletype) {
+        gen_call_args("_sgnf","d1 : d0", 0);
+        enter_XREF("_MathBase");
+        nftype = longtype;
+    } else { _error(4); nftype=undefined; }
+    return nftype;
+}
+
+int gen_abs(int nftype) {
+    if (nftype == shorttype) gen_call_args("_absw","d0.w : d0.w",0);
+    else if (nftype == longtype) gen_call_args("_absl","d0 : d0",0);
+    else if (nftype == singletype) {
+        gen_call_args("_absf", "d0 : d0",0);
+        enter_XREF("_MathBase");
+    }
+    return nftype;
+}
 
 void gen_str_concat() 
 {
