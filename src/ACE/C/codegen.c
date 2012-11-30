@@ -141,6 +141,27 @@ void gen_branch(char * branch, char * labname) {
   gen(branch,labname,destbuf);
 }
 
+
+void gen_pop_save_indirect(int ptrtype) {
+    if (ptrtype == shortpointer) {
+        gen_pop_as_short(expr(),0); /* expression */
+        gen_pop_addr(0);  /* pop address */
+        gen_save_indirect16();  /* store expression */
+    } else if (ptrtype == longpointer) {
+        long_expr();
+        gen_pop32d(0);  /* pop expression */ 
+        gen_pop_addr(0);  /* pop address */
+        gen_save_indirect32();  /* store expression */
+    } else if (ptrtype == singlepointer) {
+        gen_Flt(expr());
+        gen_pop32d(0);  /* pop expression */ 
+        gen_pop_addr(0);  /* pop address */
+        gen_save_indirect32();  /* store expression */
+    }
+}
+
+
+
 void m68k_link() { gen("link","a5","  "); }
 void m68k_unlk() { gen("unlk","a5","  "); }
 void generic_rts() { gen("rts","  ","  "); }

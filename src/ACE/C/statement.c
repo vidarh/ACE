@@ -720,41 +720,16 @@ BOOL  need_symbol=TRUE;
    break;
 
  case shortpointer: /* *%<address> = <expr> */
-   insymbol();
-   if (expr() != longtype) _error(4); /* address */
-   else {
-       if (expect(becomes,5)) {
-           gen_pop_as_short(expr(),0); /* expression */
-           gen_pop_addr(0);  /* pop address */
-           gen_save_indirect16();  /* store expression */
-       }
-   }
-   break;
-
  case longpointer:  /* *&<address> = <expr> */
-     insymbol();
-     if (expr() != longtype)  _error(4); /* address */
-     else {
-         if (expect(becomes,5)) {
-             long_expr();
-             gen_pop32d(0);  /* pop expression */ 
-             gen_pop_addr(0);  /* pop address */
-             gen_save_indirect32();  /* store expression */
+ case singlepointer: /* *!<address> = <expr> */
+     {
+         int tmpsym = sym;
+         insymbol();
+         if (expr() != longtype) _error(4); /* address */
+         else {
+             if (expect(becomes,5)) gen_pop_save_indirect(tmpsym);
          }
      }
-     break;
-
- case singlepointer: /* *!<address> = <expr> */
-   insymbol();
-   if (expr() != longtype) _error(4); /* address */
-   else {
-       if (expect(becomes,5)) {
-           gen_Flt(expr());
-           gen_pop32d(0);  /* pop expression */ 
-           gen_pop_addr(0);  /* pop address */
-           gen_save_indirect32();  /* store expression */
-       }
-   }
    break;
  default:
    /* feature not implemented? */  
